@@ -203,6 +203,15 @@ the five pages became a blank error screen. Each route is re-loaded with
 `getContext` stubbed to fail and must still have its heading, navigation, and
 a substantial amount of body text.
 
+**Reduced motion** — that the 3D scenes stop rotating themselves when the OS
+asks for it, since perpetual motion in the visual field is what triggers
+vestibular symptoms. Every scene used to spin forever, and the existing
+`prefers-reduced-motion` block in CSS only covered CSS animations. Verified by
+screenshotting a scene twice three seconds apart under an emulated
+`prefers-reduced-motion: reduce` and requiring the two frames to be
+byte-identical — plus a control run without the preference, which must differ.
+Without that control the check could pass by being unable to see motion at all.
+
 ```bash
 ./dev.sh build
 ./dev.sh start      # keep running in another terminal

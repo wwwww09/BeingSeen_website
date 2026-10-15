@@ -30,6 +30,9 @@
  * 第三阶段 · 无 WebGL 降级 (五个页面各一次)
  *  10. 拿不到 WebGL 时正文、标题和导航必须还在 (不能整页白屏)
  *
+ * 第四阶段 · 减少动效
+ *  11. 系统要求减少动效时, 3D 场景必须停止自发旋转 (含一个对照组)
+ *
  * 用法
  * ----------------------------------------------------------------------------
  *   ./dev.sh build && ./dev.sh start        # 另开一个终端
@@ -481,10 +484,58 @@ await send('Page.removeScriptToEvaluateOnNewDocument', {
   identifier: injected.result?.identifier,
 })
 
+// ================================================================== 第四阶段: 减少动效
+//
+// 前庭功能障碍的人会因为视野里持续的自发运动而眩晕, 系统开关体现为
+// `prefers-reduced-motion: reduce`。项目里五个 3D 场景默认都在永久自转
+// (天球自转 + OrbitControls 的 autoRotate), 必须停掉 —— 但"减少动效"
+// 不等于禁止交互, 用户自己拖动仍然可以。
+//
+// 判定方法: 隔几秒截两张图。一直在动的场景两张必然不同, 停下来的应当逐字节
+// 相同。同时跑一个"不要求减少动效"的对照组, 确保这个方法确实分得清
+// "静止"和"还在动" —— 否则这个检查可能永远通过。
+console.log('\n── 减少动效 ─────────────────────────────────────')
+
+async function sceneIsStatic(path, reduced) {
+  await send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'prefers-reduced-motion', value: reduced ? 'reduce' : 'no-preference' },
+    ],
+  })
+  await goto(path)
+  await sleep(1800) // 等自适应 DPR 和首帧稳定下来
+  const a = (await send('Page.captureScreenshot', { format: 'png' })).result?.data
+  await sleep(3000)
+  const b = (await send('Page.captureScreenshot', { format: 'png' })).result?.data
+  return a === b
+}
+
+// 这两个页面的 3D 场景都在首屏, 不需要滚动
+const homeStatic = await sceneIsStatic('/', true)
+check(
+  '减少动效 · 首页星场停止自转',
+  homeStatic,
+  homeStatic ? '' : '要求减少动效时画面仍在变化',
+)
+
+const skyStatic = await sceneIsStatic('/being-seen', true)
+check(
+  '减少动效 · 留言板星图停止自转',
+  skyStatic,
+  skyStatic ? '' : '要求减少动效时画面仍在变化',
+)
+
+const controlMoves = !(await sceneIsStatic('/being-seen', false))
+check(
+  '对照 · 不要求减少动效时星图仍在自转',
+  controlMoves,
+  controlMoves ? '' : '对照组也没有变化 —— 这个检查分辨不出动与不动, 结果不可信',
+)
+
 // ================================================================== 结果
 console.log('')
 if (failures === 0) {
-  console.log(`全部通过 (${ROUTES.length} 个页面 + 交互检查)`)
+  console.log(`全部通过 (${ROUTES.length} 个页面 + 交互 + 降级 + 减少动效)`)
 } else {
   console.log(`${failures} 项失败`)
 }

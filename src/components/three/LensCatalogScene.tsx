@@ -5,6 +5,7 @@ import { AdaptiveDpr, Html, OrbitControls } from '@react-three/drei'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import type { LensPoint, SupernovaEvent } from '@/lib/types'
+import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
 
 /**
  * 网页布局纲要 页面二 的「可选 3D 图」:
@@ -177,8 +178,10 @@ function GisneMarkers({
  */
 function RotatingSky({ children }: { children: ReactNode }) {
   const group = useRef<THREE.Group>(null)
+  const reducedMotion = usePrefersReducedMotion()
 
   useFrame((_, delta) => {
+    if (reducedMotion) return
     if (group.current) group.current.rotation.y += delta * 0.02
   })
 

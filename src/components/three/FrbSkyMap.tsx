@@ -5,6 +5,7 @@ import { OrbitControls, Html, AdaptiveDpr } from '@react-three/drei'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import type { FrbEvent } from '@/lib/types'
+import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
 
 /**
  * CHIME/FRB 全样本的 3D 空间分布。
@@ -83,6 +84,7 @@ function FrbPoints({
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const { raycaster, gl, camera } = useThree()
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const reducedMotion = usePrefersReducedMotion()
 
   // 高亮的单独渲染, 其余进 instanced mesh
   const ordinary = useMemo(
@@ -150,6 +152,7 @@ function FrbPoints({
   }, [raycaster, gl, camera, built.length])
 
   useFrame((_, d) => {
+    if (reducedMotion) return
     if (group.current) group.current.rotation.y += d * 0.045
   })
 
@@ -253,6 +256,7 @@ export default function FrbSkyMap({
 }) {
   const [dpr, setDpr] = useState(1.4)
   const [showRepeaters, setShowRepeaters] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   const survivorSet = useMemo(() => new Set(survivors), [survivors])
   const claimedSet = useMemo(() => new Set(claimed), [claimed])
@@ -281,7 +285,7 @@ export default function FrbSkyMap({
           enablePan={false}
           minDistance={14}
           maxDistance={48}
-          autoRotate
+          autoRotate={!reducedMotion}
           autoRotateSpeed={0.35}
         />
         <CelestialGrid />

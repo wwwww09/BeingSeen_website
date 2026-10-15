@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, AdaptiveDpr } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
 
 /**
  * Being Seen 的星图。
@@ -48,6 +49,7 @@ function Stars({
   const group = useRef<THREE.Group>(null)
   const { raycaster, gl, camera } = useThree()
   const [hovered, setHovered] = useState<number | null>(null)
+  const reducedMotion = usePrefersReducedMotion()
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const color = useMemo(() => new THREE.Color(), [])
@@ -173,6 +175,7 @@ function Stars({
   }, [raycaster, gl, camera, interactive, onSelect, dirs])
 
   useFrame((_, d) => {
+    if (reducedMotion) return
     if (group.current) group.current.rotation.y += d * 0.022
   })
 
@@ -213,6 +216,7 @@ export default function StoryStarfield({
 }) {
   const [dpr, setDpr] = useState(1.4)
   const lit = useMemo(() => new Set(litIndices), [litIndices])
+  const reducedMotion = usePrefersReducedMotion()
 
   return (
     <Canvas
@@ -227,7 +231,7 @@ export default function StoryStarfield({
         enablePan={false}
         minDistance={12}
         maxDistance={48}
-        autoRotate
+        autoRotate={!reducedMotion}
         autoRotateSpeed={0.22}
         enabled={interactive}
       />

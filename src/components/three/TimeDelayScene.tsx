@@ -4,6 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, AdaptiveDpr } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
 
 /**
  * FRB 强透镜时间延迟的 3D 光路示意图。
@@ -60,6 +61,7 @@ function bentPath(sign: number, amplitude: number, samples = 160) {
 
 function LightPaths({ path }: { path: 'short' | 'long' }) {
   const isShort = path === 'short'
+  const reducedMotion = usePrefersReducedMotion()
   const positions = useMemo(
     () => (isShort ? bentPath(1, 1.15) : bentPath(1, 2.35)),
     [isShort],
@@ -77,6 +79,9 @@ function LightPaths({ path }: { path: 'short' | 'long' }) {
   )
 
   useFrame((_, delta) => {
+    // 减少动效时冻结光脉冲: 两条路径的几何形状和"长路径晚到"的先后关系
+    // 仍然看得见, 只是不再流动
+    if (reducedMotion) return
     uniforms.uTime.value += delta
   })
 
@@ -110,7 +115,9 @@ function LightPaths({ path }: { path: 'short' | 'long' }) {
 /** 透镜星系 (SIS 近似: 一个发光的椭球 + 环) */
 function LensGalaxy({ onClick }: { onClick: () => void }) {
   const ref = useRef<THREE.Mesh>(null)
+  const reducedMotion = usePrefersReducedMotion()
   useFrame((_, d) => {
+    if (reducedMotion) return
     if (ref.current) ref.current.rotation.y += d * 0.12
   })
   return (
@@ -153,6 +160,7 @@ function Marker({
 export default function TimeDelayScene() {
   const [showLong, setShowLong] = useState(true)
   const [dpr, setDpr] = useState(1.4)
+  const reducedMotion = usePrefersReducedMotion()
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -168,7 +176,7 @@ export default function TimeDelayScene() {
           enablePan={false}
           minDistance={8}
           maxDistance={26}
-          autoRotate
+          autoRotate={!reducedMotion}
           autoRotateSpeed={0.42}
         />
 

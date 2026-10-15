@@ -5,6 +5,7 @@ import { AdaptiveDpr, PerformanceMonitor } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { LensPoint } from '@/lib/types'
+import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
 
 /**
  * 首页背景星图。
@@ -27,6 +28,7 @@ function raDecToXyz(raDeg: number, decDeg: number, radius: number): [number, num
 
 function LensedField({ lenses }: { lenses: LensPoint[] }) {
   const group = useRef<THREE.Group>(null)
+  const reducedMotion = usePrefersReducedMotion()
 
   // 蓝色: 已知透镜系统
   const lensPositions = useMemo(() => {
@@ -74,6 +76,7 @@ function LensedField({ lenses }: { lenses: LensPoint[] }) {
   }, [])
 
   useFrame((_, delta) => {
+    if (reducedMotion) return
     if (group.current) {
       group.current.rotation.y += delta * 0.028
       group.current.rotation.x = Math.sin(Date.now() * 0.00005) * 0.045
