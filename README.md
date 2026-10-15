@@ -196,6 +196,13 @@ lensing and 2/5 with it (the page's own headline), dragging it changes the
 readout, the magnification slider reaches its win state ("Gap cleared") and
 resets, and clicking the starfield selects a star.
 
+**Degradation** — that each route survives having no WebGL, which is common on
+managed and older machines. Without the guard in `clientOnly`, three.js throws
+`Error creating WebGL context` and React unmounts the entire tree, so four of
+the five pages became a blank error screen. Each route is re-loaded with
+`getContext` stubbed to fail and must still have its heading, navigation, and
+a substantial amount of body text.
+
 ```bash
 ./dev.sh build
 ./dev.sh start      # keep running in another terminal

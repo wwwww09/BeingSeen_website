@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { clientOnly } from '@/components/three/clientOnly'
+import { clientOnly, useWebGLSupport } from '@/components/three/clientOnly'
 
 const StoryStarfield = clientOnly(
   () => import('@/components/three/StoryStarfield'),
@@ -91,6 +91,9 @@ export default function Guestbook({ configured }: { configured: boolean }) {
   const [pendingStar, setPendingStar] = useState<number | null>(null)
   const clientRef = useRef<SupabaseClient | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // 没有 WebGL 时不该提示"点一颗星星" —— 那颗星星根本画不出来
+  const webgl = useWebGLSupport()
 
   const starMap = useMemo(() => assignStars(stories), [stories])
   const litIndices = useMemo(() => [...starMap.keys()], [starMap])
@@ -283,12 +286,15 @@ export default function Guestbook({ configured }: { configured: boolean }) {
             litIndices={litIndices}
             selected={selected}
             onSelect={handleSelectStar}
+            fallbackNote="You can still leave your story in the box on the right — it will light a star for you."
           />
         </div>
         <div className="guestbook__hint">
           {loading
             ? 'reading the sky…'
-            : `${litIndices.length} of ${STAR_COUNT} stars have been lit by a story · click a dim star to leave yours`}
+            : webgl === false
+              ? `${litIndices.length} of ${STAR_COUNT} stars have been lit by a story · write yours in the box →`
+              : `${litIndices.length} of ${STAR_COUNT} stars have been lit by a story · click a dim star to leave yours`}
         </div>
       </div>
 

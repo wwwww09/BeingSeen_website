@@ -511,6 +511,40 @@ p.body {
   }
 }
 
+/* --------------------------------------------------------------------------
+   3D 场景不可用时的占位 (没有 WebGL, 或场景渲染出错)
+
+   正文是主体, 3D 是增强。这里必须看起来像"这块内容换了一种呈现方式",
+   而不是"网站坏了" —— 所以用和其它面板一致的外观, 而不是红色报错。
+   -------------------------------------------------------------------------- */
+.scene-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 28px 26px;
+  border: 1px dashed var(--border-bright);
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, var(--bg-panel), var(--bg-deep));
+}
+.scene-fallback__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.scene-fallback__body {
+  margin: 0;
+  max-width: 56ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-faint);
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;

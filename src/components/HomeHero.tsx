@@ -4,9 +4,12 @@ import Link from 'next/link'
 import { clientOnly } from '@/components/three/clientOnly'
 import type { LensPoint } from '@/lib/types'
 
+// 首页星场是纯装饰背景: 没有 WebGL 时静默跳过, 不要弹一个"3D 不可用"的框
+// (它后面本来就有 CSS 径向渐变)
 const ParticleField = clientOnly(
   () => import('@/components/three/ParticleField'),
   520,
+  { silent: true },
 )
 
 export default function HomeHero({

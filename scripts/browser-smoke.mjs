@@ -27,6 +27,9 @@
  *   8. 页面四的放大率滑块: 能拖到通关 (Gap cleared), Reset 能回到起点
  *   9. 页面五点星图能选中一颗星
  *
+ * 第三阶段 · 无 WebGL 降级 (五个页面各一次)
+ *  10. 拿不到 WebGL 时正文、标题和导航必须还在 (不能整页白屏)
+ *
  * 用法
  * ----------------------------------------------------------------------------
  *   ./dev.sh build && ./dev.sh start        # 另开一个终端
@@ -429,6 +432,54 @@ check('Being Seen · 点击星图能选中一颗星', !!hit && /^You chose star 
 // ---------------------------------------------------------- 全局: 无异常
 const exceptions = events.filter((e) => e.method === 'Runtime.exceptionThrown')
 check('交互过程无未捕获异常', exceptions.length === 0, exceptions.length ? String(exceptions[0].params?.exceptionDetails?.exception?.description).slice(0, 100) : '')
+
+// ================================================================== 第三阶段: 无 WebGL 降级
+//
+// 拿不到 WebGL 上下文时 three.js 会抛未捕获异常, React 随即卸载整棵树 ——
+// 五个页面里四个会变成一张空白错误页, 连导航和正文一起消失。这在现实中很常见:
+// 学校/公司的浏览器策略、隐私浏览器、老旧硬件、驱动黑名单。
+// 正文是主体, 3D 是增强, 所以这里逐个页面确认"降级之后内容还在"。
+console.log('\n── 无 WebGL 降级 ─────────────────────────────────')
+
+const DISABLE_WEBGL = `
+  const orig = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+    if (typeof type === 'string' && type.toLowerCase().includes('webgl')) return null;
+    return orig.call(this, type, ...rest);
+  };
+`
+const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: DISABLE_WEBGL })
+
+const CONTENT_STATE = `(() => ({
+  h1: document.querySelector('h1')?.textContent.trim() ?? null,
+  textLen: document.body ? document.body.innerText.trim().length : 0,
+  nav: Boolean(document.querySelector('.nav__link')),
+  spinners: document.querySelectorAll('.loading').length,
+}))()`
+
+for (const route of ROUTES) {
+  await goto(route.path)
+  const state = (await evaluate(CONTENT_STATE)) ?? {}
+  const problems = []
+
+  const errs = events
+    .filter((e) => e.method === 'Runtime.exceptionThrown')
+    .map((e) =>
+      (e.params.exceptionDetails?.exception?.description || e.params.exceptionDetails?.text || '').split('\n')[0],
+    )
+
+  if (errs.length) problems.push(`未捕获异常: ${errs[0]}`)
+  if (!state.h1) problems.push('没有 <h1>')
+  if (state.textLen < 300) problems.push(`正文只剩 ${state.textLen} 字, 整页疑似被卸载`)
+  if (!state.nav) problems.push('导航栏消失')
+  if (state.spinners > 0) problems.push(`${state.spinners} 个场景停在加载占位符`)
+
+  check(`无 WebGL · ${route.path}  (正文 ${state.textLen} 字)`, problems.length === 0, problems.join('; '))
+}
+
+await send('Page.removeScriptToEvaluateOnNewDocument', {
+  identifier: injected.result?.identifier,
+})
 
 // ================================================================== 结果
 console.log('')
