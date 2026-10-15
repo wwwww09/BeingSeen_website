@@ -16,6 +16,12 @@ import * as THREE from 'three'
 
 export const STAR_COUNT = 320
 
+/** 点选兜底半径 (NDC 单位, 1.0 = 半个屏幕宽) */
+const PICK_RADIUS = 0.06
+
+/** 指针位移超过这个像素数就当作"拖动星图", 不算点选 */
+const CLICK_SLOP_PX = 6
+
 /** 由索引生成稳定的伪随机方向 (避免每次渲染星星乱跳) */
 function starDirection(i: number, total: number): [number, number, number] {
   // 斐波那契球面分布 —— 视觉上均匀
@@ -81,40 +87,90 @@ function Stars({
     const canvas = gl.domElement
     if (!mesh || !canvas) return
 
-    const pick = (clientX: number, clientY: number): number | null => {
-      const rect = canvas.getBoundingClientRect()
-      const ndc = new THREE.Vector2(
-        ((clientX - rect.left) / rect.width) * 2 - 1,
-        -((clientY - rect.top) / rect.height) * 2 + 1,
-      )
+    /** 精确射线求交 */
+    const pickExact = (ndc: THREE.Vector2): number | null => {
       raycaster.setFromCamera(ndc, camera)
-      raycaster.params.Points = { threshold: 1 }
       const hits = raycaster.intersectObject(mesh, false)
       return hits.length > 0 && hits[0].instanceId !== undefined
         ? hits[0].instanceId
         : null
     }
 
+    /**
+     * 兜底: 在屏幕空间里找最近的一颗星。
+     *
+     * 星星只有几个像素宽, 精确求交很容易点空 —— 而这恰恰是全站最重要的
+     * 一次交互, 点不中就等于故事写不出来。这里把 320 颗星投影到 NDC,
+     * 取半径 PICK_RADIUS 内最近的一颗。只在点击时算一次, 开销可忽略。
+     */
+    const pickNearest = (ndc: THREE.Vector2): number | null => {
+      const g = group.current
+      if (!g) return null
+      const v = new THREE.Vector3()
+      let best: number | null = null
+      let bestDist = PICK_RADIUS
+      for (let i = 0; i < STAR_COUNT; i++) {
+        const [x, y, z] = dirs[i]
+        v.set(x, y, z).applyMatrix4(g.matrixWorld).project(camera)
+        // 在相机背后的点投影会翻转, 直接丢掉
+        if (v.z > 1) continue
+        const d = Math.hypot(v.x - ndc.x, v.y - ndc.y)
+        if (d < bestDist) {
+          bestDist = d
+          best = i
+        }
+      }
+      return best
+    }
+
+    const toNdc = (clientX: number, clientY: number): THREE.Vector2 => {
+      const rect = canvas.getBoundingClientRect()
+      return new THREE.Vector2(
+        ((clientX - rect.left) / rect.width) * 2 - 1,
+        -((clientY - rect.top) / rect.height) * 2 + 1,
+      )
+    }
+
+    const pick = (clientX: number, clientY: number): number | null => {
+      const ndc = toNdc(clientX, clientY)
+      return pickExact(ndc) ?? pickNearest(ndc)
+    }
+
+    // 拖动星图之后松手也会触发 click, 这里用位移把"旋转"和"点选"区分开
+    let downX = 0
+    let downY = 0
+
+    const onDown = (ev: PointerEvent) => {
+      downX = ev.clientX
+      downY = ev.clientY
+    }
+
     const onMove = (ev: PointerEvent) => {
       if (!interactive) return
       setHovered(pick(ev.clientX, ev.clientY))
     }
+
     const onClick = (ev: MouseEvent) => {
       if (!interactive) return
+      const moved = Math.hypot(ev.clientX - downX, ev.clientY - downY)
+      if (moved > CLICK_SLOP_PX) return
       const i = pick(ev.clientX, ev.clientY)
       if (i !== null) onSelect(i)
     }
+
     const onLeave = () => setHovered(null)
 
+    canvas.addEventListener('pointerdown', onDown)
     canvas.addEventListener('pointermove', onMove)
     canvas.addEventListener('click', onClick)
     canvas.addEventListener('pointerleave', onLeave)
     return () => {
+      canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointermove', onMove)
       canvas.removeEventListener('click', onClick)
       canvas.removeEventListener('pointerleave', onLeave)
     }
-  }, [raycaster, gl, camera, interactive, onSelect])
+  }, [raycaster, gl, camera, interactive, onSelect, dirs])
 
   useFrame((_, d) => {
     if (group.current) group.current.rotation.y += d * 0.022
