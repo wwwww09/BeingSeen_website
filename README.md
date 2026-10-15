@@ -172,6 +172,7 @@ build_data.py                   the entire data pipeline
 supabase/schema.sql             tables, RLS, rate limiting, realtime
 supabase/schema-public-insert.sql  optional write policy for static hosting
 scripts/browser-smoke.mjs       headless-Chrome check of all five routes
+scripts/serve-static.mjs        clean-URL static preview server for out/
 DEPLOY.md                       step-by-step Supabase + Vercel guide (Chinese)
 .env.example                    environment variable template
 dev.sh                          local dev entry point

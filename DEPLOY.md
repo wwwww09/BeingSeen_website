@@ -314,7 +314,15 @@ mapping process and mapped file (non-platform) have different Team IDs
 ./dev.sh typecheck     # 只做类型检查
 ./dev.sh data          # 从原始星表重新生成 public/data 和 public/charts
 ./dev.sh static        # 生成纯静态 out/（拖拽上传用，可选）
+./dev.sh serve-static  # 本地预览 out/（http://127.0.0.1:3200）
 ```
+
+> `serve-static` 用的是项目自带的服务器（`scripts/serve-static.mjs`），
+> 而不是 `python -m http.server`。原因：Next 的静态导出会为每个子页面
+> 同时生成 `page.html` 和 `page/`（后者只装 RSC 载荷，没有 index.html），
+> 普通静态服务器会把 `/page` 301 到 `/page/` 然后**列出文件目录**，
+> 五个页面里有四个看起来像是坏的。自带服务器按托管平台的 clean URL
+> 规则解析（精确文件 → `.html` → `/index.html`）。
 
 ### 推送到 GitHub 之前，建议跑一遍浏览器检查
 

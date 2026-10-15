@@ -184,10 +184,10 @@ case "$CMD" in
       echo "[serve-static] 还没有 out/ 目录, 请先运行: ./dev.sh static" >&2
       exit 1
     fi
-    PORT="${PORT:-3200}"
-    echo "[serve-static] 静态产物预览 http://localhost:$PORT"
-    cd out
-    exec /opt/anaconda3/bin/python -m http.server "$PORT" --bind 127.0.0.1
+    # 用自带的静态服务器, 而不是 `python -m http.server`:
+    # Next 会为每个子页面同时生成 page.html 和 page/ (只含 RSC 的 .txt),
+    # 普通静态服务器会把 /page 301 到 /page/ 然后列出文件目录。
+    exec "$DEV_NODE" scripts/serve-static.mjs
     ;;
   start)
     echo "[start] 启动生产服务器 http://localhost:3000"
