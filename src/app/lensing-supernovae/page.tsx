@@ -48,9 +48,14 @@ export default function LensingSupernovaePage() {
             order of magnitude.&rdquo;
           </p>
           <p className="callout__note">
-            Based on the five known gravitationally lensed supernovae (gISNe) in this
-            sample, compared against a simulated catalogue of{' '}
-            {mockSupernovae.totalRows.toLocaleString()} lensed systems.
+            Without gravitational lensing,{' '}
+            <strong>
+              {supernovae.detectedNoLens} of {supernovae.sampleSize}
+            </strong>{' '}
+            known lensed supernovae in this sample could be detected by ZTF. With
+            lensing, <strong>{supernovae.detectedLensed} became visible</strong> — the
+            universe&rsquo;s own telescope at work. The comparison below uses a simulated
+            catalogue of {mockSupernovae.totalRows.toLocaleString()} lensed systems.
           </p>
         </div>
       </section>
