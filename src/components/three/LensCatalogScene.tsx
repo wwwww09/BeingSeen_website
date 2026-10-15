@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { AdaptiveDpr, Html, OrbitControls } from '@react-three/drei'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import type { LensPoint, SupernovaEvent } from '@/lib/types'
 
@@ -167,6 +167,24 @@ function GisneMarkers({
   )
 }
 
+/**
+ * 缓慢自转的天球。
+ *
+ * 注意: useFrame 必须由 <Canvas> **内部**的组件调用。
+ * 如果在渲染 <Canvas> 的那个组件里调用, R3F 会抛
+ * "Hooks can only be used within the Canvas component!" 并且整页崩掉 ——
+ * 这个错误 TypeScript 和 next build 都发现不了, 只有真正打开页面才会暴露。
+ */
+function RotatingSky({ children }: { children: ReactNode }) {
+  const group = useRef<THREE.Group>(null)
+
+  useFrame((_, delta) => {
+    if (group.current) group.current.rotation.y += delta * 0.02
+  })
+
+  return <group ref={group}>{children}</group>
+}
+
 export default function LensCatalogScene({
   lenses,
   events,
@@ -179,11 +197,6 @@ export default function LensCatalogScene({
   onSelect: (i: number) => void
 }) {
   const [dpr, setDpr] = useState(1.4)
-  const group = useRef<THREE.Group>(null)
-
-  useFrame((_, delta) => {
-    if (group.current) group.current.rotation.y += delta * 0.02
-  })
 
   return (
     <Canvas
@@ -202,7 +215,7 @@ export default function LensCatalogScene({
         dampingFactor={0.08}
       />
 
-      <group ref={group}>
+      <RotatingSky>
         {/* 参考天球, 给一点空间体量感 */}
         <mesh>
           <sphereGeometry args={[R, 36, 24]} />
@@ -217,12 +230,12 @@ export default function LensCatalogScene({
         <LensCloud lenses={lenses} />
         <GisneMarkers events={events} selected={selected} onSelect={onSelect} />
 
-        {/* 银河系的中心方向, 只作为一个方位参照 */}
+        {/* 只作为一个方位参照 */}
         <mesh>
           <sphereGeometry args={[0.5, 16, 12]} />
           <meshBasicMaterial color="#8fa8cc" transparent opacity={0.5} />
         </mesh>
-      </group>
+      </RotatingSky>
     </Canvas>
   )
 }
