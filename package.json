@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Being Seen — a serious game about gravitational lensing and invisibility in the universe",
+  "packageManager": "pnpm@11.7.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -29,6 +30,6 @@
     "typescript": "^5.9.0"
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": "22.x"
   }
 }

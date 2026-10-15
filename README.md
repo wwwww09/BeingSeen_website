@@ -16,6 +16,9 @@ Five pages, one narrative:
 Built with Next.js (App Router), TypeScript, Three.js / react-three-fiber, and
 Supabase for the guestbook.
 
+**Deploying?** Follow [`DEPLOY.md`](DEPLOY.md) — it walks through Supabase and
+Vercel click by click (in Chinese).
+
 ---
 
 ## Quick start
@@ -25,7 +28,8 @@ Supabase for the guestbook.
 # Apple-signed Node binary and the adhoc-signed SWC binary. See "Local dev
 # on macOS" below.
 ./dev.sh install
-./dev.sh dev          # http://localhost:3000
+cp .env.example .env.local   # optional: fill in to enable the guestbook
+./dev.sh dev                 # http://localhost:3000
 ```
 
 On Linux or Vercel, plain pnpm works:
@@ -57,7 +61,8 @@ public/charts/frb_dm_vs_separation.png
 public/charts/gw_mass_correction.png
 ```
 
-Inputs it expects in the repository root (not committed — they are large):
+Inputs it expects in the repository root (they are large, so treat them as local
+data rather than source — see "Repository weight" below):
 
 - `lensed_sn_mock.fits` — 64,309 simulated lensed supernovae
 - `lenscat_catalog.csv` — 32,838 known lenses
@@ -70,14 +75,28 @@ the FITS file). On this machine `/opt/anaconda3/bin/python` has all four.
 
 ## Deploying to Vercel
 
+**Step-by-step instructions in Chinese: [`DEPLOY.md`](DEPLOY.md).**
+
+Short version:
+
 1. Push this repository to GitHub.
 2. In Vercel, **Add New → Project** and import the repository. Next.js is
-   detected automatically; no build settings need changing.
-3. Add the environment variables (see below), then deploy.
+   detected automatically; `package.json` pins `pnpm@11.7.0` and Node 22.
+3. Add the three environment variables (see below), then deploy.
 
 `/` , `/lensing-supernovae`, `/lensing-frbs` and `/gravitational-wave-lensing`
-are statically prerendered. `/being-seen` and `/api/stories` are server-rendered
-because they depend on the database.
+are statically prerendered. `/being-seen` is statically prerendered too — it
+reads stories from the browser — and `/api/stories` is server-rendered on
+demand because it depends on the database.
+
+### Repository weight
+
+This repository tracks ~55 MB of research material that the website never
+imports: `lensed_sn_mock.fits` (18 MB), `lenscat_catalog.csv` (3.6 MB), the
+four notebooks, and the PDFs under `gISNe/` and the ZTF user guides. They make
+every Vercel clone slow. If deploys feel sluggish they can be untracked with
+`git rm --cached` (the local files stay on disk) — see `DEPLOY.md` §9.5.
+
 
 ## Connecting the guestbook (Supabase)
 
@@ -86,8 +105,11 @@ works without it** — the Being Seen page simply shows a notice instead of
 accepting submissions.
 
 1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
+   Region: Singapore is the fastest from mainland China.
 2. Open **SQL Editor** and run the whole of [`supabase/schema.sql`](supabase/schema.sql).
-3. Copy the credentials from **Project Settings → API** and set:
+   The last statement prints a verification row — it must read
+   `rls_enabled = true`, `policy_count = 1`, `policy_cmds = SELECT`.
+3. Copy the credentials from **Project Settings → API Keys** and set:
 
 | Variable | Used by | Notes |
 |---|---|---|
@@ -148,6 +170,9 @@ src/lib/
   supabase.ts                   credential detection + graceful degradation
 build_data.py                   the entire data pipeline
 supabase/schema.sql             tables, RLS, rate limiting, realtime
+supabase/schema-public-insert.sql  optional write policy for static hosting
+DEPLOY.md                       step-by-step Supabase + Vercel guide (Chinese)
+.env.example                    environment variable template
 dev.sh                          local dev entry point
 ```
 

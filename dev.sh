@@ -52,8 +52,12 @@ PLIST
 
 # ---------------------------------------------------------------- 2. 确保原生 SWC 已签名
 sign_swc() {
-  local swc
-  swc="$(find node_modules/.pnpm -maxdepth 4 -type d -name 'swc-darwin-arm64' 2>/dev/null | head -1)"
+  local swc=""
+  # 依赖还没安装时 node_modules/.pnpm 不存在; find 会返回非零,
+  # 在 set -e 下会让整个脚本静默退出, 所以这里必须容忍失败。
+  if [[ -d node_modules/.pnpm ]]; then
+    swc="$(find node_modules/.pnpm -maxdepth 6 -type d -name 'swc-darwin-arm64' 2>/dev/null | head -1 || true)"
+  fi
   if [[ -n "$swc" ]]; then
     local bin="$swc/next-swc.darwin-arm64.node"
     if [[ -f "$bin" ]] && ! codesign -dv "$bin" 2>&1 | grep -q "adhoc"; then

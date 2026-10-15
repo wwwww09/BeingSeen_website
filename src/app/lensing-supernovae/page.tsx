@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import SupernovaExplorer from '@/components/SupernovaExplorer'
+import LensCatalogExplorer from '@/components/LensCatalogExplorer'
 import ScatterChart from '@/components/charts/ScatterChart'
-import { getSupernovae } from '@/lib/data'
+import { getLenses, getSupernovae } from '@/lib/data'
 
 export const metadata: Metadata = {
   title: 'Can Lensing Make Distant Supernovae Visible?',
@@ -10,8 +11,15 @@ export const metadata: Metadata = {
     'Without gravitational lensing, none of the five known lensed supernovae in this sample could be detected by ZTF. With lensing, two became visible.',
 }
 
+/** 3D 天球上最多画多少个透镜系统 (再多也看不出来, 但会拖慢 HTML) */
+const LENS_RENDER_LIMIT = 2500
+
 export default function LensingSupernovaePage() {
   const { supernovae, mockSupernovae } = getSupernovae()
+  const { lenses } = getLenses()
+
+  // 星表样本本身是随机顺序, 所以直接截取不会让天区分布产生偏移
+  const lensSample = lenses.sample.slice(0, LENS_RENDER_LIMIT)
 
   const scatterPoints = mockSupernovae.scatterSample.map((p) => ({
     x: p.sourceRedshift,
@@ -218,6 +226,37 @@ export default function LensingSupernovaePage() {
           Apparent magnitudes are computed from a flat ΛCDM cosmology
           (H₀ = 70 km s⁻¹ Mpc⁻¹, Ω<sub>m</sub> = 0.3) with a standard SN Ia peak absolute
           magnitude of −19.25, using m = M + μ<sub>dist</sub> − 2.5 log₁₀ μ.
+        </p>
+      </section>
+
+      {/* ------------------------------------------------ 3D 空间分布 */}
+      <section className="section">
+        <p className="section__label">In three dimensions</p>
+        <h2 className="section-title">
+          {lenses.total.toLocaleString()} lenses, {supernovae.events.length} that were
+          actually seen
+        </h2>
+        <p className="lede">
+          Every blue point is a gravitational lens someone has already catalogued — a
+          galaxy or cluster massive enough to bend light. The five gold stars are the
+          only lensed supernovae we have ever caught in the act. Drag to rotate the sky,
+          scroll to zoom, and click a gold star to see what lensing did for it.
+        </p>
+
+        <LensCatalogExplorer
+          lenses={lensSample}
+          events={supernovae.events}
+          lensTotal={lenses.total}
+          withRedshift={lenses.withRedshift}
+        />
+
+        <p className="small muted" style={{ marginTop: 12, maxWidth: '84ch' }}>
+          <strong>Why the sky looks so sparse.</strong> The lens catalogue is a list of{' '}
+          <em>lenses</em>, not of lensed supernovae. A lens only helps us if a bright
+          source happens to sit behind it at the right redshift, and if a survey happens
+          to be looking at that patch of sky at the moment the supernova peaks. That
+          coincidence is what makes five events out of{' '}
+          {lenses.total.toLocaleString()} lenses the honest headline number.
         </p>
       </section>
     </main>
