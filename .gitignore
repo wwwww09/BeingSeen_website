@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# Next.js 构建产物
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# 环境变量 —— 绝不提交
+.env
+.env.local
+.env*.local
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 研究原始数据 (build_data.py 的输入)。
+# 这些都是仓库已跟踪的, 保留以便复现。只有 18MB 的模拟星表不进新的提交。
+lensed_sn_mock.fits
+
+# 编辑器
+.vscode/
+.idea/
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
