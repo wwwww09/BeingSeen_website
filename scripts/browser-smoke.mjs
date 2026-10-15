@@ -699,41 +699,45 @@ await send('Page.removeScriptToEvaluateOnNewDocument', {
 // (天球自转 + OrbitControls 的 autoRotate), 必须停掉 —— 但"减少动效"
 // 不等于禁止交互, 用户自己拖动仍然可以。
 //
-// 判定方法: 隔几秒截两张图。一直在动的场景两张必然不同, 停下来的应当逐字节
-// 相同。同时跑一个"不要求减少动效"的对照组, 确保这个方法确实分得清
-// "静止"和"还在动" —— 否则这个检查可能永远通过。
+// 判定方法: 连拍 3 张。一直在动的场景不可能三张全同; 停下来的应当逐字节相同。
+// 连拍 3 张而不是 2 张, 是因为首页星场带了 PerformanceMonitor: 软件渲染下
+// 它会调整 dpr (即画布分辨率), 两张之间偶发的分辨率切换会被误判成"还在动"。
+// 同时跑一个"不要求减少动效"的对照组, 确保这个方法确实分得清"静止"和"还在动",
+// 否则这个检查可能永远通过。
 console.log('\n── 减少动效 ─────────────────────────────────────')
 
-async function sceneIsStatic(path, reduced) {
+async function frameStability(path, reduced, frames = 3) {
   await send('Emulation.setEmulatedMedia', {
     features: [
       { name: 'prefers-reduced-motion', value: reduced ? 'reduce' : 'no-preference' },
     ],
   })
   await goto(path)
-  await sleep(1800) // 等自适应 DPR 和首帧稳定下来
-  const a = (await send('Page.captureScreenshot', { format: 'png' })).result?.data
-  await sleep(3000)
-  const b = (await send('Page.captureScreenshot', { format: 'png' })).result?.data
-  return a === b
+  await sleep(3000) // 给自适应 dpr 和首帧足够时间稳定下来
+  const shots = []
+  for (let i = 0; i < frames; i++) {
+    shots.push((await send('Page.captureScreenshot', { format: 'png' })).result?.data)
+    if (i < frames - 1) await sleep(2000)
+  }
+  return shots.every((s) => s === shots[0])
 }
 
 // 这两个页面的 3D 场景都在首屏, 不需要滚动
-const homeStatic = await sceneIsStatic('/', true)
+const homeStatic = await frameStability('/', true)
 check(
   '减少动效 · 首页星场停止自转',
   homeStatic,
   homeStatic ? '' : '要求减少动效时画面仍在变化',
 )
 
-const skyStatic = await sceneIsStatic('/being-seen', true)
+const skyStatic = await frameStability('/being-seen', true)
 check(
   '减少动效 · 留言板星图停止自转',
   skyStatic,
   skyStatic ? '' : '要求减少动效时画面仍在变化',
 )
 
-const controlMoves = !(await sceneIsStatic('/being-seen', false))
+const controlMoves = !(await frameStability('/being-seen', false))
 check(
   '对照 · 不要求减少动效时星图仍在自转',
   controlMoves,
