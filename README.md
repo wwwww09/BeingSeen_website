@@ -182,13 +182,22 @@ dev.sh                          local dev entry point
 `next build` passing does not mean the pages work. An R3F hook called outside
 `<Canvas>` builds cleanly, typechecks cleanly, and then blanks the page for
 every visitor. `./dev.sh smoke` opens all five routes in headless Chrome over
-the DevTools protocol and fails on an uncaught exception, a `console.error`, a
-missing or zero-sized canvas, or a missing `<h1>`:
+the DevTools protocol and checks two things.
+
+**Rendering** — per route: no uncaught exception, no `console.error`, the
+expected number of non-zero-sized canvases, no 3D scene stuck on its loading
+placeholder, and a non-empty `<h1>`.
+
+**Behaviour** — that the game's mechanics actually respond:
+the detection-limit slider opens at the real ZTF limit and reports 0/5 without
+lensing and 2/5 with it (the page's own headline), dragging it changes the
+readout, the magnification slider reaches its win state ("Gap cleared") and
+resets, and clicking the starfield selects a star.
 
 ```bash
 ./dev.sh build
 ./dev.sh start      # keep running in another terminal
-./dev.sh smoke      # exits non-zero if any route is broken
+./dev.sh smoke      # exits non-zero if anything above fails
 ```
 
 It is the only check here that can catch a client-side crash, and it earned its

@@ -17,7 +17,9 @@ const W = 720
 const PAD = { top: 26, right: 118, bottom: 46, left: 52 }
 
 export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
-  const [limit, setLimit] = useState(26)
+  // 初始探测极限 = 真实的 ZTF 极限 (m = 20.5), 不是随手取的数。
+  // 这一档恰好给出本页的结论: 无透镜 0/5, 有透镜 2/5 —— 和页头那句话一致。
+  const [limit, setLimit] = useState(data.limitingMag)
   const H = 300
   const innerW = W - PAD.left - PAD.right
   const innerH = H - PAD.top - PAD.bottom
@@ -28,8 +30,13 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
     return [Math.floor(Math.min(...all) - 1), Math.ceil(Math.max(...all) + 1)]
   }, [data.events])
 
-  const sy = (v: number) =>
-    PAD.top + innerH - ((v - minMag) / (maxMag - minMag)) * innerH
+  /**
+   * 视星等 -> x 坐标。
+   * 星等数字越大越暗, 所以越靠右越暗 —— 和滑块的
+   * "brighter (easier)" / "fainter (harder)" 方向一致。
+   */
+  const sx = (v: number) =>
+    PAD.left + ((v - minMag) / (maxMag - minMag)) * innerW
 
   const sorted = useMemo(
     () => [...data.events].sort((a, b) => a.magNoLens - b.magNoLens),
@@ -78,20 +85,20 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
       <div className="explorer__chart">
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }} role="img"
           aria-label="Supernova brightness with and without lensing">
-          {/* 不可探测区阴影 */}
+          {/* 不可探测区: 比探测极限更暗的那一侧 (右边) */}
           <rect
-            x={PAD.left}
+            x={sx(limit)}
             y={PAD.top}
-            width={innerW}
-            height={Math.max(0, sy(limit) - PAD.top)}
+            width={Math.max(0, PAD.left + innerW - sx(limit))}
+            height={innerH}
             fill="#c0392b"
             opacity={0.07}
           />
 
           {sorted.map((e, i) => {
             const y = PAD.top + rowH * (i + 0.5)
-            const x1 = PAD.left + ((e.magNoLens - minMag) / (maxMag - minMag)) * innerW
-            const x2 = PAD.left + ((e.magLensed - minMag) / (maxMag - minMag)) * innerW
+            const x1 = sx(e.magNoLens)
+            const x2 = sx(e.magLensed)
             const visible = e.magLensed < limit
             const wasVisible = e.magNoLens < limit
             return (
@@ -139,8 +146,8 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
 
           {/* 探测极限竖线 */}
           <line
-            x1={PAD.left + ((limit - minMag) / (maxMag - minMag)) * innerW}
-            x2={PAD.left + ((limit - minMag) / (maxMag - minMag)) * innerW}
+            x1={sx(limit)}
+            x2={sx(limit)}
             y1={PAD.top - 8}
             y2={PAD.top + innerH + 4}
             stroke="#ffb703"
@@ -157,14 +164,14 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
             return (
               <g key={f}>
                 <line
-                  x1={PAD.left}
-                  x2={PAD.left + innerW}
-                  y1={sy(v)}
-                  y2={sy(v)}
+                  x1={sx(v)}
+                  x2={sx(v)}
+                  y1={PAD.top}
+                  y2={PAD.top + innerH}
                   stroke="#1a2540"
                 />
                 <text
-                  x={PAD.left + ((v - minMag) / (maxMag - minMag)) * innerW}
+                  x={sx(v)}
                   y={PAD.top + innerH + 17}
                   textAnchor="middle"
                   fill="#6a7b98"
@@ -176,7 +183,13 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
             )
           })}
           <text x={PAD.left + innerW / 2} y={H - 8} textAnchor="middle" fill="#9aabc7" fontSize={12}>
-            Apparent magnitude (brighter →)
+            Apparent magnitude
+          </text>
+          <text x={PAD.left} y={H - 8} textAnchor="start" fill="#5a6b8c" fontSize={11}>
+            ← brighter
+          </text>
+          <text x={PAD.left + innerW} y={H - 8} textAnchor="end" fill="#5a6b8c" fontSize={11}>
+            fainter →
           </text>
 
           {/* 内部标签 */}
@@ -210,13 +223,19 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
                 {newlyVisible.length} revealed by lensing
               </span>
               <span className="small muted" style={{ marginTop: 6, display: 'block' }}>
-                {newlyVisible.map((e) => e.name).join(', ')} — the two most strongly
-                magnified systems (μ = {newlyVisible.map((e) => e.magnification.toFixed(0)).join(', ')}×).
+                {newlyVisible
+                  .map(
+                    (e) =>
+                      `${e.name} — μ = ${e.magnification.toFixed(1)}×, ` +
+                      `${(e.magNoLens - e.magLensed).toFixed(1)} mag brighter`,
+                  )
+                  .join(' · ')}
               </span>
             </>
           ) : (
             <span className="small muted">
-              Move the slider brighter to reveal lensed supernovae.
+              Nothing is revealed at this limit. Drag the slider to the left
+              (brighter) until lensing brings a supernova into view.
             </span>
           )}
         </div>

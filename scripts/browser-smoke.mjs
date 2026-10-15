@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 浏览器冒烟测试。
+ * 浏览器冒烟测试 —— 渲染 + 交互。
  *
  * 为什么需要它
  * ----------------------------------------------------------------------------
@@ -9,16 +9,23 @@
  *
  *     R3F: Hooks can only be used within the Canvas component!
  *
- * 构建完全通过, 但打开页面只会看到一张空白错误页 —— 整个子问题一的
- * 内容都看不见。这个脚本就是用来在 push 之前抓住这类问题的。
+ * 构建完全通过, 但打开页面只会看到一张空白错误页。这个脚本用来在 push 之前
+ * 抓住这类问题。
  *
- * 它做什么
+ * 它检查什么
  * ----------------------------------------------------------------------------
- * 用无头 Chrome 逐个打开页面, 通过 DevTools 协议检查:
+ * 第一阶段 · 渲染 (五个页面各一次)
  *   1. 有没有未捕获异常 (Runtime.exceptionThrown)
  *   2. 有没有 console.error
- *   3. 页面的 <canvas> 数量对不对, 且尺寸不是 0
+ *   3. <canvas> 数量对不对, 尺寸是否为 0
  *   4. <h1> 是否存在且非空
+ *   5. 3D 场景有没有卡在加载占位符
+ *
+ * 第二阶段 · 交互 (这个"严肃游戏"的核心机制真的能用吗)
+ *   6. 页面二的探测极限滑块: 初始值 = 真实 ZTF 极限, 且读数与页头结论一致
+ *   7. 滑块拖到别处时读数会跟着变
+ *   8. 页面四的放大率滑块: 能拖到通关 (Gap cleared), Reset 能回到起点
+ *   9. 页面五点星图能选中一颗星
  *
  * 用法
  * ----------------------------------------------------------------------------
@@ -49,6 +56,17 @@ const ROUTES = [
 
 /** 每个页面给多少毫秒让 3D 场景初始化 */
 const SETTLE_MS = 7000
+
+// 失败计数
+let failures = 0
+const fail = (name, detail) => {
+  failures++
+  console.log(`✗ ${name}${detail ? `  — ${detail}` : ''}`)
+}
+const pass = (name, detail) => {
+  console.log(`✓ ${name}${detail ? `  — ${detail}` : ''}`)
+}
+const check = (name, ok, detail) => (ok ? pass(name, detail) : fail(name, detail))
 
 // ------------------------------------------------------------------ Chrome
 function findChrome() {
@@ -169,16 +187,35 @@ const send = (method, params) =>
     ws.send(JSON.stringify({ id, method, params }))
   })
 
+async function evaluate(expression) {
+  const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })
+  if (r.result?.exceptionDetails) {
+    throw new Error(
+      'Runtime.evaluate 抛出异常: ' +
+        (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text || ''),
+    )
+  }
+  return r.result?.result?.value
+}
+
+async function goto(path) {
+  events = []
+  await send('Page.navigate', { url: BASE + path })
+  await sleep(SETTLE_MS)
+}
+
 await send('Page.enable')
 await send('Runtime.enable')
 await send('Emulation.setDeviceMetricsOverride', {
   width: 1440,
-  height: 900,
+  height: 1000,
   deviceScaleFactor: 1,
   mobile: false,
 })
 
-// ------------------------------------------------------------------ 逐页检查
+// ================================================================== 第一阶段: 渲染
+console.log('\n── 渲染 ──────────────────────────────────────────')
+
 const INSPECT = `(() => {
   const canvases = [...document.querySelectorAll('canvas')].map((c) => {
     const r = c.getBoundingClientRect();
@@ -192,19 +229,16 @@ const INSPECT = `(() => {
   };
 })()`
 
-const results = []
-
 for (const route of ROUTES) {
-  events = []
-  await send('Page.navigate', { url: BASE + route.path })
-  await sleep(SETTLE_MS)
+  await goto(route.path)
 
-  const res = await send('Runtime.evaluate', { expression: INSPECT, returnByValue: true })
-  const state = res.result?.result?.value ?? {}
+  const state = (await evaluate(INSPECT)) ?? {}
 
   const exceptions = events
     .filter((e) => e.method === 'Runtime.exceptionThrown')
-    .map((e) => (e.params.exceptionDetails?.exception?.description || e.params.exceptionDetails?.text || 'unknown').split('\n')[0])
+    .map((e) =>
+      (e.params.exceptionDetails?.exception?.description || e.params.exceptionDetails?.text || 'unknown').split('\n')[0],
+    )
 
   const consoleErrors = events
     .filter((e) => e.method === 'Runtime.consoleAPICalled' && e.params.type === 'error')
@@ -215,21 +249,154 @@ for (const route of ROUTES) {
   if (consoleErrors.length) problems.push(`console.error: ${consoleErrors[0]}`)
   if (!state.h1) problems.push('没有 <h1>')
   const actual = state.canvases?.length ?? 0
-  if (actual !== route.canvases) {
-    problems.push(`<canvas> 数量 ${actual}, 期望 ${route.canvases}`)
-  }
+  if (actual !== route.canvases) problems.push(`<canvas> 数量 ${actual}, 期望 ${route.canvases}`)
   for (const c of state.canvases ?? []) {
     if (c.w === 0 || c.h === 0) problems.push(`<canvas> 尺寸为 0 (${c.w}×${c.h})`)
   }
   if (state.spinners > 0) problems.push(`${state.spinners} 个 3D 场景仍停在加载占位符`)
 
-  results.push({ route, state, problems })
-  const mark = problems.length === 0 ? '✓' : '✗'
-  console.log(
-    `${mark} ${route.path.padEnd(30)} canvas=${String(actual).padEnd(2)} h1=${state.h1 ? 'yes' : 'NO '}` +
-      (problems.length ? `  <-- ${problems.join('; ')}` : ''),
-  )
+  const label = `${route.path}  (canvas=${actual})`
+  check(label, problems.length === 0, problems.join('; '))
 }
 
+// ================================================================== 第二阶段: 交互
+console.log('\n── 交互 ──────────────────────────────────────────')
+
+/** React 受控 range input: 必须用原生 setter 再派发 input 事件 */
+async function setRange(ariaLabel, value) {
+  return evaluate(`(() => {
+    const el = document.querySelector('input[type=range][aria-label=${JSON.stringify(ariaLabel)}]');
+    if (!el) return null;
+    const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value').set;
+    setter.call(el, String(${value}));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    return el.value;
+  })()`)
+}
+
+const READ_EXPLORER = `(() => {
+  const exp = document.querySelector('.explorer');
+  if (!exp) return null;
+  return {
+    mag: exp.querySelector('.explorer__mag')?.textContent.replace(/\\s+/g, ' ').trim() ?? null,
+    counts: [...exp.querySelectorAll('.explorer__counts .bigstat')].map((b) => ({
+      value: b.querySelector('.bigstat__value')?.textContent.trim(),
+      label: b.querySelector('.bigstat__label')?.textContent.trim(),
+    })),
+    reveal: exp.querySelector('.explorer__reveal')?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+  };
+})()`
+
+// ---------------------------------------------------------- 页面二: 探测极限
+await goto('/lensing-supernovae')
+let s = await evaluate(READ_EXPLORER)
+
+check(
+  'SNe · 初始探测极限 = 真实 ZTF 极限 m = 20.5',
+  s?.mag === 'm = 20.5',
+  `实际 ${s?.mag}`,
+)
+check(
+  'SNe · 初始读数与页头结论一致 (无透镜 0/5, 有透镜 2/5)',
+  s?.counts?.[0]?.value === '0 / 5' && s?.counts?.[1]?.value === '2 / 5',
+  JSON.stringify(s?.counts?.map((c) => c.value)),
+)
+check(
+  'SNe · 揭示文案准确 (不再谎称"放大率最高的两个")',
+  /^2 revealed by lensing/.test(s?.reveal ?? '') && !/most strongly magnified/.test(s?.reveal ?? ''),
+  (s?.reveal ?? '').slice(0, 70),
+)
+
+await setRange('Detection limiting magnitude', 26)
+await sleep(500)
+s = await evaluate(READ_EXPLORER)
+check(
+  'SNe · 滑块拖到 m=26 后读数变化 (4/5 与 5/5)',
+  s?.counts?.[0]?.value === '4 / 5' && s?.counts?.[1]?.value === '5 / 5',
+  JSON.stringify(s?.counts?.map((c) => c.value)),
+)
+
+await setRange('Detection limiting magnitude', 18.5)
+await sleep(500)
+s = await evaluate(READ_EXPLORER)
+check(
+  'SNe · 拖到 m=18.5 后只剩 iPTF16geu 可见 (1/5)',
+  s?.counts?.[1]?.value === '1 / 5' && /^1 revealed by lensing/.test(s?.reveal ?? ''),
+  JSON.stringify(s?.counts?.map((c) => c.value)),
+)
+
+// ---------------------------------------------------------- 页面四: 放大率 + 通关
+await goto('/gravitational-wave-lensing')
+let g = await evaluate(READ_EXPLORER)
+
+check('GW · 初始 μ = 1 且 0/2 脱离质量间隙', /μ = 1\.00/.test(g?.mag ?? '') && g?.counts?.[1]?.value === '0 / 2', `${g?.mag} | ${g?.counts?.[1]?.value}`)
+check('GW · 初始未通关', !/Gap cleared/.test(g?.reveal ?? ''))
+
+const maxSqrt = await evaluate(
+  `document.querySelector('input[aria-label="Lensing magnification"]')?.max ?? null`,
+)
+await setRange('Lensing magnification', maxSqrt)
+await sleep(500)
+g = await evaluate(READ_EXPLORER)
+check(
+  'GW · 拖到最大后两颗都脱离间隙 (2/2)',
+  g?.counts?.[1]?.value === '2 / 2',
+  JSON.stringify(g?.counts?.map((c) => c.value)),
+)
+check('GW · 出现通关提示 "Gap cleared"', /Gap cleared/.test(g?.reveal ?? ''), (g?.reveal ?? '').slice(0, 80))
+
+await evaluate(`(() => {
+  const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith('Reset'));
+  if (b) b.click();
+})()`)
+await sleep(500)
+g = await evaluate(READ_EXPLORER)
+check('GW · Reset 后回到 0/2', g?.counts?.[1]?.value === '0 / 2', JSON.stringify(g?.counts?.map((c) => c.value)))
+
+// ---------------------------------------------------------- 页面五: 点星星
+await goto('/being-seen')
+
+const HEADER = `document.querySelector('.guestbook__form .sub-title')?.textContent.trim() ?? null`
+check('Being Seen · 初始未选中任何星', (await evaluate(HEADER)) === 'Leave an anonymous story')
+
+const box = await evaluate(`(() => {
+  const c = document.querySelector('canvas');
+  if (!c) return null;
+  const r = c.getBoundingClientRect();
+  return { x: r.left, y: r.top, w: r.width, h: r.height };
+})()`)
+
+let hit = null
+if (box) {
+  // 在画布上试几个位置, 命中即停 (星图会自转, 不预设坐标)
+  outer: for (const fy of [0.5, 0.42, 0.58, 0.34, 0.66, 0.26, 0.74]) {
+    for (const fx of [0.5, 0.42, 0.58, 0.34, 0.66]) {
+      const cx = box.x + box.w * fx
+      const cy = box.y + box.h * fy
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: cx, y: cy })
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: cx, y: cy, button: 'left', clickCount: 1 })
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: cx, y: cy, button: 'left', clickCount: 1 })
+      await sleep(320)
+      const h = await evaluate(HEADER)
+      if (h && h !== 'Leave an anonymous story') {
+        hit = h
+        break outer
+      }
+    }
+  }
+}
+check('Being Seen · 点击星图能选中一颗星', !!hit && /^You chose star #\d+$/.test(hit), hit ?? '试遍所有位置都没选中')
+
+// ---------------------------------------------------------- 全局: 无异常
+const exceptions = events.filter((e) => e.method === 'Runtime.exceptionThrown')
+check('交互过程无未捕获异常', exceptions.length === 0, exceptions.length ? String(exceptions[0].params?.exceptionDetails?.exception?.description).slice(0, 100) : '')
+
+// ================================================================== 结果
+console.log('')
+if (failures === 0) {
+  console.log(`全部通过 (${ROUTES.length} 个页面 + 交互检查)`)
+} else {
+  console.log(`${failures} 项失败`)
+}
 ws.close()
-cleanup(results.some((r) => r.problems.length) ? 1 : 0)
+cleanup(failures === 0 ? 0 : 1)
