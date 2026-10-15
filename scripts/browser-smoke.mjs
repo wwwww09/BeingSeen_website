@@ -14,12 +14,14 @@
  *
  * 它检查什么
  * ----------------------------------------------------------------------------
- * 第一阶段 · 渲染 (五个页面各一次)
+ * 第一阶段 · 渲染 + 无障碍语义 (五个页面各一次)
  *   1. 有没有未捕获异常 (Runtime.exceptionThrown)
  *   2. 有没有 console.error
  *   3. <canvas> 数量对不对, 尺寸是否为 0
  *   4. <h1> 是否存在且非空
  *   5. 3D 场景有没有卡在加载占位符
+ *   6. 手机宽度下有没有横向溢出
+ *   7. 图片 alt / 控件可访问名称 / 表单标签 / 标题层级 / 可点击但键盘够不着
  *
  * 第二阶段 · 交互 (这个"严肃游戏"的核心机制真的能用吗)
  *   6. 页面二的探测极限滑块: 初始值 = 真实 ZTF 极限, 且读数与页头结论一致
@@ -32,6 +34,7 @@
  *
  * 第四阶段 · 减少动效
  *  11. 系统要求减少动效时, 3D 场景必须停止自发旋转 (含一个对照组)
+ *  12. Tab 能到达探测极限滑块, 且焦点环可见
  *
  * 用法
  * ----------------------------------------------------------------------------
@@ -265,10 +268,84 @@ const OVERFLOW = `(() => {
 const NARROW = { width: 390, height: 844, deviceScaleFactor: 1, mobile: true }
 const WIDE = { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false }
 
+/**
+ * 无障碍语义审计 (纯 DOM, 与视口大小无关)。
+ *
+ * 重点是「看起来能点、键盘却够不着」这一类 —— 例如用 <li onClick> 做的
+ * 列表项, 鼠标能点但无法聚焦。判断方法是看 cursor:pointer 的元素是不是
+ * 原生可聚焦元素 (或带有 tabindex / role), 并且跳过那些本来就被可聚焦
+ * 祖先包住的 (例如 <a><span>文字</span></a> 里的 span)。
+ */
+const A11Y = `(() => {
+  const tag = (el) => el.tagName.toLowerCase() +
+    (String(el.className || '').split(' ').filter(Boolean).slice(0, 1).map((c) => '.' + c).join(''));
+  const name = (el) => (el.textContent || '').replace(/\\s+/g, ' ').trim();
+
+  const imagesWithoutAlt = [...document.images]
+    .filter((i) => !i.getAttribute('alt') || !i.getAttribute('alt').trim())
+    .map(tag);
+
+  const namelessControls = [...document.querySelectorAll('button, a[href]')]
+    .filter((el) => {
+      if (name(el)) return false;
+      if ((el.getAttribute('aria-label') || '').trim()) return false;
+      if ((el.getAttribute('title') || '').trim()) return false;
+      if (el.querySelector('img[alt]:not([alt=""])')) return false;
+      return true;
+    })
+    .map(tag);
+
+  const unlabelledFields = [...document.querySelectorAll('input, textarea, select')]
+    .filter((el) => {
+      if (el.type === 'hidden') return false;
+      if ((el.getAttribute('aria-label') || '').trim()) return false;
+      if (el.getAttribute('aria-labelledby')) return false;
+      if (el.id && document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) return false;
+      if (el.closest('label')) return false;
+      return true;
+    })
+    .map((el) => tag(el) + '[' + (el.type || el.tagName.toLowerCase()) + ']');
+
+  const levels = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => Number(h.tagName[1]));
+  const headingSkips = [];
+  let prev = 0;
+  for (const lv of levels) { if (prev && lv > prev + 1) headingSkips.push('h' + prev + '->h' + lv); prev = lv; }
+
+  const nativeFocusable = new Set(['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'SUMMARY']);
+  const clickableNotFocusable = [...document.querySelectorAll('body *')]
+    .filter((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return false;
+      if (getComputedStyle(el).cursor !== 'pointer') return false;
+      if (nativeFocusable.has(el.tagName)) return false;
+      if (el.hasAttribute('tabindex')) return false;
+      const role = el.getAttribute('role');
+      if (role === 'button' || role === 'link') return false;
+      if (el.querySelector('a[href], button, input, select, textarea, [tabindex]')) return false;
+      if (el.closest('a[href], button, input, select, textarea, summary, [tabindex]')) return false;
+      const lab = el.closest('label');
+      if (lab && (lab.querySelector('input, select, textarea') ||
+                  (lab.htmlFor && document.getElementById(lab.htmlFor)))) return false;
+      return true;
+    })
+    .map(tag);
+
+  return {
+    lang: document.documentElement.getAttribute('lang'),
+    h1Count: levels.filter((l) => l === 1).length,
+    imagesWithoutAlt,
+    namelessControls,
+    unlabelledFields,
+    headingSkips,
+    clickableNotFocusable,
+  };
+})()`
+
 for (const route of ROUTES) {
   await goto(route.path)
 
   const state = (await evaluate(INSPECT)) ?? {}
+  const a11y = (await evaluate(A11Y)) ?? {}
 
   const exceptions = events
     .filter((e) => e.method === 'Runtime.exceptionThrown')
@@ -290,6 +367,17 @@ for (const route of ROUTES) {
     if (c.w === 0 || c.h === 0) problems.push(`<canvas> 尺寸为 0 (${c.w}×${c.h})`)
   }
   if (state.spinners > 0) problems.push(`${state.spinners} 个 3D 场景仍停在加载占位符`)
+
+  // 无障碍语义
+  if (a11y.lang !== 'en') problems.push(`html lang="${a11y.lang}"`)
+  if (a11y.h1Count !== 1) problems.push(`<h1> 数量 ${a11y.h1Count}`)
+  if (a11y.imagesWithoutAlt?.length) problems.push(`图片缺 alt: ${a11y.imagesWithoutAlt.join(', ')}`)
+  if (a11y.namelessControls?.length) problems.push(`控件无可访问名称: ${a11y.namelessControls.join(', ')}`)
+  if (a11y.unlabelledFields?.length) problems.push(`表单控件无标签: ${a11y.unlabelledFields.join(', ')}`)
+  if (a11y.headingSkips?.length) problems.push(`标题跳级: ${a11y.headingSkips.join(', ')}`)
+  if (a11y.clickableNotFocusable?.length) {
+    problems.push(`可点击但键盘够不着: ${a11y.clickableNotFocusable.join(', ')}`)
+  }
 
   // 改视口不会重新加载页面, 所以这一步很便宜
   await send('Emulation.setDeviceMetricsOverride', NARROW)
@@ -350,6 +438,34 @@ check(
   'SNe · 揭示文案准确 (不再谎称"放大率最高的两个")',
   /^2 revealed by lensing/.test(s?.reveal ?? '') && !/most strongly magnified/.test(s?.reveal ?? ''),
   (s?.reveal ?? '').slice(0, 70),
+)
+
+// 键盘可达性: .slider 关掉了浏览器默认的焦点环, 必须自己补一个,
+// 否则键盘用户 Tab 到这个核心控件上时完全看不出焦点在哪。
+// 用真实 Tab 按键而不是 el.focus(), 因为 :focus-visible 只在键盘操作时生效。
+async function pressTab() {
+  const k = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 }
+  await send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...k })
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', ...k })
+  await sleep(90)
+}
+
+let sliderOutline = null
+for (let i = 0; i < 40 && !sliderOutline; i++) {
+  await pressTab()
+  sliderOutline = await evaluate(`(() => {
+    const el = document.activeElement;
+    if (!el || el.getAttribute('aria-label') !== 'Detection limiting magnitude') return null;
+    const cs = getComputedStyle(el);
+    return cs.outlineStyle + ' ' + cs.outlineWidth;
+  })()`)
+}
+check(
+  'SNe · Tab 能到达滑块且焦点可见',
+  Boolean(sliderOutline) &&
+    !sliderOutline.startsWith('none') &&
+    !sliderOutline.endsWith('0px'),
+  sliderOutline ?? 'Tab 走了 40 次都没到滑块',
 )
 
 await setRange('Detection limiting magnitude', 26)

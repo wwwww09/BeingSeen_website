@@ -190,11 +190,20 @@ expected number of non-zero-sized canvases, no 3D scene stuck on its loading
 placeholder, a non-empty `<h1>`, and no horizontal overflow when the viewport
 is narrowed to a 390px phone.
 
+**Accessibility semantics** — also per route, and free because it reuses the
+same page loads: `lang`, exactly one `<h1>`, no skipped heading levels, every
+image has `alt`, every button and link has an accessible name, every form
+control has a label, and nothing that looks clickable (`cursor: pointer`) is
+unreachable by keyboard. That last check is the one that matters most: it
+catches the `<li onClick>` pattern, which is invisible to mouse users and
+completely unusable for everyone else.
+
 **Behaviour** — that the game's mechanics actually respond:
 the detection-limit slider opens at the real ZTF limit and reports 0/5 without
 lensing and 2/5 with it (the page's own headline), dragging it changes the
 readout, the magnification slider reaches its win state ("Gap cleared") and
-resets, and clicking the starfield selects a star.
+resets, clicking the starfield selects a star, and Tab reaches the
+detection-limit slider with a visible focus ring.
 
 **Degradation** — that each route survives having no WebGL, which is common on
 managed and older machines. Without the guard in `clientOnly`, three.js throws

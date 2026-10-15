@@ -101,23 +101,33 @@ export default function LensCatalogExplorer({
                 className={`storylist__item${
                   selected === i ? ' storylist__item--active' : ''
                 }`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => setSelected(selected === i ? null : i)}
               >
-                <div className="storylist__meta">
-                  <span className="storylist__star">★ {e.name}</span>
-                  {e.detectedLensed ? (
-                    <span className="badge badge--green">visible</span>
-                  ) : (
-                    <span className="badge badge--red">still unseen</span>
-                  )}
-                </div>
-                <p
-                  className="storylist__body"
-                  style={{ fontSize: 12.5, lineHeight: 1.5 }}
+                {/*
+                  必须是真的 <button>: 3D 星图上的金色星只有鼠标能点,
+                  键盘用户唯一的入口就是这份列表。原来用 <li onClick> 的话
+                  既不能聚焦, 也没法用回车/空格选中。
+                */}
+                <button
+                  type="button"
+                  className="storylist__button"
+                  aria-pressed={selected === i}
+                  onClick={() => setSelected(selected === i ? null : i)}
                 >
-                  z = {e.redshift.toFixed(3)} · μ = {e.magnification.toFixed(1)}×
-                </p>
+                  <span className="storylist__meta">
+                    <span className="storylist__star">★ {e.name}</span>
+                    {e.detectedLensed ? (
+                      <span className="badge badge--green">visible</span>
+                    ) : (
+                      <span className="badge badge--red">still unseen</span>
+                    )}
+                  </span>
+                  <span
+                    className="storylist__body"
+                    style={{ display: 'block', fontSize: 12.5, lineHeight: 1.5 }}
+                  >
+                    z = {e.redshift.toFixed(3)} · μ = {e.magnification.toFixed(1)}×
+                  </span>
+                </button>
               </li>
             ))}
           </ul>

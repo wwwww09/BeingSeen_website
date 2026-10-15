@@ -112,7 +112,8 @@ h2.section-title {
   letter-spacing: -0.01em;
 }
 
-h3.sub-title {
+/* 不限定标签: 有时是 h2 (页面里没有更高级标题时), 有时是 h3 */
+.sub-title {
   font-size: 17px;
   margin: 0 0 10px;
   font-weight: 620;
@@ -386,6 +387,16 @@ p.body {
   background: var(--bg-elevated);
   outline: none;
   cursor: pointer;
+}
+
+/*
+ * .slider 去掉了浏览器默认的焦点环, 但没给替代品 —— 键盘 Tab 到探测极限
+ * 滑块上时完全看不出焦点在哪, 而这个滑块正是页面二的核心控件。
+ */
+.slider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
+  border-radius: 3px;
 }
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1115,6 +1126,27 @@ p.body {
 .storylist__item--active {
   border-left-color: var(--gold);
   background: rgba(255, 183, 3, 0.06);
+}
+
+/*
+ * 列表项里的可点区域必须是真的 button (见 LensCatalogExplorer 的注释),
+ * 这里把它抹成一行普通文字的样子, 同时保留键盘焦点环。
+ */
+.storylist__button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.storylist__button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .storylist__meta {

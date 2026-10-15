@@ -301,13 +301,15 @@ export default function Guestbook({ configured }: { configured: boolean }) {
       {/* ------------------------------------------------- 侧栏 */}
       <aside className="guestbook__side">
         <div className="guestbook__form">
-          <h3 className="sub-title" style={{ marginBottom: 8 }}>
+          {/* h2 而不是 h3: 本页只有 h1 "Being Seen", 直接跳到 h3 会让
+              屏幕阅读器按标题浏览时出现断层 */}
+          <h2 className="sub-title" style={{ marginBottom: 8 }}>
             {pendingStar === null
               ? 'Leave an anonymous story'
               : starMap.has(pendingStar)
                 ? `Star #${pendingStar} already holds a story`
                 : `You chose star #${pendingStar}`}
-          </h3>
+          </h2>
 
           {!configured && (
             <div className="callout callout--gold" style={{ marginBottom: 14 }}>
