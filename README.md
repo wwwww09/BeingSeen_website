@@ -171,10 +171,29 @@ src/lib/
 build_data.py                   the entire data pipeline
 supabase/schema.sql             tables, RLS, rate limiting, realtime
 supabase/schema-public-insert.sql  optional write policy for static hosting
+scripts/browser-smoke.mjs       headless-Chrome check of all five routes
 DEPLOY.md                       step-by-step Supabase + Vercel guide (Chinese)
 .env.example                    environment variable template
 dev.sh                          local dev entry point
 ```
+
+## Verifying
+
+`next build` passing does not mean the pages work. An R3F hook called outside
+`<Canvas>` builds cleanly, typechecks cleanly, and then blanks the page for
+every visitor. `./dev.sh smoke` opens all five routes in headless Chrome over
+the DevTools protocol and fails on an uncaught exception, a `console.error`, a
+missing or zero-sized canvas, or a missing `<h1>`:
+
+```bash
+./dev.sh build
+./dev.sh start      # keep running in another terminal
+./dev.sh smoke      # exits non-zero if any route is broken
+```
+
+It is the only check here that can catch a client-side crash, and it earned its
+place immediately — it caught exactly that bug on the Lensing & SNe page.
+Without Chrome installed it prints a notice and skips.
 
 ## Corrections made to the original analysis
 

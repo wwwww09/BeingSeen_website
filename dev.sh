@@ -196,6 +196,11 @@ case "$CMD" in
   typecheck)
     exec "$DEV_NODE" node_modules/typescript/bin/tsc --noEmit
     ;;
+  smoke)
+    # 浏览器冒烟测试: 需要另一个终端已经跑着 ./dev.sh start
+    shift
+    exec "$DEV_NODE" scripts/browser-smoke.mjs "$@"
+    ;;
   data)
     echo "[data] 重新生成数据与图表"
     exec /opt/anaconda3/bin/python build_data.py
@@ -204,7 +209,7 @@ case "$CMD" in
     exec "$NODE_BIN" "$PNPM_BIN" install
     ;;
   *)
-    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|data|install]" >&2
+    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|smoke|data|install]" >&2
     exit 1
     ;;
 esac

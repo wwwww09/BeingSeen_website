@@ -315,6 +315,31 @@ mapping process and mapped file (non-platform) have different Team IDs
 ./dev.sh static        # 生成纯静态 out/（拖拽上传用，可选）
 ```
 
+### 推送到 GitHub 之前，建议跑一遍浏览器检查
+
+```bash
+./dev.sh build
+./dev.sh start                  # 另开一个终端窗口保持运行
+./dev.sh smoke                  # 第三个终端窗口
+```
+
+`./dev.sh smoke` 会用无头 Chrome 真的把五个页面打开一遍，检查：
+
+- 有没有未捕获的 JavaScript 异常
+- 有没有 `console.error`
+- 每个页面的 3D 画布数量对不对、尺寸是不是 0
+- `<h1>` 标题是否存在
+
+全部通过会打印 5 个 `✓` 并返回退出码 0；任何一项失败会打印 `✗`
+和具体原因，退出码 1。
+
+**为什么需要它：** `next build` 通过 ≠ 页面能用。这个项目就出现过一次
+「构建完全正常，但一打开页面整页空白」的错误（在错误的位置调用了 React
+Three Fiber 的 `useFrame`），只有真的用浏览器打开才会暴露。改完 3D 相关的
+代码后请务必跑一遍。
+
+如果机器上没有 Chrome，脚本会打印一行说明并跳过，不会报错。
+
 ## 附：这个项目存了什么数据
 
 只存三样东西，**没有账号、没有姓名、没有邮箱、没有 IP**：
