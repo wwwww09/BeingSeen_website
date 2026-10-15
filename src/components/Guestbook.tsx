@@ -16,16 +16,18 @@ export interface StoryRow {
   body: string
   star_index: number | null
   created_at: string
+  /** 只有实时推送的载荷里会带上; 读取查询已用 RLS/过滤排除隐藏项 */
+  is_hidden?: boolean
 }
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
-/** 把故事分配到星体上: 已指定且未占用的用指定值, 其余按哈希稳定分配 */
+/** 把故事分配到星体上: 已指定且未占用的用指定值, 其余按 id 稳定分配 */
 function assignStars(stories: StoryRow[]): Map<number, StoryRow> {
   const used = new Set<number>()
   const map = new Map<number, StoryRow>()
 
-  // 先安排显式指定了 star_index 的
+  const placed = new Set<number>()
   for (const s of stories) {
     if (
       typeof s.star_index === 'number' &&
@@ -35,11 +37,11 @@ function assignStars(stories: StoryRow[]): Map<number, StoryRow> {
     ) {
       used.add(s.star_index)
       map.set(s.star_index, s)
+      placed.add(s.id)
     }
   }
-  // 其余用 id 哈希分配, 线性探测找空位
   for (const s of stories) {
-    if ([...map.values()].some((v) => v.id === s.id)) continue
+    if (placed.has(s.id)) continue
     let idx = s.id % STAR_COUNT
     let guard = 0
     while (used.has(idx) && guard < STAR_COUNT) {
@@ -54,40 +56,85 @@ function assignStars(stories: StoryRow[]): Map<number, StoryRow> {
   return map
 }
 
-export default function Guestbook({
-  initialStories,
-  configured,
-  realtimeEnabled,
-}: {
-  initialStories: StoryRow[]
-  configured: boolean
-  realtimeEnabled: boolean
-}) {
-  const [stories, setStories] = useState<StoryRow[]>(initialStories)
+/** 读取环境变量 (NEXT_PUBLIC_ 在构建时被内联, 客户端可用) */
+function supabaseConfig(): { url: string; key: string } | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key || !url.startsWith('http')) return null
+  return { url, key }
+}
+
+/** 基于浏览器的稳定客户端标识, 仅供限流使用 (不含任何身份信息) */
+function localClientHash(): string {
+  const KEY = 'beingseen.client'
+  try {
+    let v = localStorage.getItem(KEY)
+    if (!v) {
+      v = Math.random().toString(36).slice(2) + Date.now().toString(36)
+      localStorage.setItem(KEY, v)
+    }
+    return `web-${v}`.slice(0, 32)
+  } catch {
+    return 'web-anonymous'
+  }
+}
+
+export default function Guestbook({ configured }: { configured: boolean }) {
+  const [stories, setStories] = useState<StoryRow[]>([])
+  const [loading, setLoading] = useState(configured)
   const [selected, setSelected] = useState<number | null>(null)
   const [body, setBody] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const [pendingStar, setPendingStar] = useState<number | null>(null)
-  const supabaseRef = useRef<SupabaseClient | null>(null)
+  const clientRef = useRef<SupabaseClient | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const starMap = useMemo(() => assignStars(stories), [stories])
   const litIndices = useMemo(() => [...starMap.keys()], [starMap])
+  const starOfStory = useMemo(() => {
+    const m = new Map<number, number>()
+    for (const [idx, story] of starMap) m.set(story.id, idx)
+    return m
+  }, [starMap])
 
-  // ------------------------------------------------------------ Realtime
+  // ------------------------------------------------------------ 客户端初始化
   useEffect(() => {
-    if (!realtimeEnabled) return
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key =
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!url || !key) return
-
-    const client = createClient(url, key, {
+    if (!configured) {
+      setLoading(false)
+      return
+    }
+    const cfg = supabaseConfig()
+    if (!cfg) {
+      setLoading(false)
+      return
+    }
+    const client = createClient(cfg.url, cfg.key, {
       auth: { persistSession: false },
     })
-    supabaseRef.current = client
+    clientRef.current = client
+
+    let cancelled = false
+
+    // 初始读取 + 实时订阅
+    const load = async () => {
+      const { data, error } = await client
+        .from('stories')
+        .select('id, body, star_index, created_at')
+        .eq('is_hidden', false)
+        .order('created_at', { ascending: false })
+        .limit(200)
+      if (cancelled) return
+      if (error) {
+        console.error('[guestbook] load failed:', error.message)
+      } else {
+        setStories((data ?? []) as StoryRow[])
+      }
+      setLoading(false)
+    }
+    void load()
 
     const channel = client
       .channel('stories-live')
@@ -96,6 +143,7 @@ export default function Guestbook({
         { event: 'INSERT', schema: 'public', table: 'stories' },
         (payload) => {
           const row = payload.new as StoryRow
+          if (row.is_hidden) return
           setStories((prev) =>
             prev.some((p) => p.id === row.id) ? prev : [row, ...prev],
           )
@@ -104,38 +152,32 @@ export default function Guestbook({
       .subscribe()
 
     return () => {
+      cancelled = true
       void client.removeChannel(channel)
+      clientRef.current = null
     }
-  }, [realtimeEnabled])
+  }, [configured])
 
-  // 反向索引: story.id → 星体编号
-  const starOfStory = useMemo(() => {
-    const m = new Map<number, number>()
-    for (const [idx, story] of starMap) m.set(story.id, idx)
-    return m
-  }, [starMap])
-
-  // ------------------------------------------------------------ 交互
+  // ------------------------------------------------------------ 选择星体
   const handleSelectStar = useCallback(
     (i: number) => {
       setSelected(i)
       setPendingStar(i)
       setStatus('idle')
       setMessage(null)
-      // 已有故事的星: 滚动到该故事
       const existing = starMap.get(i)
       if (existing) {
         document
           .getElementById(`story-${existing.id}`)
           ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       } else {
-        // 未点亮的星: 聚焦输入框
         setTimeout(() => textareaRef.current?.focus(), 60)
       }
     },
     [starMap],
   )
 
+  // ------------------------------------------------------------ 提交
   const submit = useCallback(async () => {
     const text = body.trim()
     if (text.length < 2) {
@@ -146,38 +188,89 @@ export default function Guestbook({
     setStatus('sending')
     setMessage(null)
 
+    const payload = { body: text, starIndex: pendingStar }
+
+    // 先试服务端端点 (存在时它负责校验与限流)
+    let serverUnavailable = false
     try {
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: text, starIndex: pendingStar }),
+        body: JSON.stringify(payload),
       })
-      const json = (await res.json()) as {
-        story?: StoryRow
-        message?: string
-        error?: string
-      }
 
-      if (!res.ok || !json.story) {
-        setStatus('error')
-        setMessage(json.message ?? 'Something went wrong. Please try again.')
+      // 静态导出下没有这个路由, 会返回 404 的 HTML
+      const ct = res.headers.get('content-type') ?? ''
+      if (res.status === 404 || !ct.includes('application/json')) {
+        serverUnavailable = true
+      } else {
+        const json = (await res.json()) as {
+          story?: StoryRow
+          message?: string
+          error?: string
+        }
+        if (!res.ok || !json.story) {
+          setStatus('error')
+          setMessage(json.message ?? 'Something went wrong. Please try again.')
+          return
+        }
+        setStories((prev) => [json.story as StoryRow, ...prev])
+        finish(json.story as StoryRow)
         return
       }
-
-      setStories((prev) => [json.story as StoryRow, ...prev])
-      setBody('')
-      setStatus('sent')
-      setMessage('Your story is now part of this star.')
-      // 让新星闪一下
-      setSelected(pendingStar)
-      document
-        .getElementById(`story-${json.story.id}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     } catch {
-      setStatus('error')
-      setMessage('Network error. Please try again.')
+      serverUnavailable = true
     }
+
+    // 回退: 客户端直连 Supabase (仅静态部署需要)
+    if (serverUnavailable) {
+      const client = clientRef.current
+      if (!client) {
+        setStatus('error')
+        setMessage(
+          'The guestbook is not connected to a database, so your story could not be saved.',
+        )
+        return
+      }
+      const { data, error } = await client
+        .from('stories')
+        .insert({
+          body: text,
+          star_index: pendingStar,
+          client_hash: localClientHash(),
+        })
+        .select('id, body, star_index, created_at')
+        .single()
+
+      if (error) {
+        setStatus('error')
+        setMessage(
+          error.message.includes('rate limit')
+            ? 'This device has reached the hourly limit. Please come back later.'
+            : 'Could not save your story. Please try again.',
+        )
+        return
+      }
+      setStories((prev) => [data as StoryRow, ...prev])
+      finish(data as StoryRow)
+      return
+    }
+
+    setStatus('error')
+    setMessage('Something went wrong. Please try again.')
   }, [body, pendingStar])
+
+  const finish = useCallback((story: StoryRow) => {
+    setBody('')
+    setStatus('sent')
+    setMessage('Your story is now part of this star.')
+    setSelected(story.star_index ?? null)
+    setTimeout(() => {
+      document
+        .getElementById(`story-${story.id}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 80)
+  }, [])
 
   const remaining = 600 - body.length
 
@@ -193,8 +286,9 @@ export default function Guestbook({
           />
         </div>
         <div className="guestbook__hint">
-          {litIndices.length} of {STAR_COUNT} stars have been lit by a story ·
-          click a dim star to leave yours
+          {loading
+            ? 'reading the sky…'
+            : `${litIndices.length} of ${STAR_COUNT} stars have been lit by a story · click a dim star to leave yours`}
         </div>
       </div>
 
@@ -217,8 +311,8 @@ export default function Guestbook({
               <p className="callout__note">
                 Stories cannot be saved until a Supabase project is connected. Set{' '}
                 <span className="mono">NEXT_PUBLIC_SUPABASE_URL</span> and{' '}
-                <span className="mono">SUPABASE_SECRET_KEY</span>, then run the SQL in{' '}
-                <span className="mono">supabase/schema.sql</span>.
+                <span className="mono">NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</span>, then run
+                the SQL in <span className="mono">supabase/schema.sql</span>.
               </p>
             </div>
           )}
@@ -265,8 +359,8 @@ export default function Guestbook({
           )}
 
           <p className="small muted" style={{ marginTop: 12 }}>
-            Your story is stored without any account, name, or identity. Only the text
-            and the star it belongs to are saved.
+            Your story is stored without any account, name, or identity. Only the text and
+            the star it belongs to are saved.
           </p>
         </div>
 
@@ -280,7 +374,9 @@ export default function Guestbook({
 
           {stories.length === 0 ? (
             <p className="small muted" style={{ padding: '4px 2px' }}>
-              No stories yet. The stars are all still dark — yours would be the first.
+              {loading
+                ? 'Loading stories…'
+                : 'No stories yet. The stars are all still dark — yours would be the first.'}
             </p>
           ) : (
             <ul className="storylist">

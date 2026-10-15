@@ -19,9 +19,13 @@ tsconfig.tsbuildinfo
 # Jupyter
 .ipynb_checkpoints/
 
-# 研究原始数据 (build_data.py 的输入)。
-# 这些都是仓库已跟踪的, 保留以便复现。只有 18MB 的模拟星表不进新的提交。
-lensed_sn_mock.fits
+# 研究原始数据 (体积大, 用 build_data.py 从本地数据重新生成 public/data)
+# 如需完整复现, 把这些文件放到仓库根目录后运行 ./dev.sh data
+#   lensed_sn_mock.fits      (18 MB)
+#   lenscat_catalog.csv      (3.6 MB)
+#   chime_frb_catalog        (600 KB)
+#   GWTC-5.0.csv
+#   gISNe_sample.csv
 
 # 编辑器
 .vscode/

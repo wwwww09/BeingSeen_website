@@ -26,7 +26,7 @@ export function getSecretKey(): string | undefined {
   return process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
 }
 
-/** 浏览器端是否可以使用 Supabase (只读订阅需要) */
+/** 浏览器端是否可以使用 Supabase (读取与订阅需要) */
 export function isSupabaseBrowserConfigured(): boolean {
   return Boolean(getSupabaseUrl() && getPublishableKey())
 }
@@ -34,4 +34,20 @@ export function isSupabaseBrowserConfigured(): boolean {
 /** 服务端是否可以写入 (需要 secret key) */
 export function isSupabaseServerConfigured(): boolean {
   return Boolean(getSupabaseUrl() && getSecretKey())
+}
+
+/**
+ * 留言板是否可用 —— 只看可公开的凭证。
+ * 故事读取一律走客户端, 所以服务端有没有 secret key 不影响本判断。
+ */
+export function isSupabaseConfigured(): boolean {
+  return isSupabaseBrowserConfigured()
+}
+
+/**
+ * 是否运行在静态导出产物里 (没有 /api/stories)。
+ * 由 ./dev.sh static 在构建时注入 NEXT_PUBLIC_STATIC_EXPORT=1。
+ */
+export function isStaticExport(): boolean {
+  return process.env.NEXT_PUBLIC_STATIC_EXPORT === '1'
 }

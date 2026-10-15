@@ -66,7 +66,98 @@ sign_swc() {
 prepare_dev_node
 sign_swc
 
-# ---------------------------------------------------------------- 3. 启动
+# ---------------------------------------------------------------- 3. 静态导出
+# 静态导出有两处约束:
+#   1. 不支持 Route Handler  -> 构建期间把 src/app/api 移开
+#   2. next build 没有 --config 选项 -> 构建期间用静态配置覆盖 next.config.mjs
+# 两者都在结束后还原。
+build_static() {
+  local api_dir="src/app/api"
+  local api_backup=".static-build-api-backup"
+  local cfg="next.config.mjs"
+  local cfg_backup=".static-build-next-config.mjs"
+  local static_cfg="next.config.static.mjs"
+  local restored=0
+  local rc=0
+
+  restore_all() {
+    if [[ "$restored" -eq 0 ]]; then
+      if [[ -d "$api_backup" ]]; then
+        rm -rf "$api_dir"
+        mv "$api_backup" "$api_dir"
+        echo "[static] 已还原 $api_dir"
+      fi
+      if [[ -f "$cfg_backup" ]]; then
+        mv -f "$cfg_backup" "$cfg"
+        echo "[static] 已还原 $cfg"
+      fi
+      restored=1
+    fi
+  }
+  trap restore_all EXIT INT TERM
+
+  if [[ ! -f "$static_cfg" ]]; then
+    echo "[static] 找不到 $static_cfg" >&2
+    return 1
+  fi
+
+  # 移开 API 路由
+  if [[ -d "$api_dir" ]]; then
+    rm -rf "$api_backup"
+    mv "$api_dir" "$api_backup"
+    echo "[static] 已临时移开 $api_dir (静态导出不允许 API 路由)"
+  fi
+
+  # 换成静态配置
+  rm -f "$cfg_backup"
+  if [[ -f "$cfg" ]]; then
+    mv "$cfg" "$cfg_backup"
+  fi
+  cp "$static_cfg" "$cfg"
+  echo "[static] 已启用 $cfg (output: export)"
+
+  # .next 里可能有 dev 模式生成的类型文件, 它们引用了刚被移开的
+  # src/app/api/... 路由, 会让 tsc 报 TS2307。整个清掉做干净构建。
+  echo "[static] 清理 .next 缓存 ..."
+  rm -rf .next
+
+  echo "[static] 开始构建 ..."
+  # 告诉前端这是静态部署 (没有 /api/stories), 留言板会改用客户端直连写入
+  if ! NEXT_PUBLIC_STATIC_EXPORT=1 "$DEV_NODE" node_modules/next/dist/bin/next build; then
+    rc=1
+  fi
+
+  restore_all
+  trap - EXIT INT TERM
+
+  if [[ $rc -ne 0 ]]; then
+    echo "[static] 构建失败" >&2
+    return 1
+  fi
+
+  if [[ -d out ]]; then
+    cat > out/vercel.json << 'JSON'
+{
+  "headers": [
+    {
+      "source": "/data/(.*).json",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/charts/(.*).png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}
+JSON
+    echo "[static] 已写出 out/vercel.json"
+    du -sh out 2>/dev/null | awk '{print "[static] 产物大小: " $1}'
+    echo "[static] 完成 -> $(pwd)/out"
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------- 4. 启动
 export NEXT_CACHE_DIR="${NEXT_CACHE_DIR:-/tmp/beingseen-next-cache}"
 mkdir -p "$NEXT_CACHE_DIR"
 
@@ -77,8 +168,22 @@ case "$CMD" in
     exec "$DEV_NODE" node_modules/next/dist/bin/next dev
     ;;
   build)
-    echo "[build] 生产构建"
+    echo "[build] 生产构建 (serverless, 用于 Vercel Git 部署)"
     exec "$DEV_NODE" node_modules/next/dist/bin/next build
+    ;;
+  static)
+    build_static
+    exit $?
+    ;;
+  serve-static)
+    if [[ ! -d out ]]; then
+      echo "[serve-static] 还没有 out/ 目录, 请先运行: ./dev.sh static" >&2
+      exit 1
+    fi
+    PORT="${PORT:-3200}"
+    echo "[serve-static] 静态产物预览 http://localhost:$PORT"
+    cd out
+    exec /opt/anaconda3/bin/python -m http.server "$PORT" --bind 127.0.0.1
     ;;
   start)
     echo "[start] 启动生产服务器 http://localhost:3000"
@@ -95,7 +200,7 @@ case "$CMD" in
     exec "$NODE_BIN" "$PNPM_BIN" install
     ;;
   *)
-    echo "用法: $0 [dev|build|start|typecheck|data|install]" >&2
+    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|data|install]" >&2
     exit 1
     ;;
 esac

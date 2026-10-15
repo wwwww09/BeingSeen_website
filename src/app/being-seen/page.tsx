@@ -1,7 +1,18 @@
 import type { Metadata } from 'next'
-import { createClient } from '@supabase/supabase-js'
-import Guestbook, { type StoryRow } from '@/components/Guestbook'
-import { getSecretKey, getSupabaseUrl, isSupabaseBrowserConfigured } from '@/lib/supabase'
+import Guestbook from '@/components/Guestbook'
+import { isSupabaseConfigured } from '@/lib/supabase'
+
+/**
+ * 留言板页面。
+ *
+ * 故事数据一律在客户端读取 (用可公开的 key + RLS 的 select 策略)。
+ * 这样同一份代码在两种部署形态下都能工作:
+ *   - 正常部署 (serverless): 有 /api/stories 负责写入
+ *   - 静态导出: 没有服务端, 改为客户端直连写入
+ *     (需要执行 supabase/schema-public-insert.sql)
+ *
+ * 读取不需要服务端参与, 所以本页可以静态预渲染。
+ */
 
 export const metadata: Metadata = {
   title: 'Being Seen',
@@ -9,39 +20,8 @@ export const metadata: Metadata = {
     'Every dim star here represents an object in the universe that has not yet been fully seen. Leave an anonymous story about a moment when you felt unseen.',
 }
 
-// 留言板需要读取最新数据, 不做静态化
-export const dynamic = 'force-dynamic'
-
-async function loadStories(): Promise<StoryRow[]> {
-  const url = getSupabaseUrl()
-  const secret = getSecretKey()
-  if (!url || !secret) return []
-
-  try {
-    const supabase = createClient(url, secret, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
-    const { data, error } = await supabase
-      .from('stories')
-      .select('id, body, star_index, created_at')
-      .eq('is_hidden', false)
-      .order('created_at', { ascending: false })
-      .limit(200)
-
-    if (error) {
-      console.error('[being-seen] failed to load stories:', error.message)
-      return []
-    }
-    return (data ?? []) as StoryRow[]
-  } catch (err) {
-    console.error('[being-seen] unexpected error loading stories:', err)
-    return []
-  }
-}
-
-export default async function BeingSeenPage() {
-  const stories = await loadStories()
-  const configured = isSupabaseBrowserConfigured() && Boolean(getSecretKey())
+export default function BeingSeenPage() {
+  const configured = isSupabaseConfigured()
 
   return (
     <main className="page page--wide">
@@ -57,11 +37,7 @@ export default async function BeingSeenPage() {
       </header>
 
       <section className="section" style={{ marginTop: 30 }}>
-        <Guestbook
-          initialStories={stories}
-          configured={configured}
-          realtimeEnabled={configured}
-        />
+        <Guestbook configured={configured} />
       </section>
 
       <section className="section">
