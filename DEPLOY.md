@@ -333,6 +333,7 @@ mapping process and mapped file (non-platform) have different Team IDs
 - 每个页面的 3D 画布数量对不对、尺寸是不是 0
 - 3D 场景有没有卡在加载动画上
 - `<h1>` 标题是否存在
+- 把视口缩到 390px 手机宽度时，页面会不会横向溢出
 
 **交互**（这个"严肃游戏"的核心机制真的能用吗）
 

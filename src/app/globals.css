@@ -208,6 +208,11 @@ p.body {
   font-weight: 600;
 }
 
+/* 宽屏用完整标签, 窄屏换成短标签 (见 Nav.tsx 的说明) */
+.nav__label-short {
+  display: none;
+}
+
 /* ------------------------------------------------------------------ 卡片 */
 .panel {
   background: linear-gradient(160deg, var(--bg-panel), var(--bg-deep));
@@ -643,6 +648,26 @@ p.body {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
+  /* 五个完整标签在手机上放不下会被截断, 最后一个 "Being Seen" 根本看不到。
+     换成短标签并收紧间距, 让五项全部可见。 */
+  .nav__label-full {
+    display: none;
+  }
+  .nav__label-short {
+    display: inline;
+  }
+  .nav__inner {
+    padding: 0 14px;
+    gap: 4px;
+  }
+  .nav__brand {
+    margin-right: 6px;
+    font-size: 14px;
+  }
+  .nav__link {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
 }
 
 /* ==========================================================================
@@ -687,6 +712,24 @@ p.body {
 
 .explorer__chart {
   margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   数据图表在窄屏上的可读性
+
+   SVG 图表按 viewBox 等比缩放, 在一台 390px 宽的手机上, 720 单位宽的图
+   会被压到约 350px —— 图里 11px 的字实际只有 5px 高, 完全读不出来。
+   给图表一个最小宽度并允许横向滚动: 手机上字是清楚的, 想看右边就滑一下。
+   宽屏下容器比 min-width 宽, 所以完全不受影响。
+   -------------------------------------------------------------------------- */
+.chart-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.chart-scroll > svg,
+.chart-scroll > img {
+  min-width: 620px;
 }
 
 .explorer__counts {

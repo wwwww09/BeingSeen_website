@@ -82,7 +82,7 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
       </div>
 
       {/* ---------------------------------------------------- 星等图 */}
-      <div className="explorer__chart">
+      <div className="explorer__chart chart-scroll">
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }} role="img"
           aria-label="Supernova brightness with and without lensing">
           {/* 不可探测区: 比探测极限更暗的那一侧 (右边) */}

@@ -83,14 +83,16 @@ export default function LensingSupernovaePage() {
         </p>
 
         <div className="panel panel--flush" style={{ marginTop: 18 }}>
-          <Image
-            src="/charts/gisne_theoretical_with_real.png"
-            alt="Left: histogram of simulated lensed supernova apparent magnitudes with a detection limit marked, showing only 4 of 64309 systems detectable. Right: dumbbell chart of the five real lensed supernovae showing their magnitude with and without lensing."
-            width={2480}
-            height={960}
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-            priority
-          />
+          <div className="chart-scroll">
+            <Image
+              src="/charts/gisne_theoretical_with_real.png"
+              alt="Left: histogram of simulated lensed supernova apparent magnitudes with a detection limit marked, showing only 4 of 64309 systems detectable. Right: dumbbell chart of the five real lensed supernovae showing their magnitude with and without lensing."
+              width={2480}
+              height={960}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
         </div>
 
         <div className="grid grid--3" style={{ marginTop: 18 }}>
@@ -139,15 +141,17 @@ export default function LensingSupernovaePage() {
           quality — is the dominant reason these explosions stay unseen.
         </p>
         <div className="panel" style={{ marginTop: 18 }}>
-          <ScatterChart
-            points={scatterPoints}
-            limitMag={mockSupernovae.limitingMag}
-            xLabel="Source redshift  z"
-            yLabel="Apparent magnitude (fainter ↑)"
-            xDomain={[0, 3.6]}
-            yDomain={[32, 19]}
-            height={360}
-          />
+          <div className="chart-scroll">
+            <ScatterChart
+              points={scatterPoints}
+              limitMag={mockSupernovae.limitingMag}
+              xLabel="Source redshift  z"
+              yLabel="Apparent magnitude (fainter ↑)"
+              xDomain={[0, 3.6]}
+              yDomain={[32, 19]}
+              height={360}
+            />
+          </div>
           <p className="small muted" style={{ marginTop: 8 }}>
             Showing a random sample of {scatterPoints.length.toLocaleString()} of{' '}
             {mockSupernovae.totalRows.toLocaleString()} systems. Gold points are above the
@@ -169,10 +173,12 @@ export default function LensingSupernovaePage() {
           reach 8× to 52×.
         </p>
         <div className="panel" style={{ marginTop: 18 }}>
-          <MagnificationHistogram
-            counts={mockSupernovae.magnificationDistribution.counts}
-            edges={mockSupernovae.magnificationDistribution.edges}
-          />
+          <div className="chart-scroll">
+            <MagnificationHistogram
+              counts={mockSupernovae.magnificationDistribution.counts}
+              edges={mockSupernovae.magnificationDistribution.edges}
+            />
+          </div>
           <p className="small muted" style={{ marginTop: 8 }}>
             Total magnification μ of simulated systems (logarithmic bins). Real
             strongly-lensed supernovae sit well into the right-hand tail.

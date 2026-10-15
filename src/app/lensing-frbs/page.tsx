@@ -175,13 +175,15 @@ export default function LensingFrbsPage() {
         </div>
 
         <div className="panel panel--flush" style={{ marginTop: 18 }}>
-          <Image
-            src="/charts/frb_dm_vs_separation.png"
-            alt="Scatter plot of angular separation against dispersion measure difference. Lensed pairs would need to sit in the bottom-left corner, but no pair does."
-            width={1760}
-            height={928}
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-          />
+          <div className="chart-scroll">
+            <Image
+              src="/charts/frb_dm_vs_separation.png"
+              alt="Scatter plot of angular separation against dispersion measure difference. Lensed pairs would need to sit in the bottom-left corner, but no pair does."
+              width={1760}
+              height={928}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </div>
         </div>
         <p className="small muted" style={{ marginTop: 10 }}>
           A genuine lensed pair must satisfy <em>both</em> conditions at once: small

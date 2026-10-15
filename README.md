@@ -186,7 +186,8 @@ the DevTools protocol and checks two things.
 
 **Rendering** — per route: no uncaught exception, no `console.error`, the
 expected number of non-zero-sized canvases, no 3D scene stuck on its loading
-placeholder, and a non-empty `<h1>`.
+placeholder, a non-empty `<h1>`, and no horizontal overflow when the viewport
+is narrowed to a 390px phone.
 
 **Behaviour** — that the game's mechanics actually respond:
 the detection-limit slider opens at the real ZTF limit and reports 0/5 without

@@ -229,6 +229,36 @@ const INSPECT = `(() => {
   };
 })()`
 
+/**
+ * 横向溢出检查。
+ * 手机是学生最可能打开这个网站的设备, 一个 390px 宽就横向溢出的页面
+ * 会让人必须左右拖着看。这里找出真正越界的元素, 并跳过那些本来就被
+ * 可滚动容器包住的 (例如 .chart-scroll 里的宽图表)。
+ */
+const OVERFLOW = `(() => {
+  const vw = window.innerWidth;
+  const de = document.documentElement;
+  const offenders = [];
+  for (const el of document.querySelectorAll('body *')) {
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) continue;
+    if (r.right <= vw + 1.5) continue;
+    let p = el.parentElement, clipped = false;
+    while (p) {
+      const ox = getComputedStyle(p).overflowX;
+      if (ox === 'auto' || ox === 'scroll' || ox === 'hidden') { clipped = true; break }
+      p = p.parentElement;
+    }
+    if (clipped) continue;
+    if (getComputedStyle(el).position === 'fixed') continue;
+    offenders.push(el.tagName.toLowerCase() + '.' + String(el.className).slice(0, 40));
+  }
+  return { overflow: de.scrollWidth - vw, offenders: offenders.slice(0, 4) };
+})()`
+
+const NARROW = { width: 390, height: 844, deviceScaleFactor: 1, mobile: true }
+const WIDE = { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false }
+
 for (const route of ROUTES) {
   await goto(route.path)
 
@@ -254,6 +284,15 @@ for (const route of ROUTES) {
     if (c.w === 0 || c.h === 0) problems.push(`<canvas> 尺寸为 0 (${c.w}×${c.h})`)
   }
   if (state.spinners > 0) problems.push(`${state.spinners} 个 3D 场景仍停在加载占位符`)
+
+  // 改视口不会重新加载页面, 所以这一步很便宜
+  await send('Emulation.setDeviceMetricsOverride', NARROW)
+  await sleep(600)
+  const narrow = (await evaluate(OVERFLOW)) ?? { overflow: 0, offenders: [] }
+  await send('Emulation.setDeviceMetricsOverride', WIDE)
+  await sleep(150)
+  if (narrow.overflow > 1) problems.push(`手机上横向溢出 ${narrow.overflow}px`)
+  if (narrow.offenders?.length) problems.push(`手机上越界: ${narrow.offenders.join(', ')}`)
 
   const label = `${route.path}  (canvas=${actual})`
   check(label, problems.length === 0, problems.join('; '))

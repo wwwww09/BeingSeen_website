@@ -92,7 +92,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
       </div>
 
       {/* ---------------------------------------------- 3D 条形图 */}
-      <div className="explorer__chart">
+      <div className="explorer__chart chart-scroll">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"

@@ -181,13 +181,15 @@ export default function GravitationalWaveLensingPage() {
         </div>
 
         <div className="panel panel--flush" style={{ marginTop: 18 }}>
-          <Image
-            src="/charts/gw_mass_correction.png"
-            alt="Bar chart comparing observed and lensing-corrected black hole masses for two gravitational wave events, with error bars and the mass gap boundary marked."
-            width={1600}
-            height={928}
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-          />
+          <div className="chart-scroll">
+            <Image
+              src="/charts/gw_mass_correction.png"
+              alt="Bar chart comparing observed and lensing-corrected black hole masses for two gravitational wave events, with error bars and the mass gap boundary marked."
+              width={1600}
+              height={928}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </div>
         </div>
       </section>
 
