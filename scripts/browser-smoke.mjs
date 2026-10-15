@@ -22,6 +22,7 @@
  *   5. 3D 场景有没有卡在加载占位符
  *   6. 手机宽度下有没有横向溢出
  *   7. 图片 alt / 控件可访问名称 / 表单标签 / 标题层级 / 可点击但键盘够不着
+ *   8. 文字对比度达到 WCAG AA
  *
  * 第二阶段 · 交互 (这个"严肃游戏"的核心机制真的能用吗)
  *   6. 页面二的探测极限滑块: 初始值 = 真实 ZTF 极限, 且读数与页头结论一致
@@ -341,11 +342,96 @@ const A11Y = `(() => {
   };
 })()`
 
+/**
+ * 对比度审计 (WCAG AA: 普通文字 4.5:1, 大号文字 3:1)。
+ *
+ * 两个容易写错的地方, 这里都处理了:
+ *   1. 低透明度的渐变端点必须**合成**到底色上再算。项目里的结论框是
+ *      rgba(39,174,96,0.12) 这种极淡的色偏, 当成不透明色会得出 1.49:1
+ *      这种荒唐结果 (第一版报了 211 处全是误报)。
+ *   2. background-clip:text 的元素, 渐变是"文字本身的填充色", 不是背景,
+ *      必须跳过 (首页那个渐变标题就是这种情况)。
+ */
+const CONTRAST = `(() => {
+  const parse = (s) => {
+    const m = String(s).match(/rgba?\\(([^)]+)\\)/);
+    if (!m) return null;
+    const p = m[1].split(',').map(parseFloat);
+    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+  };
+  const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const lum = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+  const ratio = (a, b) => {
+    const la = lum(a), lb = lum(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  };
+  const over = (top, base) => ({
+    r: top.r * top.a + base.r * (1 - top.a),
+    g: top.g * top.a + base.g * (1 - top.a),
+    b: top.b * top.a + base.b * (1 - top.a),
+  });
+  /** 从最外层往里逐层合成; 渐变取"合成后最亮"的端点 (对浅色文字最不利) */
+  const effectiveBg = (el) => {
+    const layers = [];
+    let node = el;
+    while (node) {
+      const cs = getComputedStyle(node);
+      const img = cs.backgroundImage;
+      let stops = null;
+      if (img && img !== 'none' && img.includes('gradient')) {
+        stops = [...img.matchAll(/rgba?\\([^)]+\\)/g)].map((m) => parse(m[0])).filter(Boolean);
+      } else {
+        const c = parse(cs.backgroundColor);
+        if (c && c.a > 0) stops = [c];
+      }
+      if (stops && stops.length) layers.push(stops);
+      node = node.parentElement;
+    }
+    let base = { r: 4, g: 6, b: 15 };
+    for (const stops of layers.reverse()) {
+      let best = null;
+      for (const s of stops) {
+        const comp = over(s, base);
+        if (!best || lum(comp) > lum(best)) best = comp;
+      }
+      base = best;
+    }
+    return base;
+  };
+
+  const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 1);
+  const out = [];
+  for (const el of document.querySelectorAll('body *')) {
+    if (!ownText(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none' || parseFloat(cs.opacity) < 0.5) continue;
+    if (cs.backgroundClip === 'text' || cs.webkitBackgroundClip === 'text') continue;
+    const fg = parse(cs.color);
+    if (!fg || fg.a < 0.5) continue;
+    const cr = ratio(fg, effectiveBg(el));
+    const size = parseFloat(cs.fontSize);
+    const weight = parseInt(cs.fontWeight, 10) || 400;
+    const need = (size >= 24 || (size >= 18.66 && weight >= 700)) ? 3 : 4.5;
+    if (cr < need) {
+      out.push({
+        ratio: Math.round(cr * 100) / 100,
+        need,
+        size: Math.round(size * 10) / 10,
+        text: (el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 40),
+      });
+    }
+  }
+  return out;
+})()`
+
 for (const route of ROUTES) {
   await goto(route.path)
 
   const state = (await evaluate(INSPECT)) ?? {}
   const a11y = (await evaluate(A11Y)) ?? {}
+  const contrast = (await evaluate(CONTRAST)) ?? []
 
   const exceptions = events
     .filter((e) => e.method === 'Runtime.exceptionThrown')
@@ -378,6 +464,12 @@ for (const route of ROUTES) {
   if (a11y.clickableNotFocusable?.length) {
     problems.push(`可点击但键盘够不着: ${a11y.clickableNotFocusable.join(', ')}`)
   }
+
+  // 对比度 (WCAG AA)
+  for (const c of contrast.slice(0, 4)) {
+    problems.push(`对比度 ${c.ratio}:1 < ${c.need}:1 (${c.size}px «${c.text}»)`)
+  }
+  if (contrast.length > 4) problems.push(`…共 ${contrast.length} 处对比度不足`)
 
   // 改视口不会重新加载页面, 所以这一步很便宜
   await send('Emulation.setDeviceMetricsOverride', NARROW)

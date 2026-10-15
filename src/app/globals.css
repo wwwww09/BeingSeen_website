@@ -14,7 +14,13 @@
   /* 文字 */
   --text: #e8eefc;
   --text-dim: #9aabc7;
-  --text-faint: #6a7b98;
+  /*
+   * 原来是 #6a7b98, 在面板和结论框上只有 3.4–4.3:1, 达不到 WCAG AA 要求的
+   * 4.5:1 —— 而这个颜色专门用在 10–13px 的说明文字上 (图注、提示、备注),
+   * 小字本来就最难读。提亮到 #8595b2 后最差也有约 4.9:1, 同时仍然明显比
+   * --text-dim 暗, 层级关系没变。
+   */
+  --text-faint: #8595b2;
 
   /* 描边 */
   --border: #1e2b47;
@@ -26,7 +32,8 @@
   --gold: #ffb703;
   --lens-green: #27ae60;
   --lens-green-soft: #1e7a45;
-  --red: #e05252;
+  /* 从 #e05252 微调: 在深色面板上原本只有 4.48:1, 正好卡在 4.5:1 门槛下 */
+  --red: #e56060;
   --violet: #9b7bff;
 
   --nav-h: 62px;
@@ -339,12 +346,19 @@ p.body {
 }
 
 .btn--primary {
-  background: linear-gradient(160deg, #2f7fd6, #21609f);
-  border-color: #3d8fe0;
+  /*
+   * 原来的渐变最亮端是 #2f7fd6, 白字在上面只有 4.1:1, 低于 AA 的 4.5:1。
+   * 整体压深一档后是 4.8:1。hover 不再靠"变亮"来提示 (那会把对比度又压到
+   * 4.1), 而是靠边框变亮 + 轻微上浮, 两个状态都过。
+   */
+  background: linear-gradient(160deg, #2b73c4, #1e578f);
+  border-color: #3f8ad8;
   color: #fff;
 }
 .btn--primary:hover:not(:disabled) {
-  background: linear-gradient(160deg, #3a8ee6, #2670b5);
+  background: linear-gradient(160deg, #2b73c4, #1e578f);
+  border-color: #7cbcf5;
+  transform: translateY(-1px);
 }
 
 .btn--ghost {
