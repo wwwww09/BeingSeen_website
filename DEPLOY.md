@@ -169,7 +169,8 @@ pnpm dev              # Linux / 已经装好依赖的机器
    | Install Command | 默认（`pnpm install`） |
 
    > 仓库里的 `package.json` 已经写了 `"packageManager": "pnpm@11.7.0"`，
-   > Vercel 会自动使用 pnpm 11 和 Node 22。
+   > Vercel 会自动用 pnpm 11 安装依赖，并挑一个满足 `node >= 22` 的版本
+   > （默认是 Node 22.x）。这些都不用你手动设置。
 
 5. **先不要点 Deploy**，先去下一节填环境变量。
    （如果想先看效果，直接 Deploy 也行 —— 网站能跑，只是留言板未连接。
