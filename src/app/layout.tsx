@@ -2,21 +2,31 @@ import type { Metadata, Viewport } from 'next'
 import Nav from '@/components/Nav'
 import './globals.css'
 
-/**
- * 读一个环境变量里的 URL, 把"没设置"和"设成了没用的值"一律当作未设置。
- *
- * 这里踩过一个真实的坑: .env.example 里 `NEXT_PUBLIC_SITE_URL=` 是留空的,
- * 而空字符串**不是** nullish, 所以 `??` 会直接采用它, 于是
- * `new URL('')` 在构建阶段抛 ERR_INVALID_URL, 整个 build 失败。
- * 任何照着 README 执行 `cp .env.example .env.local` 的人都会中招。
- *
- * 顺带把格式不合法的值也挡掉 (比如漏了 https://), 让它退回默认值而不是崩溃。
- */
+/** 完整 URL(带协议), 例如 https://example.com —— 用于 NEXT_PUBLIC_SITE_URL */
 function envUrl(value: string | undefined): string | undefined {
   const v = value?.trim()
   if (!v) return undefined
   try {
     new URL(v)
+    return v
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * 裸主机名, 例如 being-seen.vercel.app —— 用于 VERCEL_URL 系列。
+ *
+ * 必须和 envUrl 分开: Vercel 注入的这两个变量**不带协议头**, 拿
+ * `new URL('being-seen.vercel.app')` 去校验会抛错, 于是被误判成"没设置",
+ * 分享卡片就退回 localhost —— 线上 og:image 变成 http://localhost:3000/og.png,
+ * 社交平台抓不到图。补上 https:// 再校验才对。
+ */
+function envHost(value: string | undefined): string | undefined {
+  const v = value?.trim()
+  if (!v) return undefined
+  try {
+    new URL(`https://${v}`)
     return v
   } catch {
     return undefined
@@ -32,7 +42,7 @@ function envUrl(value: string | undefined): string | undefined {
  * 本地开发退回到 localhost。
  */
 const vercelHost =
-  envUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL) ?? envUrl(process.env.VERCEL_URL)
+  envHost(process.env.VERCEL_PROJECT_PRODUCTION_URL) ?? envHost(process.env.VERCEL_URL)
 
 const siteUrl =
   envUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
