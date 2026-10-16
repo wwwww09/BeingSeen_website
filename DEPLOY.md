@@ -297,10 +297,10 @@ alter publication supabase_realtime add table public.stories;
 - **`pnpm install` 失败** → 检查 `pnpm-lock.yaml` 有没有提交进 Git
   （应该有的；它是锁定依赖版本用的）。
 - **TypeScript 报错** → 本地跑 `./dev.sh typecheck`，把错误贴给我。
-- **内存不足 / 构建超时** → 仓库末端有 **88.5 MB** 文件内容，其中 **86.8 MB**
+- **内存不足 / 构建超时** → 仓库末端有 **88.5 MB** 文件内容，其中约 **87 MB**
   和网站无关（`.fits` 模拟、`gISNe/` 下的论文 PDF、两个 ZTF 手册、星表 CSV、notebook）。
   Vercel 用的是浅克隆（只取末端树），把这批文件从跟踪里移出去能把每次部署的下载量
-  从 88.5 MB 降到约 1.7 MB —— 本地文件会保留。注意：这**不会**让一次完整的
+  从 88.5 MB 降到约 1.35 MB —— 本地文件会保留。注意：这**不会**让一次完整的
   `git clone` 变小（那些 blob 仍在历史里，要真正缩小需要重写历史）。要不要做告诉我即可。
 
 ### 6. 本地 macOS 上 `pnpm dev` 报 Team ID 错误
