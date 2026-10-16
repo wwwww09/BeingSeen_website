@@ -3,6 +3,27 @@ import Nav from '@/components/Nav'
 import './globals.css'
 
 /**
+ * 读一个环境变量里的 URL, 把"没设置"和"设成了没用的值"一律当作未设置。
+ *
+ * 这里踩过一个真实的坑: .env.example 里 `NEXT_PUBLIC_SITE_URL=` 是留空的,
+ * 而空字符串**不是** nullish, 所以 `??` 会直接采用它, 于是
+ * `new URL('')` 在构建阶段抛 ERR_INVALID_URL, 整个 build 失败。
+ * 任何照着 README 执行 `cp .env.example .env.local` 的人都会中招。
+ *
+ * 顺带把格式不合法的值也挡掉 (比如漏了 https://), 让它退回默认值而不是崩溃。
+ */
+function envUrl(value: string | undefined): string | undefined {
+  const v = value?.trim()
+  if (!v) return undefined
+  try {
+    new URL(v)
+    return v
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * 站点自身的地址, 用来把分享卡片的图片转成绝对 URL —— 绝大多数平台都要求
  * openGraph 的图片是绝对地址, 否则预览卡片会不显示。
  *
@@ -10,13 +31,12 @@ import './globals.css'
  * 否则在 Vercel 上自动取部署域名, 零配置也能出正确的卡片;
  * 本地开发退回到 localhost。
  */
+const vercelHost =
+  envUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL) ?? envUrl(process.env.VERCEL_URL)
+
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000')
+  envUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
+  (vercelHost ? `https://${vercelHost}` : 'http://localhost:3000')
 
 const tagline =
   'The universe has its own telescope. We just need to learn how to look.'
