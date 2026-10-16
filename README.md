@@ -122,15 +122,45 @@ Locally, put them in `.env.local` (git-ignored). On Vercel, add them under
 
 ### Security model
 
+There are two write paths and they have materially different guarantees. The
+first is the one the Vercel Git deployment uses; the second only applies if you
+also run `supabase/schema-public-insert.sql`, which a static export needs
+because it has no server to write with.
+
+**Server path (recommended)**
+
 - `stories` grants the `anon` role **SELECT only** — no INSERT, UPDATE or DELETE.
   A client holding the publishable key cannot write to the table at all.
 - Writes go through `POST /api/stories`, which validates length, derives a
   hashed client identifier, and inserts with the secret key.
 - A database trigger (`enforce_story_rate_limit`) caps each client at 20 stories
   per hour as a final backstop, plus a small in-memory limit per server instance.
-- Only the story text and the star index are stored. No accounts, no names, no
-  IP addresses — the client identifier is a salted hash used solely for rate
-  limiting.
+- Only the story text, the star index and the rate-limit identifier are stored.
+  No accounts, no names, no IP addresses — the identifier is a salted hash of
+  IP and user agent, used solely for rate limiting.
+
+**Static path (only with `schema-public-insert.sql`)**
+
+That file grants `anon` INSERT on three columns. The database still enforces,
+by column grant and `WITH CHECK`, that only `body`, `star_index` and
+`client_hash` can be written — never `is_hidden`, `id` or `created_at` — and
+that the body is 1–600 characters.
+
+What you lose is real, and worth stating plainly:
+
+- Anyone holding the publishable key can insert rows directly, bypassing the
+  page entirely. The column grant and the length check bound the damage; they
+  do not prevent spam.
+- The 20-per-hour trigger is **not** an effective backstop on this path. It
+  keys on `client_hash`, which here is a random token the browser generates and
+  keeps in `localStorage`, so it can be cleared or forged at will. Verified
+  against a mock PostgREST: the row that reached the database carried
+  `client_hash: "web-uxzyrl331komv9rkp9i"`.
+- The API route's validation and its in-memory limit never run.
+
+If either of those matters, use the server path — which is why the Git
+deployment is the recommended one and the static export is offered only as a
+fallback for hosting that cannot run one.
 
 ## Local dev on macOS
 
