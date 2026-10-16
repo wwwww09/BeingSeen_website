@@ -33,7 +33,6 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..')
-const localSupabase = join(REPO, 'src', 'lib', 'supabase.ts')
 
 function findChrome() {
   if (process.env.CHROME && existsSync(process.env.CHROME)) return process.env.CHROME
@@ -174,8 +173,11 @@ check('H4', '简介段落逐字一致',
   (await evaluate(HAS('we quantify how much the universe reveals when we let it do the work.'))))
 check('H5', '按钮 "Explore the Unseen →" 指向页面二',
   (await evaluate(`(() => { const a = [...document.querySelectorAll('a')].find(x => /Explore the Unseen/.test(x.textContent)); return a ? a.getAttribute('href') : null; })()`)) === '/lensing-supernovae')
-check('H6', '星场同时表现 FRB 与透镜系统',
-  await evaluate(`Boolean(document.querySelector('.hero__stats'))`),
+check('H6', '星场同时表现 FRB 与透镜系统两类天体',
+  // 3D 里的点无法从 DOM 断言, 这里查的是"两类数据都真的在首页上":
+  // ParticleField 的蓝色点来自 lenses.json, 金色点代表未探测源, 两者都由首页传入。
+  (await evaluate(HAS('Known gravitational lenses'))) &&
+    (await evaluate(HAS('Fast radio bursts searched'))),
   'ParticleField: 蓝=已知透镜, 金=未探测源, 另有背景尘埃')
 
 // ---------------------------------------------------------------- 页面二
@@ -238,13 +240,32 @@ check('B2', '英文文案逐字一致',
 check('B3', '点击暗淡星体 → 出现文本框', await evaluate(`Boolean(document.querySelector('textarea'))`),
   '点星后聚焦右侧输入框')
 check('B4', '匿名, 无需登录', await evaluate(HAS('without any account, name, or identity')))
-check('B5', '该星体变亮', true, 'StoryStarfield: 有故事的星为金色且更大')
+// 星体是否变亮发生在 WebGL 里, DOM 读不到。但提示里的 "N of 320 stars have been
+// lit" 和 3D 场景用的是同一份 litIndices —— 每有一个故事就该多点亮一颗星。
+// 所以「故事条数 == 点亮星数」是可以从 DOM 断言的等价物。
+const litInfo = await evaluate(`(() => {
+  const hint = document.querySelector('.guestbook__hint')?.textContent || '';
+  const m = hint.match(/(\\d+) of (\\d+) stars/);
+  return { lit: m ? Number(m[1]) : null, total: m ? Number(m[2]) : null,
+           items: document.querySelectorAll('.storylist__item').length };
+})()`)
+check('B5', '每一条故事都点亮了一颗星',
+  litInfo.lit !== null && litInfo.lit === litInfo.items,
+  `点亮 ${litInfo.lit} 颗 / 列表 ${litInfo.items} 条（星图共 ${litInfo.total} 颗）`)
 check('B6', '故事显示在侧边栏', await evaluate(`Boolean(document.querySelector('.guestbook__stories'))`))
+// 这条说的是"用哪个存储", 是代码层面的事实, 不该靠页面上凑巧出现的字样。
+// (旧写法查的是页面里有没有 "Supabase", 而那只存在于"未连接"提示中 ——
+//  一旦真的接上数据库, 提示消失, 这条就会假失败。)
+const pkgJson = JSON.parse(readFileSync(join(REPO, 'package.json'), 'utf8'))
+const usesSupabaseDep = Boolean(pkgJson.dependencies?.['@supabase/supabase-js'])
+const guestbookSrc = readFileSync(join(REPO, 'src/components/Guestbook.tsx'), 'utf8')
+const importsClient = guestbookSrc.includes('@supabase/supabase-js')
+const apiRoute = readFileSync(join(REPO, 'src/app/api/stories/route.ts'), 'utf8')
+const apiUsesClient = apiRoute.includes('@supabase/supabase-js')
+const hasSchema = existsSync(join(REPO, 'supabase/schema.sql'))
 check('B7', '存储用 Supabase (替代纲要里的 Firebase, 按项目要求)',
-  // 版本库里能读到 Supabase 客户端, 或页面上确实提到了 Supabase
-  (existsSync(localSupabase) && readFileSync(localSupabase, 'utf8').includes('@supabase/supabase-js')) ||
-    (await evaluate(HAS('Supabase'))),
-  'src/lib/supabase.ts + supabase/schema.sql')
+  usesSupabaseDep && importsClient && apiUsesClient && hasSchema,
+  `依赖 ${usesSupabaseDep} · 浏览器端 ${importsClient} · 服务端 ${apiUsesClient} · schema.sql ${hasSchema}`)
 check('B8', '科学数据与人类情感并置, 不强行类比',
   await evaluate(HAS('It does not claim they are the same thing.')))
 
