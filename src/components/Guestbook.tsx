@@ -3,13 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { clientOnly, useWebGLSupport } from '@/components/three/clientOnly'
+import { STAR_COUNT, STORY_FETCH_LIMIT } from '@/lib/stars'
 
 const StoryStarfield = clientOnly(
   () => import('@/components/three/StoryStarfield'),
   520,
 )
-
-export const STAR_COUNT = 320
 
 export interface StoryRow {
   id: number
@@ -128,7 +127,7 @@ export default function Guestbook({ configured }: { configured: boolean }) {
         .select('id, body, star_index, created_at')
         .eq('is_hidden', false)
         .order('created_at', { ascending: false })
-        .limit(200)
+        .limit(STORY_FETCH_LIMIT)
       if (cancelled) return
       if (error) {
         console.error('[guestbook] load failed:', error.message)

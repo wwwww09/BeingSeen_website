@@ -48,18 +48,24 @@ reads the original catalogues directly. Nothing is hard-coded.
 ./dev.sh data        # runs build_data.py
 ```
 
-Expected outputs:
+Expected outputs, with where each one is actually shown:
 
 ```
-public/data/supernovae.json          258 KB
-public/data/frbs.json                 53 KB
-public/data/gravitational-waves.json   13 KB
-public/data/lenses.json              144 KB
-public/charts/gisne_theoretical_with_real.png
-public/charts/frb_candidate_filtering.png
-public/charts/frb_dm_vs_separation.png
-public/charts/gw_mass_correction.png
+public/data/supernovae.json           258 KB   every page about supernovae
+public/data/frbs.json                  53 KB   /lensing-frbs
+public/data/gravitational-waves.json   13 KB   /gravitational-wave-lensing
+public/data/lenses.json               144 KB   Home, /lensing-supernovae
+public/charts/gisne_theoretical_with_real.png    /lensing-supernovae
+public/charts/frb_dm_vs_separation.png           /lensing-frbs
+public/charts/gw_mass_correction.png             /gravitational-wave-lensing
+public/charts/frb_candidate_filtering.png        generated but not embedded
 ```
+
+`frb_candidate_filtering.png` shows the same funnel as the interactive one on
+`/lensing-frbs` (474 → 53 → 3 → 0), which is why the page uses the interactive
+version and not the image. It is kept as a pipeline output because it is the
+clearest single-figure summary of the null result and is the kind of thing a
+written report wants.
 
 Inputs it expects in the repository root (they are large, so treat them as local
 data rather than source — see "Repository weight" below):
@@ -91,11 +97,29 @@ demand because it depends on the database.
 
 ### Repository weight
 
-This repository tracks ~55 MB of research material that the website never
-imports: `lensed_sn_mock.fits` (18 MB), `lenscat_catalog.csv` (3.6 MB), the
-four notebooks, and the PDFs under `gISNe/` and the ZTF user guides. They make
-every Vercel clone slow. If deploys feel sluggish they can be untracked with
-`git rm --cached` (the local files stay on disk) — see `DEPLOY.md` §9.5.
+Measured, not estimated: the tip of `main` holds **88.5 MB** of file content,
+of which **86.8 MB is material the site never imports** — the `.fits`
+simulation (18.4 MB), the paper PDFs under `gISNe/` (46 MB), the two ZTF user
+guides (9 MB), `lenscat_catalog.csv`, `chime_frb_catalog`, the notebooks, and
+`BeingSeen计划.docx`. The site itself is about 1.7 MB.
+
+An earlier version of this section said these could be untracked with
+`git rm --cached` to speed up Vercel clones. That is half right, and the
+distinction matters:
+
+- **Vercel does a shallow clone** (`--depth 1`), which fetches only the tip
+  tree. Untracking the files would drop what it downloads from 88.5 MB to
+  about 1.7 MB, so for deploy time the advice holds.
+- **A normal `git clone` would not get smaller at all.** Every one of those
+  files was added in a single commit and never modified, so all 89.2 MB of
+  blobs stay reachable from history. Shrinking that needs a history rewrite
+  (`git filter-repo` or BFG plus a force push), which would rewrite every
+  commit hash and break anyone's existing clone — not something to do casually.
+
+`.gitignore` was written as though these files were never meant to be tracked,
+and the section above calls them local data. Making that true for the tip is a
+one-command change; say the word and it can be done, or the files can stay as
+they are, since a shallow clone of this size is not actually a problem.
 
 
 ## Connecting the guestbook (Supabase)

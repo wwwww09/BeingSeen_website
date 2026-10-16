@@ -5,6 +5,7 @@ import { OrbitControls, AdaptiveDpr } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
+import { STAR_COUNT } from '@/lib/stars'
 
 /**
  * Being Seen 的星图。
@@ -14,8 +15,6 @@ import { usePrefersReducedMotion } from '@/components/three/reducedMotion'
  *
  * 用 InstancedMesh 渲染, 点击/悬停通过射线与实例求交定位到具体那颗星。
  */
-
-export const STAR_COUNT = 320
 
 /** 点选兜底半径 (NDC 单位, 1.0 = 半个屏幕宽) */
 const PICK_RADIUS = 0.06
