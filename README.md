@@ -126,6 +126,26 @@ and the section above calls them local data. Making that true for the tip is a
 one-command change; say the word and it can be done, or the files can stay as
 they are, since a shallow clone of this size is not actually a problem.
 
+### Installed dependencies
+
+Two `devDependencies` exist only for the macOS build workaround, and they are
+not equally expensive, which is worth knowing before anyone tries to trim them:
+
+- `@next/swc-darwin-arm64` is 86 MB installed, but its manifest declares
+  `os: ["darwin"]` and `cpu: ["arm64"]`, so npm and pnpm skip it on Linux. A
+  Vercel install never fetches it. Leaving the entry in place costs nothing, and
+  removing it would only risk the local macOS path.
+- `@next/swc-wasm-nodejs` is 29 MB and declares no platform constraints, so it
+  *is* installed on Linux, where it can never be used — it is the fallback for
+  when a native SWC binary will not load, which only happens here because of
+  the macOS code-signing situation. It is kept because removing it would mean
+  re-testing that fallback on a Mac, and 29 MB is not worth that risk.
+
+`next` already lists every platform binary as an `optionalDependency`, so in
+principle the direct darwin entry is redundant; it is pinned because
+`pnpm-workspace.yaml` excludes that exact version from the supply-chain age
+check.
+
 
 ## Connecting the guestbook (Supabase)
 
