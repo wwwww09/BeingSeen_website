@@ -366,6 +366,17 @@ against `pg_policy.cmd`, a column that does not exist (the system table calls it
 an implicit transaction: the error rolled back the grant and the policy with it,
 so the file looked applied and changed nothing.
 
+It also covers a bug that only a real Supabase project could expose. New
+projects are advised to switch "Automatically expose new tables" off, and with
+it off a newly created table gets no grants at all — not even for
+`service_role`. `schema.sql` granted SELECT to `anon` explicitly but assumed
+`service_role` kept the defaults, so the result on a live project was that
+anonymous reads worked and the server could not write: `42501 permission denied
+for table stories`. The grant is now explicit, wrapped in a role check so the
+file still runs end to end on a bare Postgres. Local PGlite could not have
+found this, because the test creates those roles itself rather than inheriting
+Supabase's default-privilege setup — the live project did.
+
 It also covers the two claims that are easy to state and hard to trust, and
 established both by running them:
 

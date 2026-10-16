@@ -65,7 +65,8 @@ async function expectError(db, sql, params) {
 }
 
 const db = new PGlite()
-await db.exec(`create role anon; create role authenticated;`)
+await db.exec(`create role anon; create role authenticated;
+                create role service_role bypassrls;`)
 
 console.log('── schema.sql ──')
 try {
@@ -159,6 +160,33 @@ check('prune_hidden_stories(90) 删掉 90 天前的隐藏故事', Number(pruned.
 const kept = (await db.query(`select body from public.stories`)).rows.map((r) => r.body)
 check('未隐藏的故事不受清理影响', kept.length === 1 && kept[0] === 'a visible story', JSON.stringify(kept))
 
+// ---------------------------------------------------------------- 服务端写入
+// 新建 Supabase 项目若关掉 "Automatically expose new tables" (它自己推荐关掉),
+// 新表不会自动获得任何授权 —— 连 service_role 都没有, 结果是匿名读得了、
+// 服务端反而写不进去。这个漏洞是靠真实项目才暴露出来的, 这里补上断言。
+console.log('\n── 服务端 secret key (service_role) 的授权 ──')
+check('service_role 有 INSERT 权限 (服务端要能写)',
+  (await db.query(`select has_table_privilege('service_role','public.stories','INSERT') as ok`)).rows[0].ok === true)
+check('service_role 有 SELECT 权限 (插入后要取回新行)',
+  (await db.query(`select has_table_privilege('service_role','public.stories','SELECT') as ok`)).rows[0].ok === true)
+await db.query(`set role service_role`)
+const svcWrite = await expectError(db,
+  `insert into public.stories (body, star_index, client_hash) values ('from the api route', 7, 'hashed-client')`)
+await db.query(`reset role`)
+check('service_role 真的写得进去', svcWrite === null, svcWrite ?? '')
+await db.query(`set role anon`)
+const anonSeesIt = (await db.query(`select body from public.stories where client_hash = 'hashed-client'`)).rows.length
+await db.query(`reset role`)
+check('而且匿名读得到它 (RLS 只挡隐藏项)', anonSeesIt === 1, `读到 ${anonSeesIt} 行`)
+
+// 没有 service_role 角色的普通 Postgres 也必须能整段跑通 (整段是隐式事务)
+const db3 = new PGlite()
+await db3.exec(`create role anon; create role authenticated;`)
+let bareOk = true
+try { await db3.exec(schema) } catch (e) { bareOk = false; no('没有 service_role 角色的库上执行失败', `${e.code ?? ''} ${e.message}`) }
+if (bareOk) ok('没有 service_role 角色的普通 Postgres 上也能整段跑通 (do 块守住了)')
+await db3.close()
+
 // ---------------------------------------------------------------- 可重复执行
 // 文件开头承诺"可以重复执行 (全部使用 if not exists / drop ... if exists)",
 // 这个承诺以前没被验证过。而且重跑的顺序有讲究: schema.sql 的 revoke 只撤销
@@ -211,7 +239,8 @@ check('回到基线: 不留休眠的 INSERT 策略', leftover === 0, `INSERT 策
 // 上面那个实例里没有发布, 只验证了 exception 兜底分支。
 console.log('\n── 实时推送 (Supabase 上发布是预建的, 走另一个分支) ──')
 const db2 = new PGlite()
-await db2.exec(`create role anon; create role authenticated;`)
+await db2.exec(`create role anon; create role authenticated;
+                 create role service_role bypassrls;`)
 await db2.exec(`create publication supabase_realtime;`)
 try {
   await db2.exec(schema)

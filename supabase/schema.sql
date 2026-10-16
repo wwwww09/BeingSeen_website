@@ -40,8 +40,25 @@ alter table public.stories enable row level security;
 -- 收紧默认授权: 客户端只能读
 revoke all on public.stories from anon, authenticated;
 grant select on public.stories to anon, authenticated;
--- 注意: 不给 insert / update / delete。
--- 写入由服务端使用 secret key 完成 (secret key 具有 bypassrls 权限)。
+-- 注意: 不给 anon / authenticated insert / update / delete。
+
+-- 服务端的 secret key 需要读和写:
+--   INSERT —— /api/stories 就是用它写故事
+--   SELECT —— 插入之后要用 .select() 把新行取回来返回给浏览器
+--
+-- 这一条必须显式写出来。新建项目时如果关掉了
+-- "Automatically expose new tables" (Supabase 自己推荐关掉, 以便手动控制权限),
+-- 新建的表**不会自动获得任何授权** —— 连 service_role 都没有。结果就是:
+-- 匿名读得了, 服务端反而写不进去 (实测报 42501 permission denied)。
+--
+-- 用 do 块包起来是为了让这个文件在没有 service_role 角色的普通 Postgres 上
+-- 也能整段跑通 —— 整段是一个隐式事务, 任何一句报错都会全部回滚。
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant select, insert on public.stories to service_role;
+  end if;
+end $$;
 
 drop policy if exists "anyone can read visible stories" on public.stories;
 create policy "anyone can read visible stories"
