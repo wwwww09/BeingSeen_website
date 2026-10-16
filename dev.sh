@@ -162,8 +162,16 @@ JSON
 }
 
 # ---------------------------------------------------------------- 4. 启动
-export NEXT_CACHE_DIR="${NEXT_CACHE_DIR:-/tmp/beingseen-next-cache}"
-mkdir -p "$NEXT_CACHE_DIR"
+#
+# 这里曾经 export 一个 NEXT_CACHE_DIR 指向 /tmp。查过了: Next、Turbopack 和
+# node_modules 里的任何代码都不读这个变量, 所以它从来没有起过作用 —— 真正解决
+# macOS 加载失败的是上面那份带 disable-library-validation 权限的 Node 副本。
+# 留着只会让人以为它是解法的一部分, 所以删掉。
+#
+# (顺带说明真实机制: 用系统 Node 直接跑 `pnpm build` 会失败在
+#  "mapping process and mapped file (non-platform) have different Team IDs",
+#  因为进程是 Apple 签名的 Node、库是 adhoc 签名的 SWC。Next 接着会退回
+#  wasm 版本, 需要写 ~/Library/Caches/next-swc —— 在某些环境里那一步也不允许。)
 
 CMD="${1:-dev}"
 case "$CMD" in

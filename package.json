@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "smoke": "node scripts/browser-smoke.mjs"
+    "smoke": "node scripts/browser-smoke.mjs",
+    "outline": "node scripts/outline-check.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
