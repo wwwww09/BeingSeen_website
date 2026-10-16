@@ -159,6 +159,82 @@ check('prune_hidden_stories(90) 删掉 90 天前的隐藏故事', Number(pruned.
 const kept = (await db.query(`select body from public.stories`)).rows.map((r) => r.body)
 check('未隐藏的故事不受清理影响', kept.length === 1 && kept[0] === 'a visible story', JSON.stringify(kept))
 
+// ---------------------------------------------------------------- 可重复执行
+// 文件开头承诺"可以重复执行 (全部使用 if not exists / drop ... if exists)",
+// 这个承诺以前没被验证过。而且重跑的顺序有讲究: schema.sql 的 revoke 只撤销
+// 表级权限, 撤销不了 schema-public-insert.sql 加的列级授权 —— 所以
+// "重跑 schema.sql 就能恢复成不可写" 是不成立的, 下面把这个也测出来。
+console.log('\n── 可重复执行 (文件里承诺的) ──')
+const policyCount = async (d) =>
+  (await d.query(`select count(*)::int as n from pg_policies
+                  where schemaname='public' and tablename='stories'`)).rows[0].n
+const triggerCount = async (d) =>
+  (await d.query(`select count(*)::int as n from pg_trigger
+                  where tgrelid='public.stories'::regclass and not tgisinternal`)).rows[0].n
+
+try {
+  await db.exec(publicInsert)
+  ok('schema-public-insert.sql 第二次执行成功 (drop policy if exists)')
+} catch (e) {
+  no('schema-public-insert.sql 第二次执行失败', `${e.code ?? ''} ${e.message}`)
+}
+check('策略没有重复, 仍是 2 条', (await policyCount(db)) === 2, `实际 ${await policyCount(db)}`)
+
+try {
+  await db.exec(schema)
+  ok('schema.sql 在已经跑过 public-insert 之后再执行, 不报错')
+} catch (e) {
+  no('schema.sql 第二次执行失败', `${e.code ?? ''} ${e.message}`)
+}
+check('触发器没有被重复创建', (await triggerCount(db)) === 1, `实际 ${await triggerCount(db)}`)
+
+// 重跑 schema.sql 应该回到"客户端只能读"的基线。
+// 这里最初我猜 revoke all 撤销不了列级授权 —— 实测证明它**能**,
+// 所以"重跑 schema.sql 即可收回匿名写入"是成立的。
+check('回到基线: 策略只剩 1 条 SELECT', (await policyCount(db)) === 1, `实际 ${await policyCount(db)}`)
+const stillGranted = (await db.query(
+  `select has_column_privilege('anon', 'public.stories', 'body', 'INSERT') as can`)).rows[0].can
+check('回到基线: 列级 INSERT 授权也被 revoke all 一并收回', stillGranted === false,
+  `has_column_privilege = ${stillGranted}`)
+await db.query(`set role anon`)
+const stillWritable = await expectError(db,
+  `insert into public.stories (body, client_hash) values ('after re-running schema.sql', 'web-x')`)
+await db.query(`reset role`)
+check('回到基线: anon 写不进去了', stillWritable !== null, stillWritable ?? '竟然还写得进去')
+const leftover = (await db.query(
+  `select count(*)::int as n from pg_policies
+   where schemaname='public' and tablename='stories' and cmd='INSERT'`)).rows[0].n
+check('回到基线: 不留休眠的 INSERT 策略', leftover === 0, `INSERT 策略 ${leftover} 条`)
+
+// ---------------------------------------------------------------- 实时推送
+// Supabase 上 supabase_realtime 发布是预建好的, 所以走的是 if 的**真分支**;
+// 上面那个实例里没有发布, 只验证了 exception 兜底分支。
+console.log('\n── 实时推送 (Supabase 上发布是预建的, 走另一个分支) ──')
+const db2 = new PGlite()
+await db2.exec(`create role anon; create role authenticated;`)
+await db2.exec(`create publication supabase_realtime;`)
+try {
+  await db2.exec(schema)
+  ok('发布存在时 schema.sql 执行成功')
+} catch (e) {
+  no('发布存在时 schema.sql 执行失败', `${e.code ?? ''} ${e.message}`)
+}
+const inPub = (await db2.query(
+  `select count(*)::int as n from pg_publication_tables
+   where pubname='supabase_realtime' and schemaname='public' and tablename='stories'`)).rows[0].n
+check('stories 被加进了 supabase_realtime 发布 (实时推送的前提)', inPub === 1, `匹配 ${inPub} 行`)
+try {
+  await db2.exec(schema)
+  const again = (await db2.query(
+    `select count(*)::int as n from pg_publication_tables
+     where pubname='supabase_realtime' and schemaname='public' and tablename='stories'`)).rows[0].n
+  ok('重复执行不会把它重复加入发布')
+  check('  发布里仍然只有一条 stories', again === 1, `实际 ${again}`)
+} catch (e) {
+  no('发布存在时第二次执行失败', `${e.code ?? ''} ${e.message}`)
+}
+await db2.close()
+
 console.log(`\n通过 ${pass} 项, 失败 ${fail} 项`)
 await db.close()
 process.exit(fail === 0 ? 0 : 1)

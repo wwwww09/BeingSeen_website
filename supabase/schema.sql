@@ -50,6 +50,15 @@ create policy "anyone can read visible stories"
   to anon, authenticated
   using (is_hidden = false);
 
+-- 清掉静态部署那条路径可能留下的写入策略。
+--
+-- schema-public-insert.sql 会创建一个名为 "public can insert stories" 的 INSERT
+-- 策略 (两个文件共享这个名字)。上面的 revoke all 已经实测能连**列级**授权一起
+-- 收掉, 所以即使不删这条策略, anon 也写不进去 —— 但留一条指向 INSERT 的休眠策略
+-- 迟早会咬人: 哪天有人重新 grant insert, 它会立刻生效。
+-- 这里是"安全基线", 重跑它就应该回到基线的样子, 所以把它一并删掉。
+drop policy if exists "public can insert stories" on public.stories;
+
 -- ---------------------------------------------------------------- 3. 限流
 -- 每个客户端 (按 IP 哈希) 每小时的留言上限。
 -- 因为写入走服务端, 这一层是"数据库最后一道防线"。

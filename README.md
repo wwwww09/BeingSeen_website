@@ -346,6 +346,22 @@ against `pg_policy.cmd`, a column that does not exist (the system table calls it
 an implicit transaction: the error rolled back the grant and the policy with it,
 so the file looked applied and changed nothing.
 
+It also covers the two claims that are easy to state and hard to trust, and
+established both by running them:
+
+- **Re-running `schema.sql` returns the table to the locked-down baseline.**
+  `revoke all` on a table also removes column-level grants, which is not
+  obvious, so the anonymous write access that `schema-public-insert.sql` opens
+  is closed again by re-running the first file. That file now also drops the
+  INSERT policy rather than leaving a dormant one behind. (The first version of
+  this check asserted the opposite — that the column grant would survive — and
+  the test corrected me.)
+- **The realtime block takes a different branch on Supabase than on a bare
+  Postgres.** Supabase pre-creates the `supabase_realtime` publication, so the
+  `alter publication ... add table` path runs — the one live story updates
+  depend on. Earlier runs only ever exercised the exception fallback. Both
+  branches are covered now, and re-running does not add the table twice.
+
 Three places deliberately differ from the brief, and the script prints them
 alongside the result rather than hiding them:
 
