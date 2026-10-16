@@ -203,6 +203,10 @@ supabase/schema.sql             tables, RLS, rate limiting, realtime
 supabase/schema-public-insert.sql  optional write policy for static hosting
 scripts/browser-smoke.mjs       headless-Chrome check of all five routes
 scripts/serve-static.mjs        clean-URL static preview server for out/
+scripts/make_brand_assets.py    regenerates the favicon and the social card
+src/app/icon.svg                favicon (file convention, served at /icon.svg)
+src/app/favicon.ico             fallback for /favicon.ico
+public/og.png                   1200x630 card for link previews
 DEPLOY.md                       step-by-step Supabase + Vercel guide (Chinese)
 .env.example                    environment variable template
 dev.sh                          local dev entry point

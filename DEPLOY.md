@@ -196,6 +196,10 @@ pnpm dev              # Linux / 已经装好依赖的机器
 - `NEXT_PUBLIC_` 开头的两个变量是**构建时**内联进浏览器代码的，所以
   **每次修改这两个值都必须重新部署**（Redeploy），光改环境变量不生效。
 
+> **可选的第 4 条：** 如果你给网站绑定了自定义域名，再加一条
+> `NEXT_PUBLIC_SITE_URL = https://你的域名`。它只影响分享到社交平台时
+> 预览卡片里图片的绝对地址。不填也能用 —— Vercel 会自动使用部署域名。
+
 填完后点 **Deploy**（如果已经部署过：**Deployments → ⋯ → Redeploy**，
 并**取消勾选** "Use existing build cache"）。
 

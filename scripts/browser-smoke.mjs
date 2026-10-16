@@ -23,6 +23,7 @@
  *   6. 手机宽度下有没有横向溢出
  *   7. 图片 alt / 控件可访问名称 / 表单标签 / 标题层级 / 可点击但键盘够不着
  *   8. 文字对比度达到 WCAG AA
+ *   9. 有站点图标, 且 og:image 是绝对地址 (分享出去有预览卡片)
  *
  * 第二阶段 · 交互 (这个"严肃游戏"的核心机制真的能用吗)
  *   6. 页面二的探测极限滑块: 初始值 = 真实 ZTF 极限, 且读数与页头结论一致
@@ -331,6 +332,11 @@ const A11Y = `(() => {
     })
     .map(tag);
 
+  // 站点图标与分享卡片: 缺了不会报错, 但访客第一眼就看得到 (标签页图标空白,
+  // 链接分享出去没有预览图), 所以放进检查里
+  const iconLink = document.querySelector('link[rel="icon"]');
+  const ogImage = document.querySelector('meta[property="og:image"]');
+
   return {
     lang: document.documentElement.getAttribute('lang'),
     h1Count: levels.filter((l) => l === 1).length,
@@ -339,6 +345,8 @@ const A11Y = `(() => {
     unlabelledFields,
     headingSkips,
     clickableNotFocusable,
+    hasIcon: Boolean(iconLink),
+    ogImage: ogImage ? ogImage.getAttribute('content') : null,
   };
 })()`
 
@@ -470,6 +478,13 @@ for (const route of ROUTES) {
     problems.push(`对比度 ${c.ratio}:1 < ${c.need}:1 (${c.size}px «${c.text}»)`)
   }
   if (contrast.length > 4) problems.push(`…共 ${contrast.length} 处对比度不足`)
+
+  // 图标与分享卡片
+  if (!a11y.hasIcon) problems.push('没有 <link rel="icon"> (标签页图标会空白)')
+  if (!a11y.ogImage) problems.push('没有 og:image (分享链接没有预览图)')
+  else if (!/^https?:\/\//.test(a11y.ogImage)) {
+    problems.push(`og:image 不是绝对地址 (${a11y.ogImage}) —— 平台抓不到`)
+  }
 
   // 改视口不会重新加载页面, 所以这一步很便宜
   await send('Emulation.setDeviceMetricsOverride', NARROW)
