@@ -132,7 +132,23 @@ export default function Guestbook({ configured }: { configured: boolean }) {
       if (error) {
         console.error('[guestbook] load failed:', error.message)
       } else {
-        setStories((data ?? []) as StoryRow[])
+        /*
+         * 按 id 合并, 而不是直接覆盖。
+         *
+         * 这次读取返回之前, 界面上可能已经有故事了 —— 用户自己刚提交的, 或者
+         * 实时推送里另一位访客刚写的。直接 setStories(data) 会把它们抹掉, 用户
+         * 会看到自己刚点亮的故事凭空消失, 直到手动刷新才回来。
+         * 读取只负责补齐, 不负责删除。
+         */
+        setStories((prev) => {
+          const byId = new Map<number, StoryRow>()
+          for (const s of [...(data ?? []), ...prev] as StoryRow[]) byId.set(s.id, s)
+          return [...byId.values()]
+            .sort((a, b) =>
+              a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0,
+            )
+            .slice(0, STORY_FETCH_LIMIT)
+        })
       }
       setLoading(false)
     }
