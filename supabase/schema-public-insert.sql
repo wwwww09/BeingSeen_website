@@ -38,13 +38,16 @@ create policy "public can insert stories"
     and is_hidden = false
   );
 
--- 验证: 应该看到 2 条策略 (select + insert)
+-- 验证: 应该看到 2 条策略 (SELECT + INSERT)
+--
+-- 用 pg_policies 视图而不是 pg_policy 系统表: 系统表里没有 cmd 这一列
+-- (它叫 polcmd, 类型是 "char"), 而这个文件是整段作为一个查询提交的,
+-- 在 Postgres 里会走隐式事务 —— 只要最后这句报错, 前面的 grant 和
+-- create policy 会一起回滚, 等于什么都没做。
 select
-  p.polname            as policy_name,
-  p.cmd                as command,
-  array_to_string(p.polroles::regrole[], ', ') as roles
-from pg_policy p
-join pg_class c on c.oid = p.polrelid
-join pg_namespace n on n.oid = c.relnamespace
-where n.nspname = 'public' and c.relname = 'stories'
-order by p.cmd;
+  policyname                as policy_name,
+  cmd                       as command,
+  array_to_string(roles, ', ') as roles
+from pg_policies
+where schemaname = 'public' and tablename = 'stories'
+order by cmd;

@@ -234,6 +234,7 @@ supabase/schema.sql             tables, RLS, rate limiting, realtime
 supabase/schema-public-insert.sql  optional write policy for static hosting
 scripts/browser-smoke.mjs       headless-Chrome check of all five routes
 scripts/outline-check.mjs       asserts 网页布局纲要.docx against the running site
+scripts/db-check.mjs            runs supabase/*.sql on a real Postgres (PGlite)
 scripts/serve-static.mjs        clean-URL static preview server for out/
 scripts/make_brand_assets.py    regenerates the favicon and the social card
 src/app/icon.svg                favicon (file convention, served at /icon.svg)
@@ -318,6 +319,32 @@ reports 37 of them.
 It normalises typographic quotes and dashes before comparing: the pages use
 ’ ‘ “ ” and —, the brief is plain text, and without that step the check reports
 false failures on text that is in fact identical.
+
+### The database layer
+
+`./dev.sh db-check` runs `supabase/schema.sql` and
+`supabase/schema-public-insert.sql` against a real Postgres — PGlite, Postgres
+compiled to WebAssembly — and asserts what they claim: RLS is on, the anon role
+gets SELECT and nothing else, the trigger stops the 21st story from one client
+with SQLSTATE P0001 (the code the API route turns into a 429), `is_hidden` rows
+are invisible to anon, and after the second file the anonymous write path can
+reach only the three permitted columns and nothing outside the `WITH CHECK`
+bounds.
+
+It needs one optional dependency, deliberately not in `devDependencies` so it
+does not add to every Vercel install:
+
+```bash
+pnpm add -D @electric-sql/pglite   # one-off
+./dev.sh db-check
+```
+
+Without it the script prints a notice and exits 0. Running it is what found
+that `schema-public-insert.sql` did not execute at all — it closed with a query
+against `pg_policy.cmd`, a column that does not exist (the system table calls it
+`polcmd`), and because the file is submitted as one query Postgres wraps it in
+an implicit transaction: the error rolled back the grant and the policy with it,
+so the file looked applied and changed nothing.
 
 Three places deliberately differ from the brief, and the script prints them
 alongside the result rather than hiding them:

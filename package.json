@@ -11,7 +11,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/browser-smoke.mjs",
-    "outline": "node scripts/outline-check.mjs"
+    "outline": "node scripts/outline-check.mjs",
+    "db-check": "node scripts/db-check.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

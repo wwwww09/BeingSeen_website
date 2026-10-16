@@ -214,6 +214,11 @@ case "$CMD" in
     shift
     exec "$DEV_NODE" scripts/outline-check.mjs "$@"
     ;;
+  db-check)
+    # 把 supabase/*.sql 在真 Postgres (PGlite) 上跑一遍
+    # 需要先: pnpm add -D @electric-sql/pglite
+    exec "$DEV_NODE" scripts/db-check.mjs
+    ;;
   data)
     echo "[data] 重新生成数据与图表"
     exec /opt/anaconda3/bin/python build_data.py
@@ -222,7 +227,7 @@ case "$CMD" in
     exec "$NODE_BIN" "$PNPM_BIN" install
     ;;
   *)
-    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|smoke|outline|data|install]" >&2
+    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|smoke|outline|db-check|data|install]" >&2
     exit 1
     ;;
 esac

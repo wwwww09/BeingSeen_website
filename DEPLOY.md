@@ -344,6 +344,16 @@ mapping process and mapped file (non-platform) have different Team IDs
 ./dev.sh outline                # 逐条核对 网页布局纲要.docx (可选)
 ```
 
+改动过 `supabase/*.sql` 的话，可以在本地先把它们跑一遍再贴进 Supabase：
+
+```bash
+pnpm add -D @electric-sql/pglite   # 一次性，用真 Postgres 的 WASM 版
+./dev.sh db-check
+```
+
+它会实际执行两个 SQL 文件，并验证 RLS、列级授权、限流触发器和清理函数
+是否如注释所说地生效。没装这个依赖时会打印说明并跳过。
+
 `./dev.sh smoke` 会用无头 Chrome 真的把五个页面打开一遍，检查两类事情：
 
 **渲染**（每个页面）
