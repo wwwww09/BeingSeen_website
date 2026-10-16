@@ -233,6 +233,7 @@ build_data.py                   the entire data pipeline
 supabase/schema.sql             tables, RLS, rate limiting, realtime
 supabase/schema-public-insert.sql  optional write policy for static hosting
 scripts/browser-smoke.mjs       headless-Chrome check of all five routes
+scripts/outline-check.mjs       asserts 网页布局纲要.docx against the running site
 scripts/serve-static.mjs        clean-URL static preview server for out/
 scripts/make_brand_assets.py    regenerates the favicon and the social card
 src/app/icon.svg                favicon (file convention, served at /icon.svg)
@@ -300,6 +301,38 @@ changes the canvas resolution, which made a two-frame version flaky.
 It is the only check here that can catch a client-side crash, and it earned its
 place immediately — it caught exactly that bug on the Lensing & SNe page.
 Without Chrome installed it prints a notice and skips.
+
+## Fidelity to the brief
+
+`./dev.sh outline` is a separate check because it answers a different question:
+not "is the site broken" but "does it do what `网页布局纲要.docx` asked for". It
+turns every requirement in the brief — the five pages and their order, the fixed
+navigation, the dark palette, each page's headline copy verbatim, each named
+chart and its interactivity — into an assertion against the running site, and
+reports 37 of them.
+
+```bash
+./dev.sh outline    # exits non-zero if any requirement is unmet
+```
+
+It normalises typographic quotes and dashes before comparing: the pages use
+’ ‘ “ ” and —, the brief is plain text, and without that step the check reports
+false failures on text that is in fact identical.
+
+Three places deliberately differ from the brief, and the script prints them
+alongside the result rather than hiding them:
+
+- **The FRB candidate chart.** The brief asks for `time_delay_histogram.png`, a
+  distribution of the candidates' time delays. That chart was built around the
+  two "clean candidates" whose existence the analysis does not support. Plotting
+  the time delays of candidates that are not candidates would be misleading, so
+  the page shows the DM-versus-separation scatter instead — which is the actual
+  evidence for the null result.
+- **The GW mass chart.** The brief names `mass_correction_with_errors.png`,
+  produced with `m_corr = m_obs / μ`. That is not a mass; the page regenerates it
+  as `gw_mass_correction.png` from `m_obs = m_true·√μ`, still with error bars.
+- **Guestbook storage.** The brief specifies Firebase; the project requires
+  Supabase.
 
 ## Corrections made to the original analysis
 

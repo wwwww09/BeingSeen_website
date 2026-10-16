@@ -341,6 +341,7 @@ mapping process and mapped file (non-platform) have different Team IDs
 ./dev.sh build
 ./dev.sh start                  # 另开一个终端窗口保持运行
 ./dev.sh smoke                  # 第三个终端窗口
+./dev.sh outline                # 逐条核对 网页布局纲要.docx (可选)
 ```
 
 `./dev.sh smoke` 会用无头 Chrome 真的把五个页面打开一遍，检查两类事情：

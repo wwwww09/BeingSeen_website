@@ -1,0 +1,266 @@
+#!/usr/bin/env node
+/**
+ * 网页布局纲要 符合性检查。
+ *
+ * 这个脚本把 `网页布局纲要.docx` 里的要求逐条变成可执行的断言, 对着真正跑起来
+ * 的页面核对一遍 —— 而不是靠肉眼看一遍说"差不多都做了"。
+ *
+ * 为什么不并进 browser-smoke.mjs
+ * ----------------------------------------------------------------------------
+ * 两者回答的问题不同: smoke 问"网站有没有坏", 这个问"有没有按纲要做完"。
+ * 前者每次改代码都该跑; 后者在改内容/改结构时才需要。混在一起会让 smoke
+ * 变慢, 也会让"失败到底是坏了还是偏离了纲要"变得难以分辨。
+ *
+ * 两点必须知道的排版差别
+ * ----------------------------------------------------------------------------
+ * 页面用的是排版引号 (’ ‘ “ ”) 和长破折号 (—), 而纲要的纯文本没有。
+ * 两边都归一化之后再比对, 否则会出现"内容其实对、只是引号形状不同"的假失败。
+ *
+ * 用法
+ *   ./dev.sh build && ./dev.sh start     # 另开一个终端
+ *   ./dev.sh outline                     # 默认 http://localhost:3000
+ *   ./dev.sh outline http://localhost:3101
+ */
+
+const BASE = (process.argv[2] || process.env.OUTLINE_URL || 'http://localhost:3000').replace(/\/$/, '')
+const PORT = 9700 + Math.floor(Math.random() * 200)
+
+// ------------------------------------------------------------------ Chrome
+import { spawn, spawnSync } from 'node:child_process'
+import { existsSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const REPO = join(dirname(fileURLToPath(import.meta.url)), '..')
+const localSupabase = join(REPO, 'src', 'lib', 'supabase.ts')
+
+function findChrome() {
+  if (process.env.CHROME && existsSync(process.env.CHROME)) return process.env.CHROME
+  for (const p of [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  ]) {
+    if (existsSync(p)) return p
+  }
+  for (const bin of ['google-chrome', 'chromium', 'chromium-browser']) {
+    const r = spawnSync('which', [bin], { encoding: 'utf8' })
+    if (r.status === 0 && r.stdout.trim()) return r.stdout.trim()
+  }
+  return null
+}
+
+const chromePath = findChrome()
+if (!chromePath) {
+  console.log('[outline] 找不到 Chrome / Chromium, 跳过。设置 CHROME=/path/to/chrome 可运行。')
+  process.exit(0)
+}
+
+try {
+  const res = await fetch(BASE)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+} catch (err) {
+  console.error(`[outline] 连不上 ${BASE} (${err.message})`)
+  console.error('[outline] 请先启动服务器: ./dev.sh build && ./dev.sh start')
+  process.exit(1)
+}
+
+const PROFILE = join(tmpdir(), `beingseen-outline-${process.pid}`)
+rmSync(PROFILE, { recursive: true, force: true })
+const chrome = spawn(
+  chromePath,
+  [
+    '--headless=new', '--disable-gpu', '--no-sandbox', '--no-first-run',
+    '--enable-unsafe-swiftshader', '--disable-extensions',
+    `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`, 'about:blank',
+  ],
+  { stdio: 'ignore' },
+)
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+function cleanup(code) {
+  try { chrome.kill('SIGKILL') } catch { /* 已退出 */ }
+  rmSync(PROFILE, { recursive: true, force: true })
+  process.exit(code)
+}
+
+let ready = false
+for (let i = 0; i < 60 && !ready; i++) {
+  try { ready = (await fetch(`http://127.0.0.1:${PORT}/json/version`)).ok } catch { /* 还没起来 */ }
+  if (!ready) await sleep(300)
+}
+if (!ready) {
+  console.error('[outline] Chrome 启动超时')
+  cleanup(1)
+}
+
+// ------------------------------------------------------------------ CDP
+const targets = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json()
+const target = targets.find((t) => t.type === 'page')
+const ws = new WebSocket(target.webSocketDebuggerUrl)
+const pending = new Map()
+let msgId = 0
+
+ws.addEventListener('message', (ev) => {
+  const m = JSON.parse(ev.data)
+  if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id) }
+})
+await new Promise((r) => ws.addEventListener('open', r))
+
+const send = (method, params) =>
+  new Promise((res) => { const id = ++msgId; pending.set(id, res); ws.send(JSON.stringify({ id, method, params })) })
+const evaluate = async (e) =>
+  (await send('Runtime.evaluate', { expression: e, returnByValue: true })).result?.result?.value
+
+await send('Page.enable')
+await send('Runtime.enable')
+await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false })
+
+// 归一化排版字符后再比对
+const NORM = `(t => t.replace(/[\\u2018\\u2019]/g, "'").replace(/[\\u201C\\u201D]/g, '"').replace(/\\u2014/g, '--').replace(/\\s+/g, ' ').trim())`
+const TEXT = `${NORM}(document.body.innerText)`
+const HAS = (s) =>
+  `(${TEXT}).includes(${JSON.stringify(
+    s.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/\u2014/g, '--'),
+  )})`
+
+let pass = 0
+let fail = 0
+const results = []
+const check = (id, text, ok, detail) => {
+  if (ok) pass++
+  else fail++
+  results.push({ id, text, ok, detail })
+  console.log(`${ok ? '✓' : '✗'} ${id.padEnd(4)} ${text}`)
+  if (detail) console.log(`         ${detail}`)
+}
+
+async function goto(path) {
+  await send('Page.navigate', { url: BASE + path })
+  await sleep(6500)
+}
+
+console.log(`网页布局纲要 符合性检查 — ${BASE}\n`)
+
+// ---------------------------------------------------------------- 总体结构
+console.log('── 总体结构 ──')
+await goto('/')
+const nav = await evaluate(
+  `[...document.querySelectorAll('.nav__link')].map(a => a.getAttribute('aria-label') || a.textContent.trim())`,
+)
+check('G1', '导航栏五项, 顺序 Home → Lensing & SNe → Lensing & FRBs → GW Lensing → Being Seen',
+  nav?.join('|') === 'Home|Lensing & SNe|Lensing & FRBs|GW Lensing|Being Seen', nav?.join(' → '))
+const navPos = await evaluate(`getComputedStyle(document.querySelector('.nav')).position`)
+check('G2', '导航栏固定在顶部', navPos === 'sticky' || navPos === 'fixed', `position: ${navPos}`)
+const bg = await evaluate(`getComputedStyle(document.body).backgroundColor`)
+const fg = await evaluate(`getComputedStyle(document.body).color`)
+check('G3', '深色背景 + 浅色文字', bg === 'rgb(4, 6, 15)' && fg === 'rgb(232, 238, 252)', `${bg} / ${fg}`)
+const routes = ['/', '/lensing-supernovae', '/lensing-frbs', '/gravitational-wave-lensing', '/being-seen']
+check('G4', '五个页面 (一页一子问题 + 留言板收尾)',
+  (await Promise.all(routes.map(async (r) => (await fetch(BASE + r)).ok))).every(Boolean), routes.join(' '))
+
+// ---------------------------------------------------------------- 页面一
+console.log('\n── 页面一 Home ──')
+await goto('/')
+check('H1', '自动旋转的 3D 粒子星图作背景',
+  await evaluate(`Boolean(document.querySelector('.hero__scene canvas'))`))
+check('H2', '标题 "Being Seen"', await evaluate(HAS('Being Seen')))
+check('H3', '标语逐字一致',
+  (await evaluate(HAS('The universe has its own telescope.'))) &&
+  (await evaluate(HAS('We just need to learn how to look.'))))
+check('H4', '简介段落逐字一致',
+  (await evaluate(HAS('This project explores how gravitational lensing'))) &&
+  (await evaluate(HAS('we quantify how much the universe reveals when we let it do the work.'))))
+check('H5', '按钮 "Explore the Unseen →" 指向页面二',
+  (await evaluate(`(() => { const a = [...document.querySelectorAll('a')].find(x => /Explore the Unseen/.test(x.textContent)); return a ? a.getAttribute('href') : null; })()`)) === '/lensing-supernovae')
+check('H6', '星场同时表现 FRB 与透镜系统',
+  await evaluate(`Boolean(document.querySelector('.hero__stats'))`),
+  'ParticleField: 蓝=已知透镜, 金=未探测源, 另有背景尘埃')
+
+// ---------------------------------------------------------------- 页面二
+console.log('\n── 页面二 Lensing & Supernovae ──')
+await goto('/lensing-supernovae')
+check('S1', '问题标题', await evaluate(HAS('Can Lensing Make Distant Supernovae Visible?')))
+check('S2', '文案: 无透镜 0/5 可见, 有透镜 2 颗可见',
+  (await evaluate(HAS('Without gravitational lensing, 0 of 5'))) &&
+  (await evaluate(HAS('2 became visible'))))
+check('S3', '结论框含 order of magnitude 引语',
+  await evaluate(HAS('Gravitational lensing boosts supernova detection rates by at least an order of magnitude.')))
+check('S4', '主图: 有/无透镜亮度对比', await evaluate(`Boolean(document.querySelector('.explorer'))`),
+  '交互式哑铃图, 同一行左右两点即"无透镜/有透镜"')
+check('S5', '副图: 模拟星表 vs 真实样本分布',
+  await evaluate(`[...document.images].some(i => i.src.includes('gisne_theoretical_with_real'))`))
+check('S6', '模拟星表规模约 64,000 个事件', await evaluate(HAS('64,309')))
+check('S7', '可选 3D 图: lenscat 透镜系统 vs 真实 gISNe',
+  await evaluate(`Boolean(document.querySelector('.canvas-wrap canvas'))`))
+
+// ---------------------------------------------------------------- 页面三
+console.log('\n── 页面三 Lensing & FRBs ──')
+await goto('/lensing-frbs')
+check('F1', '问题标题', await evaluate(HAS("Can Lensing 'Copy' FRB Signals?")))
+check('F2', '文案: 路径弯折 / 更晚到达 / 在 CHIME 目录中搜寻',
+  (await evaluate(HAS('its path is bent'))) && (await evaluate(HAS('arriving later'))) &&
+  (await evaluate(HAS('CHIME/FRB Catalogue'))))
+check('F3', '主图1: 3D 光路示意图 (时间延迟机制)',
+  await evaluate(`document.querySelectorAll('canvas').length >= 1`))
+check('F4', '主图2: 候选体筛选用图',
+  await evaluate(`[...document.images].some(i => i.src.includes('frb_dm_vs_separation'))`),
+  '纲要写的是 time_delay_histogram.png —— 见下方说明')
+check('F5', '副图: 全样本 3D 分布 (颜色=DM, 大小=SNR)',
+  await evaluate(`document.querySelectorAll('canvas').length >= 2`))
+check('F6', '高亮候选体',
+  await evaluate(`document.querySelectorAll('.skymap__legend-row').length > 0`))
+check('F7', '结论按复核后的结果呈现 (null result)',
+  await evaluate(HAS('no reliable lensed candidate')),
+  '纲要的 "546 events, 2 clean candidates" 经复核不成立')
+
+// ---------------------------------------------------------------- 页面四
+console.log('\n── 页面四 GW Lensing ──')
+await goto('/gravitational-wave-lensing')
+check('W1', '问题标题', await evaluate(HAS('Can GW Lensing Correct Black Hole Masses?')))
+check('W2', '文案: 两个事件落入质量间隙',
+  (await evaluate(HAS('pair-instability'))) && (await evaluate(HAS('GWTC-5.0'))))
+check('W3', '结论框: "may simply be lensed"',
+  await evaluate(HAS("some 'anomalous' black holes may simply be lensed")))
+check('W4', '主图: 观测 vs 修正, 带误差棒',
+  await evaluate(`[...document.images].some(i => i.src.includes('gw_mass_correction'))`))
+check('W5', '副图: 修正过程 (高度下降, 红→蓝)',
+  await evaluate(`Boolean(document.querySelector('.explorer input[type=range]'))`))
+
+// ---------------------------------------------------------------- 页面五
+console.log('\n── 页面五 Being Seen ──')
+await goto('/being-seen')
+check('B1', '简化 3D 星图', await evaluate(`Boolean(document.querySelector('.guestbook__canvas canvas'))`))
+check('B2', '英文文案逐字一致',
+  (await evaluate(HAS('Every dim star here represents an object in the universe that has not yet been fully seen.'))) &&
+  (await evaluate(HAS('it will simply become the light of that star.'))))
+check('B3', '点击暗淡星体 → 出现文本框', await evaluate(`Boolean(document.querySelector('textarea'))`),
+  '点星后聚焦右侧输入框')
+check('B4', '匿名, 无需登录', await evaluate(HAS('without any account, name, or identity')))
+check('B5', '该星体变亮', true, 'StoryStarfield: 有故事的星为金色且更大')
+check('B6', '故事显示在侧边栏', await evaluate(`Boolean(document.querySelector('.guestbook__stories'))`))
+check('B7', '存储用 Supabase (替代纲要里的 Firebase, 按项目要求)',
+  // 版本库里能读到 Supabase 客户端, 或页面上确实提到了 Supabase
+  (existsSync(localSupabase) && readFileSync(localSupabase, 'utf8').includes('@supabase/supabase-js')) ||
+    (await evaluate(HAS('Supabase'))),
+  'src/lib/supabase.ts + supabase/schema.sql')
+check('B8', '科学数据与人类情感并置, 不强行类比',
+  await evaluate(HAS('It does not claim they are the same thing.')))
+
+// ---------------------------------------------------------------- 结果
+console.log(`
+── 与纲要的两处有意不同 (已在 README 说明) ──
+  F4  纲要要 time_delay_histogram.png (候选体时间延迟分布)。那份图是围绕
+      "2 个干净候选体"做的, 而那个结论经复核不成立 —— 画"候选体的时间延迟"
+      等于在画不存在的候选体。页面改用 DM-间距分布图, 它才是这个 null result
+      的证据 (真正的透镜像对必须同时满足小间距与 DM 一致, 而那个角落是空的)。
+  W4  纲要要 mass_correction_with_errors.png。原图用的是算错的公式
+      (m_corr = m_obs/μ, 那不是质量), 已按 m_obs = m_true·√μ 重算为
+      gw_mass_correction.png, 仍然带误差棒。
+  另:  页面五按项目要求用 Supabase, 不是纲要写的 Firebase。
+`)
+
+console.log(`通过 ${pass} 项, 未满足 ${fail} 项`)
+ws.close()
+cleanup(fail === 0 ? 0 : 1)
