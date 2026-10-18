@@ -106,7 +106,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             y={massToY(GAP_UPPER)}
             width={innerW}
             height={massToY(GAP_LOWER) - massToY(GAP_UPPER)}
-            fill="#e05252"
+            fill="var(--red)"
             opacity={0.09}
           />
           <line
@@ -114,14 +114,14 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             x2={PAD.left + innerW}
             y1={massToY(GAP_LOWER)}
             y2={massToY(GAP_LOWER)}
-            stroke="#ffb703"
+            stroke="var(--gold)"
             strokeWidth={2}
             strokeDasharray="6 4"
           />
           <text
             x={PAD.left + 8}
             y={massToY(GAP_LOWER) - 7}
-            fill="#ffb703"
+            fill="var(--gold)"
             fontSize={11.5}
             fontWeight={600}
           >
@@ -131,7 +131,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             x={PAD.left + innerW - 8}
             y={massToY(GAP_UPPER) + 15}
             textAnchor="end"
-            fill="#e05252"
+            fill="var(--red)"
             fontSize={11.5}
             fontWeight={600}
           >
@@ -148,13 +148,13 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
                   x2={PAD.left + innerW}
                   y1={massToY(m)}
                   y2={massToY(m)}
-                  stroke="#1a2540"
+                  stroke="var(--bg-elevated)"
                 />
                 <text
                   x={PAD.left - 8}
                   y={massToY(m) + 4}
                   textAnchor="end"
-                  fill="#6a7b98"
+                  fill="var(--text-faint)"
                   fontSize={11}
                 >
                   {m.toFixed(0)}
@@ -174,14 +174,14 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
                   base={PAD.top + innerH}
                   height={(r.m1 / maxMass) * innerH}
                   width={barW}
-                  color="#2e86de"
+                  color="var(--accent)"
                 />
                 <Bar3D
                   x={groupX + barW * 0.5}
                   base={PAD.top + innerH}
                   height={(r.m2 / maxMass) * innerH}
                   width={barW}
-                  color="#27ae60"
+                  color="var(--lens-green)"
                 />
 
                 {/* 原始观测值 (红色轮廓, 静态参考) */}
@@ -203,7 +203,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
                   x={groupX - barW}
                   y={massToY(r.m1) - 7}
                   textAnchor="middle"
-                  fill={r.m1Escaped ? '#5fd68f' : '#ff8b8b'}
+                  fill={r.m1Escaped ? 'var(--lens-green-bright)' : 'var(--red-soft)'}
                   fontSize={12}
                   fontWeight={700}
                 >
@@ -213,7 +213,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
                   x={groupX + barW * 2}
                   y={massToY(r.m2) - 7}
                   textAnchor="middle"
-                  fill={r.m2Escaped ? '#5fd68f' : '#ff8b8b'}
+                  fill={r.m2Escaped ? 'var(--lens-green-bright)' : 'var(--red-soft)'}
                   fontSize={12}
                   fontWeight={700}
                 >
@@ -225,7 +225,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
                   x={groupX}
                   y={PAD.top + innerH + 20}
                   textAnchor="middle"
-                  fill="#9aabc7"
+                  fill="var(--text-dim)"
                   fontSize={11}
                 >
                   {r.c.name}
@@ -234,7 +234,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
                   x={groupX}
                   y={PAD.top + innerH + 36}
                   textAnchor="middle"
-                  fill={r.bothEscaped ? '#5fd68f' : '#6a7b98'}
+                  fill={r.bothEscaped ? 'var(--lens-green-bright)' : 'var(--text-faint)'}
                   fontSize={10.5}
                   fontWeight={600}
                 >
@@ -250,14 +250,14 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             x2={PAD.left + innerW}
             y1={PAD.top + innerH}
             y2={PAD.top + innerH}
-            stroke="#2d3f63"
+            stroke="var(--border-bright)"
           />
-          <line x1={PAD.left} x2={PAD.left} y1={PAD.top - 10} y2={PAD.top + innerH} stroke="#2d3f63" />
+          <line x1={PAD.left} x2={PAD.left} y1={PAD.top - 10} y2={PAD.top + innerH} stroke="var(--border-bright)" />
           <text
             x={16}
             y={PAD.top + innerH / 2}
             textAnchor="middle"
-            fill="#9aabc7"
+            fill="var(--text-dim)"
             fontSize={12}
             transform={`rotate(-90 16 ${PAD.top + innerH / 2})`}
           >
@@ -269,10 +269,10 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
       {/* 图例 */}
       <div className="explorer__legend">
         <span className="small">
-          <span className="swatch" style={{ background: '#2e86de' }} /> m₁ after correction
+          <span className="swatch" style={{ background: 'var(--accent)' }} /> m₁ after correction
         </span>
         <span className="small">
-          <span className="swatch" style={{ background: '#27ae60' }} /> m₂ after correction
+          <span className="swatch" style={{ background: 'var(--lens-green)' }} /> m₂ after correction
         </span>
         <span className="small">
           <span className="swatch swatch--ghost" /> observed (μ = 1)
@@ -395,7 +395,7 @@ function GhostBar({
       width={width}
       height={height}
       fill="none"
-      stroke="#e05252"
+      stroke="var(--red)"
       strokeWidth={1.4}
       strokeDasharray="4 3"
       opacity={0.7}

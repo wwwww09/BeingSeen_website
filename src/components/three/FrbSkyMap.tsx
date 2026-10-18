@@ -1,5 +1,6 @@
 'use client'
 
+import { PALETTE } from '@/lib/palette'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html, AdaptiveDpr } from '@react-three/drei'
 import { useMemo, useRef, useState, useEffect } from 'react'
@@ -59,11 +60,11 @@ function CelestialGrid() {
     <group>
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[R, 0.018, 8, 128]} />
-        <meshBasicMaterial color="#1d2b48" />
+        <meshBasicMaterial color={PALETTE.border} />
       </mesh>
       <mesh>
         <sphereGeometry args={[R, 28, 20]} />
-        <meshBasicMaterial color="#16223c" wireframe transparent opacity={0.07} />
+        <meshBasicMaterial color={PALETTE.border} wireframe transparent opacity={0.07} />
       </mesh>
     </group>
   )
@@ -175,7 +176,7 @@ function FrbPoints({
         const r = dmToRadius(e.dm)
         const pos = raDecToXyz(e.ra, e.dec, r)
         const passed = survivors.has(e.name)
-        const color = passed ? '#ffb703' : '#e05252'
+        const color = passed ? PALETTE.gold : PALETTE.red
         return (
           <group key={e.name} position={pos}>
             <mesh>
@@ -223,11 +224,11 @@ function HoverLabel({
       position={payload.pos}
       distanceFactor={18}
       style={{
-        color: '#e8eefc',
+        color: 'var(--text)',
         fontSize: '11px',
         whiteSpace: 'nowrap',
         background: 'rgba(6,9,20,0.9)',
-        border: '1px solid #2d3f63',
+        border: '1px solid var(--border-bright)',
         borderRadius: '6px',
         padding: '4px 7px',
         pointerEvents: 'none',
@@ -278,7 +279,7 @@ export default function FrbSkyMap({
         gl={{ antialias: false, powerPreference: 'high-performance' }}
         camera={{ fov: 50, position: [0, 9, 24] }}
       >
-        <color attach="background" args={['#05070f']} />
+        <color attach="background" args={[PALETTE.bgVoid]} />
         <AdaptiveDpr pixelated />
         <ambientLight intensity={1} />
         <OrbitControls
@@ -298,30 +299,30 @@ export default function FrbSkyMap({
 
         <mesh>
           <sphereGeometry args={[0.16, 16, 12]} />
-          <meshBasicMaterial color="#8fa8cc" />
+          <meshBasicMaterial color={PALETTE.textDim} />
         </mesh>
         <mesh>
           <sphereGeometry args={[0.32, 16, 12]} />
-          <meshBasicMaterial color="#8fa8cc" transparent opacity={0.12} />
+          <meshBasicMaterial color={PALETTE.textDim} transparent opacity={0.12} />
         </mesh>
       </Canvas>
 
       <div className="skymap__legend">
         <div className="skymap__legend-row">
-          <span className="skymap__swatch" style={{ background: '#33a0ff' }} />
+          <span className="skymap__swatch" style={{ background: 'var(--accent)' }} />
           <span className="small">low DM</span>
-          <span className="skymap__swatch" style={{ background: '#ffb703' }} />
+          <span className="skymap__swatch" style={{ background: 'var(--gold)' }} />
           <span className="small">high DM</span>
         </div>
         <div className="skymap__legend-row small muted">
           radius = DM &nbsp;·&nbsp; size = SNR
         </div>
         <div className="skymap__legend-row">
-          <span className="skymap__swatch" style={{ background: '#ffb703', borderRadius: '50%' }} />
+          <span className="skymap__swatch" style={{ background: 'var(--gold)', borderRadius: '50%' }} />
           <span className="small">passes DM test</span>
         </div>
         <div className="skymap__legend-row">
-          <span className="skymap__swatch" style={{ background: '#e05252', borderRadius: '50%' }} />
+          <span className="skymap__swatch" style={{ background: 'var(--red)', borderRadius: '50%' }} />
           <span className="small">fails DM test</span>
         </div>
       </div>

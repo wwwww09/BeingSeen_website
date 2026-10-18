@@ -91,7 +91,7 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
             y={PAD.top}
             width={Math.max(0, PAD.left + innerW - sx(limit))}
             height={innerH}
-            fill="#c0392b"
+            fill="var(--red-deep)"
             opacity={0.07}
           />
 
@@ -118,22 +118,22 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
                   y1={y}
                   x2={x2}
                   y2={y}
-                  stroke={visible ? '#ffb703' : '#3d4f73'}
+                  stroke={visible ? 'var(--gold)' : 'var(--border-bright)'}
                   strokeWidth={visible ? 3 : 2.2}
                   strokeLinecap="round"
                 />
                 {/* 无透镜 */}
-                <circle cx={x1} cy={y} r={5.5} fill="#e05252" stroke="#0b1020" strokeWidth={1.4} />
+                <circle cx={x1} cy={y} r={5.5} fill="var(--red)" stroke="var(--bg-deep)" strokeWidth={1.4} />
                 {/* 有透镜 */}
-                <circle cx={x2} cy={y} r={5.5} fill="#27ae60" stroke="#0b1020" strokeWidth={1.4} />
+                <circle cx={x2} cy={y} r={5.5} fill="var(--lens-green)" stroke="var(--bg-deep)" strokeWidth={1.4} />
                 {/* 名称 + 放大率 */}
-                <text x={PAD.left + innerW + 10} y={y + 4} fill="#9aabc7" fontSize={11.5}>
+                <text x={PAD.left + innerW + 10} y={y + 4} fill="var(--text-dim)" fontSize={11.5}>
                   {e.name}
                 </text>
                 <text
                   x={PAD.left + innerW + 10}
                   y={y + 17}
-                  fill={visible ? '#ffb703' : '#5a6b8c'}
+                  fill={visible ? 'var(--gold)' : 'var(--text-faint)'}
                   fontSize={10.5}
                   fontWeight={600}
                 >
@@ -150,14 +150,14 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
             x2={sx(limit)}
             y1={PAD.top - 8}
             y2={PAD.top + innerH + 4}
-            stroke="#ffb703"
+            stroke="var(--gold)"
             strokeWidth={2}
             strokeDasharray="5 4"
           />
 
           {/* 轴 */}
-          <line x1={PAD.left} x2={PAD.left + innerW} y1={PAD.top + innerH} y2={PAD.top + innerH} stroke="#2d3f63" />
-          <line x1={PAD.left} x2={PAD.left} y1={PAD.top - 8} y2={PAD.top + innerH} stroke="#2d3f63" />
+          <line x1={PAD.left} x2={PAD.left + innerW} y1={PAD.top + innerH} y2={PAD.top + innerH} stroke="var(--border-bright)" />
+          <line x1={PAD.left} x2={PAD.left} y1={PAD.top - 8} y2={PAD.top + innerH} stroke="var(--border-bright)" />
 
           {[0, 0.25, 0.5, 0.75, 1].map((f) => {
             const v = minMag + (maxMag - minMag) * f
@@ -168,13 +168,13 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
                   x2={sx(v)}
                   y1={PAD.top}
                   y2={PAD.top + innerH}
-                  stroke="#1a2540"
+                  stroke="var(--bg-elevated)"
                 />
                 <text
                   x={sx(v)}
                   y={PAD.top + innerH + 17}
                   textAnchor="middle"
-                  fill="#6a7b98"
+                  fill="var(--text-faint)"
                   fontSize={11}
                 >
                   {v.toFixed(0)}
@@ -182,21 +182,21 @@ export default function SupernovaExplorer({ data }: { data: SupernovaeData }) {
               </g>
             )
           })}
-          <text x={PAD.left + innerW / 2} y={H - 8} textAnchor="middle" fill="#9aabc7" fontSize={12}>
+          <text x={PAD.left + innerW / 2} y={H - 8} textAnchor="middle" fill="var(--text-dim)" fontSize={12}>
             Apparent magnitude
           </text>
-          <text x={PAD.left} y={H - 8} textAnchor="start" fill="#5a6b8c" fontSize={11}>
+          <text x={PAD.left} y={H - 8} textAnchor="start" fill="var(--text-faint)" fontSize={11}>
             ← brighter
           </text>
-          <text x={PAD.left + innerW} y={H - 8} textAnchor="end" fill="#5a6b8c" fontSize={11}>
+          <text x={PAD.left + innerW} y={H - 8} textAnchor="end" fill="var(--text-faint)" fontSize={11}>
             fainter →
           </text>
 
           {/* 内部标签 */}
-          <text x={PAD.left - 8} y={PAD.top - 12} fill="#e05252" fontSize={11} fontWeight={600}>
+          <text x={PAD.left - 8} y={PAD.top - 12} fill="var(--red)" fontSize={11} fontWeight={600}>
             ● without lensing
           </text>
-          <text x={PAD.left + 118} y={PAD.top - 12} fill="#27ae60" fontSize={11} fontWeight={600}>
+          <text x={PAD.left + 118} y={PAD.top - 12} fill="var(--lens-green)" fontSize={11} fontWeight={600}>
             ● with lensing
           </text>
         </svg>

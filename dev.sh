@@ -214,6 +214,10 @@ case "$CMD" in
     shift
     exec "$DEV_NODE" scripts/outline-check.mjs "$@"
     ;;
+  palette)
+    # 色板一致性: palette.ts 与 globals.css 是否同步 + 有没有绕过色板的硬编码色
+    exec "$DEV_NODE" scripts/palette-check.mjs
+    ;;
   db-check)
     # 把 supabase/*.sql 在真 Postgres (PGlite) 上跑一遍
     # 需要先: pnpm add -D @electric-sql/pglite
@@ -227,7 +231,7 @@ case "$CMD" in
     exec "$NODE_BIN" "$PNPM_BIN" install
     ;;
   *)
-    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|smoke|outline|db-check|data|install]" >&2
+    echo "用法: $0 [dev|build|static|serve-static|start|typecheck|smoke|outline|palette|db-check|data|install]" >&2
     exit 1
     ;;
 esac

@@ -303,34 +303,34 @@ function MagnificationHistogram({
             y={PAD.top + innerH - h}
             width={Math.max(1, bw - 1)}
             height={h}
-            fill="#4da3ff"
+            fill="var(--accent)"
             opacity={0.85}
           />
         )
       })}
 
       {/* 中位数参考线 */}
-      <line x1={PAD.left} x2={PAD.left + innerW} y1={PAD.top + innerH} y2={PAD.top + innerH} stroke="#2d3f63" />
-      <line x1={PAD.left} x2={PAD.left} y1={PAD.top} y2={PAD.top + innerH} stroke="#2d3f63" />
+      <line x1={PAD.left} x2={PAD.left + innerW} y1={PAD.top + innerH} y2={PAD.top + innerH} stroke="var(--border-bright)" />
+      <line x1={PAD.left} x2={PAD.left} y1={PAD.top} y2={PAD.top + innerH} stroke="var(--border-bright)" />
 
       {[0, 0.5, 1, 1.5, 2, 2.4].map((lg) => {
         const x = PAD.left + (lg / 2.4) * innerW
         return (
           <g key={lg}>
-            <text x={x} y={PAD.top + innerH + 17} textAnchor="middle" fill="#6a7b98" fontSize={11}>
+            <text x={x} y={PAD.top + innerH + 17} textAnchor="middle" fill="var(--text-faint)" fontSize={11}>
               {Math.pow(10, lg).toFixed(lg === 0 ? 0 : 1)}×
             </text>
           </g>
         )
       })}
-      <text x={PAD.left + innerW / 2} y={H - 6} textAnchor="middle" fill="#9aabc7" fontSize={12}>
+      <text x={PAD.left + innerW / 2} y={H - 6} textAnchor="middle" fill="var(--text-dim)" fontSize={12}>
         Total magnification μ
       </text>
       <text
         x={16}
         y={PAD.top + innerH / 2}
         textAnchor="middle"
-        fill="#9aabc7"
+        fill="var(--text-dim)"
         fontSize={12}
         transform={`rotate(-90 16 ${PAD.top + innerH / 2})`}
       >

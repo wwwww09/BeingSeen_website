@@ -130,7 +130,7 @@ export default function GravitationalWaveLensingPage() {
                   </tr>
                   <tr>
                     <td>Corrected m₁</td>
-                    <td style={{ color: '#5fd68f', fontWeight: 650 }}>
+                    <td style={{ color: 'var(--lens-green-bright)', fontWeight: 650 }}>
                       {c.m1Corr.toFixed(1)} M☉
                     </td>
                     <td className="muted small">
@@ -146,7 +146,7 @@ export default function GravitationalWaveLensingPage() {
                   </tr>
                   <tr>
                     <td>Corrected m₂</td>
-                    <td style={{ color: '#5fd68f', fontWeight: 650 }}>
+                    <td style={{ color: 'var(--lens-green-bright)', fontWeight: 650 }}>
                       {c.m2Corr.toFixed(1)} M☉
                     </td>
                     <td className="muted small">
@@ -222,9 +222,9 @@ export default function GravitationalWaveLensingPage() {
                 <tr key={c.name}>
                   <td style={{ color: 'var(--text)' }}>{c.name}</td>
                   <td>{c.m1Obs.toFixed(1)}</td>
-                  <td style={{ color: '#5fd68f' }}>{c.m1Corr.toFixed(1)}</td>
+                  <td style={{ color: 'var(--lens-green-bright)' }}>{c.m1Corr.toFixed(1)}</td>
                   <td>{c.m2Obs.toFixed(1)}</td>
-                  <td style={{ color: '#5fd68f' }}>{c.m2Corr.toFixed(1)}</td>
+                  <td style={{ color: 'var(--lens-green-bright)' }}>{c.m2Corr.toFixed(1)}</td>
                   <td>{c.sqrtMu.toFixed(3)}</td>
                   <td style={{ color: 'var(--gold)' }}>{c.mu.toFixed(2)}</td>
                   <td>

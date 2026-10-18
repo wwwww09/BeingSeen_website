@@ -103,7 +103,7 @@ export default function LensingFrbsPage() {
                         style={{
                           width: `${Math.max(1.2, (stage.count / frbs.nonRepeaterCount) * 100)}%`,
                           background: zero
-                            ? 'linear-gradient(90deg,#7a2f2f,#e05252)'
+                            ? 'linear-gradient(90deg,var(--red-deep),var(--red))'
                             : undefined,
                         }}
                       />

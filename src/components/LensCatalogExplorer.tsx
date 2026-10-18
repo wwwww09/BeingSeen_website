@@ -46,19 +46,19 @@ export default function LensCatalogExplorer({
 
         <div className="skymap__legend">
           <div className="skymap__legend-row">
-            <span className="skymap__swatch" style={{ background: '#4da3ff' }} />
+            <span className="skymap__swatch" style={{ background: 'var(--accent)' }} />
             已知透镜 · 低红移
           </div>
           <div className="skymap__legend-row">
-            <span className="skymap__swatch" style={{ background: '#ff9e6d' }} />
+            <span className="skymap__swatch" style={{ background: 'var(--gold-soft)' }} />
             已知透镜 · 高红移
           </div>
           <div className="skymap__legend-row">
-            <span className="skymap__swatch" style={{ background: '#33507d' }} />
+            <span className="skymap__swatch" style={{ background: 'var(--border-bright)' }} />
             没有红移测量
           </div>
           <div className="skymap__legend-row">
-            <span className="skymap__swatch" style={{ background: '#ffd166' }} />
+            <span className="skymap__swatch" style={{ background: 'var(--gold-soft)' }} />
             真实 gISNe (×{events.length})
           </div>
         </div>

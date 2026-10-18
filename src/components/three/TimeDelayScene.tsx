@@ -1,5 +1,6 @@
 'use client'
 
+import { PALETTE } from '@/lib/palette'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, AdaptiveDpr } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
@@ -66,8 +67,8 @@ function LightPaths({ path }: { path: 'short' | 'long' }) {
     () => (isShort ? bentPath(1, 1.15) : bentPath(1, 2.35)),
     [isShort],
   )
-  const color = isShort ? '#4da3ff' : '#ffb703'
-  const dimColor = isShort ? '#2b6ea8' : '#a8761b'
+  const color = isShort ? PALETTE.accent : PALETTE.gold
+  const dimColor = isShort ? PALETTE.accentDeep : PALETTE.goldDeep
 
   const uniforms = useMemo(
     () => ({
@@ -124,13 +125,13 @@ function LensGalaxy({ onClick }: { onClick: () => void }) {
     <group>
       <mesh ref={ref} onClick={onClick}>
         <sphereGeometry args={[0.85, 32, 24]} />
-        <meshBasicMaterial color="#2a3f6b" transparent opacity={0.55} />
+        <meshBasicMaterial color={PALETTE.borderBright} transparent opacity={0.55} />
       </mesh>
       <mesh rotation={[Math.PI / 2.3, 0.4, 0]}>
         <torusGeometry args={[1.5, 0.045, 12, 80]} />
-        <meshBasicMaterial color="#9b7bff" transparent opacity={0.6} />
+        <meshBasicMaterial color={PALETTE.violet} transparent opacity={0.6} />
       </mesh>
-      <pointLight position={[0, 0, 0]} intensity={2} color="#9b7bff" />
+      <pointLight position={[0, 0, 0]} intensity={2} color={PALETTE.violet} />
     </group>
   )
 }
@@ -169,7 +170,7 @@ export default function TimeDelayScene() {
         gl={{ antialias: false, powerPreference: 'high-performance' }}
         camera={{ fov: 46, position: [0, 5.2, 13.5] }}
       >
-        <color attach="background" args={['#05070f']} />
+        <color attach="background" args={[PALETTE.bgVoid]} />
         <AdaptiveDpr pixelated />
         <ambientLight intensity={0.8} />
         <OrbitControls
@@ -185,10 +186,10 @@ export default function TimeDelayScene() {
         {showLong && <LightPaths path="long" />}
 
         <LensGalaxy onClick={() => setShowLong((v) => !v)} />
-        <Marker position={[-6, 0, 0]} color="#ff6b6b" />
-        <Marker position={[6, 0, 0]} color="#4da3ff" />
+        <Marker position={[-6, 0, 0]} color={PALETTE.red} />
+        <Marker position={[6, 0, 0]} color={PALETTE.accent} />
 
-        <gridHelper args={[22, 22, '#152039', '#0e1729']} position={[0, -2.6, 0]} />
+        <gridHelper args={[22, 22, PALETTE.border, PALETTE.bgDeep]} position={[0, -2.6, 0]} />
       </Canvas>
 
       <div className="canvas-hint">

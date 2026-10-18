@@ -1,5 +1,6 @@
 'use client'
 
+import { PALETTE } from '@/lib/palette'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { AdaptiveDpr, PerformanceMonitor } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
@@ -96,7 +97,7 @@ function LensedField({ lenses }: { lenses: LensPoint[] }) {
         </bufferGeometry>
         <pointsMaterial
           size={0.16}
-          color="#4da3ff"
+          color={PALETTE.accent}
           transparent
           opacity={0.85}
           sizeAttenuation
@@ -116,7 +117,7 @@ function LensedField({ lenses }: { lenses: LensPoint[] }) {
         </bufferGeometry>
         <pointsMaterial
           size={0.13}
-          color="#ffb703"
+          color={PALETTE.gold}
           transparent
           opacity={0.7}
           sizeAttenuation
@@ -136,7 +137,7 @@ function LensedField({ lenses }: { lenses: LensPoint[] }) {
         </bufferGeometry>
         <pointsMaterial
           size={0.09}
-          color="#7f93b8"
+          color={PALETTE.textFaint}
           transparent
           opacity={0.5}
           sizeAttenuation
@@ -156,8 +157,8 @@ export default function ParticleField({ lenses }: { lenses: LensPoint[] }) {
       gl={{ antialias: false, powerPreference: 'high-performance', alpha: false }}
       camera={{ fov: 58, near: 0.1, far: 400, position: [0, 6, 44] }}
     >
-      <color attach="background" args={['#04060f']} />
-      <fog attach="fog" args={['#04060f', 60, 130]} />
+      <color attach="background" args={[PALETTE.bgVoid]} />
+      <fog attach="fog" args={[PALETTE.bgVoid, 60, 130]} />
       <PerformanceMonitor
         onDecline={() => setDpr(1)}
         onIncline={() => setDpr(1.8)}

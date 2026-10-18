@@ -1,5 +1,6 @@
 'use client'
 
+import { PALETTE } from '@/lib/palette'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, AdaptiveDpr } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -72,10 +73,10 @@ function Stars({
       dummy.updateMatrix()
       mesh.setMatrixAt(i, dummy.matrix)
 
-      if (isSel) color.set('#ffffff')
-      else if (lit) color.set('#ffd166')
-      else if (isHov) color.set('#9fd8ff')
-      else color.set('#39506f')
+      if (isSel) color.set(PALETTE.text)
+      else if (lit) color.set(PALETTE.goldSoft)
+      else if (isHov) color.set(PALETTE.accent)
+      else color.set(PALETTE.borderBright)
       mesh.setColorAt(i, color)
     }
     mesh.instanceMatrix.needsUpdate = true
@@ -192,11 +193,11 @@ function Stars({
       {/* 中央的微光, 给一个空间参照 */}
       <mesh>
         <sphereGeometry args={[0.3, 16, 12]} />
-        <meshBasicMaterial color="#2a3f6b" transparent opacity={0.5} />
+        <meshBasicMaterial color={PALETTE.borderBright} transparent opacity={0.5} />
       </mesh>
       <mesh>
         <sphereGeometry args={[0.85, 16, 12]} />
-        <meshBasicMaterial color="#1d3557" transparent opacity={0.08} />
+        <meshBasicMaterial color={PALETTE.border} transparent opacity={0.08} />
       </mesh>
     </group>
   )
@@ -223,7 +224,7 @@ export default function StoryStarfield({
       gl={{ antialias: false, powerPreference: 'high-performance' }}
       camera={{ fov: 52, position: [0, 1.5, 34] }}
     >
-      <color attach="background" args={['#04060f']} />
+      <color attach="background" args={[PALETTE.bgVoid]} />
       <AdaptiveDpr pixelated />
       <ambientLight intensity={1} />
       <OrbitControls

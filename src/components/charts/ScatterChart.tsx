@@ -58,7 +58,7 @@ export default function ScatterChart({
           x2={sx(t)}
           y1={PAD.top}
           y2={PAD.top + innerH}
-          stroke="#1a2540"
+          stroke="var(--bg-elevated)"
           strokeWidth={1}
         />
       ))}
@@ -69,7 +69,7 @@ export default function ScatterChart({
           x2={PAD.left + innerW}
           y1={sy(t)}
           y2={sy(t)}
-          stroke="#1a2540"
+          stroke="var(--bg-elevated)"
           strokeWidth={1}
         />
       ))}
@@ -80,7 +80,7 @@ export default function ScatterChart({
         y={PAD.top}
         width={innerW}
         height={Math.max(0, sy(limitMag) - PAD.top)}
-        fill="#c0392b"
+        fill="var(--red-deep)"
         opacity={0.06}
       />
 
@@ -95,7 +95,7 @@ export default function ScatterChart({
             cx={cx}
             cy={cy}
             r={p.detected ? 2.9 : 1.5}
-            fill={p.detected ? '#ffb703' : '#3f5580'}
+            fill={p.detected ? 'var(--gold)' : 'var(--border-bright)'}
             opacity={p.detected ? 1 : 0.5}
           />
         )
@@ -107,7 +107,7 @@ export default function ScatterChart({
         x2={PAD.left + innerW}
         y1={sy(limitMag)}
         y2={sy(limitMag)}
-        stroke="#ffb703"
+        stroke="var(--gold)"
         strokeWidth={2}
         strokeDasharray="6 4"
       />
@@ -115,7 +115,7 @@ export default function ScatterChart({
         x={PAD.left + innerW - 4}
         y={sy(limitMag) - 6}
         textAnchor="end"
-        fill="#ffb703"
+        fill="var(--gold)"
         fontSize={11.5}
         fontWeight={600}
       >
@@ -128,9 +128,9 @@ export default function ScatterChart({
         x2={PAD.left + innerW}
         y1={PAD.top + innerH}
         y2={PAD.top + innerH}
-        stroke="#2d3f63"
+        stroke="var(--border-bright)"
       />
-      <line x1={PAD.left} x2={PAD.left} y1={PAD.top} y2={PAD.top + innerH} stroke="#2d3f63" />
+      <line x1={PAD.left} x2={PAD.left} y1={PAD.top} y2={PAD.top + innerH} stroke="var(--border-bright)" />
 
       {xTicks.map((t) => (
         <text
@@ -138,7 +138,7 @@ export default function ScatterChart({
           x={sx(t)}
           y={PAD.top + innerH + 16}
           textAnchor="middle"
-          fill="#6a7b98"
+          fill="var(--text-faint)"
           fontSize={11}
         >
           {t}
@@ -150,7 +150,7 @@ export default function ScatterChart({
           x={PAD.left - 8}
           y={sy(t) + 4}
           textAnchor="end"
-          fill="#6a7b98"
+          fill="var(--text-faint)"
           fontSize={11}
         >
           {t}
@@ -161,7 +161,7 @@ export default function ScatterChart({
         x={PAD.left + innerW / 2}
         y={H - 6}
         textAnchor="middle"
-        fill="#9aabc7"
+        fill="var(--text-dim)"
         fontSize={12}
       >
         {xLabel}
@@ -170,7 +170,7 @@ export default function ScatterChart({
         x={14}
         y={PAD.top + innerH / 2}
         textAnchor="middle"
-        fill="#9aabc7"
+        fill="var(--text-dim)"
         fontSize={12}
         transform={`rotate(-90 14 ${PAD.top + innerH / 2})`}
       >

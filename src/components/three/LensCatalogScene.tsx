@@ -1,5 +1,6 @@
 'use client'
 
+import { PALETTE } from '@/lib/palette'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { AdaptiveDpr, Html, OrbitControls } from '@react-three/drei'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
@@ -41,7 +42,7 @@ function raDecToXyz(
 
 /** 红移 -> 颜色: 蓝 (近) 渐变到 橙红 (远); 没有红移的用暗蓝灰 */
 function redshiftColor(z: number | null, out: THREE.Color): THREE.Color {
-  if (z === null || !Number.isFinite(z)) return out.set('#33507d')
+  if (z === null || !Number.isFinite(z)) return out.set(PALETTE.borderBright)
   const t = Math.min(1, Math.max(0, z / 1.5))
   return out.setHSL(0.6 - 0.52 * t, 0.78, 0.46 + 0.14 * t)
 }
@@ -124,7 +125,7 @@ function GisneMarkers({
             <mesh scale={active ? 1.6 : hot ? 1.3 : 1}>
               <sphereGeometry args={[0.85, 14, 10]} />
               <meshBasicMaterial
-                color="#ffd166"
+                color={PALETTE.goldSoft}
                 transparent
                 opacity={active ? 0.32 : 0.16}
                 depthWrite={false}
@@ -136,7 +137,7 @@ function GisneMarkers({
             <mesh scale={active ? 1.4 : 1}>
               <sphereGeometry args={[0.42, 16, 12]} />
               <meshBasicMaterial
-                color={active ? '#ffffff' : '#ffd166'}
+                color={active ? PALETTE.text : PALETTE.goldSoft}
                 toneMapped={false}
               />
             </mesh>
@@ -145,7 +146,7 @@ function GisneMarkers({
               <Html
                 distanceFactor={26}
                 style={{
-                  color: '#ffd166',
+                  color: 'var(--gold-soft)',
                   fontSize: '11.5px',
                   whiteSpace: 'nowrap',
                   fontWeight: 700,
@@ -207,7 +208,7 @@ export default function LensCatalogScene({
       gl={{ antialias: false, powerPreference: 'high-performance' }}
       camera={{ fov: 46, near: 0.1, far: 400, position: [0, 16, 66] }}
     >
-      <color attach="background" args={['#04060f']} />
+      <color attach="background" args={[PALETTE.bgVoid]} />
       <AdaptiveDpr pixelated />
       <ambientLight intensity={1} />
       <OrbitControls
@@ -223,7 +224,7 @@ export default function LensCatalogScene({
         <mesh>
           <sphereGeometry args={[R, 36, 24]} />
           <meshBasicMaterial
-            color="#1d2b48"
+            color={PALETTE.border}
             wireframe
             transparent
             opacity={0.05}
@@ -236,7 +237,7 @@ export default function LensCatalogScene({
         {/* 只作为一个方位参照 */}
         <mesh>
           <sphereGeometry args={[0.5, 16, 12]} />
-          <meshBasicMaterial color="#8fa8cc" transparent opacity={0.5} />
+          <meshBasicMaterial color={PALETTE.textDim} transparent opacity={0.5} />
         </mesh>
       </RotatingSky>
     </Canvas>
