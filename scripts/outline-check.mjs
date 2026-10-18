@@ -191,8 +191,12 @@ check('S3', '结论框含 order of magnitude 引语',
   await evaluate(HAS('Gravitational lensing boosts supernova detection rates by at least an order of magnitude.')))
 check('S4', '主图: 有/无透镜亮度对比', await evaluate(`Boolean(document.querySelector('.explorer'))`),
   '交互式哑铃图, 同一行左右两点即"无透镜/有透镜"')
+// 纲要要求的副图是"模拟星表的分布 vs 真实样本"。
+// 原来这里查的是有没有那张 PNG 图片 —— 图从 matplotlib 截图换成 SVG 之后就假失败了。
+// 断言应该冲着要求去: 页面上要同时有"模拟星表直方图"和"真实样本哑铃图"两块。
 check('S5', '副图: 模拟星表 vs 真实样本分布',
-  await evaluate(`[...document.images].some(i => i.src.includes('gisne_theoretical_with_real'))`))
+  await evaluate(`document.querySelectorAll('.gischart .chartpanel').length === 2`),
+  '.gischart 里两个面板: 左=模拟星表直方图, 右=真实样本透镜前后')
 check('S6', '模拟星表规模约 64,000 个事件', await evaluate(HAS('64,309')))
 check('S7', '可选 3D 图: lenscat 透镜系统 vs 真实 gISNe',
   await evaluate(`Boolean(document.querySelector('.canvas-wrap canvas'))`))

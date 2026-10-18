@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import SupernovaExplorer from '@/components/SupernovaExplorer'
 import LensCatalogExplorer from '@/components/LensCatalogExplorer'
 import ScatterChart from '@/components/charts/ScatterChart'
+import GisneChart from '@/components/charts/GisneChart'
 import { getLenses, getSupernovae } from '@/lib/data'
 
 export const metadata: Metadata = {
@@ -88,16 +88,12 @@ export default function LensingSupernovaePage() {
         </p>
 
         <div className="panel panel--flush" style={{ marginTop: 18 }}>
-          <div className="chart-scroll">
-            <Image
-              src="/charts/gisne_theoretical_with_real.png"
-              alt="Left: histogram of simulated lensed supernova apparent magnitudes with a detection limit marked, showing only 4 of 64309 systems detectable. Right: dumbbell chart of the five real lensed supernovae showing their magnitude with and without lensing."
-              width={2480}
-              height={960}
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-              priority
-            />
-          </div>
+          <GisneChart
+            counts={mockSupernovae.magnitudeDistribution.counts}
+            edges={mockSupernovae.magnitudeDistribution.edges}
+            limitMag={mockSupernovae.limitingMag}
+            events={supernovae.events}
+          />
         </div>
 
         <div className="grid grid--3" style={{ marginTop: 18 }}>

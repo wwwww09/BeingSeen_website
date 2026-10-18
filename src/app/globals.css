@@ -815,6 +815,54 @@ p.body {
   min-width: 620px;
 }
 
+/* ---------------------------------------------------------------- SVG 图表组
+   原来是 matplotlib 的 PNG: 字体、配色、背景都和站点对不上, 高清屏发虚,
+   手机上还要横向滚动。改成 SVG 之后这些一起解决 —— 颜色走 CSS 变量,
+   所以以后改主题色, 图表会自动跟着变。
+   ------------------------------------------------------------------------ */
+.gischart {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  padding: 12px 16px;
+}
+@media (max-width: 900px) {
+  .gischart {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chartpanel {
+  margin: 0;
+  min-width: 0;
+}
+.chartpanel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chartpanel__cap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.chartpanel__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chartpanel__key i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
 .explorer__counts {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
