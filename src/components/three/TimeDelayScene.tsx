@@ -174,7 +174,7 @@ export default function TimeDelayScene() {
         camera={{ fov: 46, position: [0, 5.2, 13.5] }}
       >
         <color attach="background" args={[PALETTE.bgVoid]} />
-        <AdaptiveDpr pixelated />
+        {!reducedMotion && <AdaptiveDpr pixelated />}
         <ambientLight intensity={0.8} />
         <OrbitControls
           enablePan={false}

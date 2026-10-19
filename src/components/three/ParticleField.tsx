@@ -150,6 +150,12 @@ function LensedField({ lenses }: { lenses: LensPoint[] }) {
 
 export default function ParticleField({ lenses }: { lenses: LensPoint[] }) {
   const [dpr, setDpr] = useState(1.4)
+  /*
+   * 减少动效时不要把自适应 dpr 挂上去。
+   * 场景这时本来就是静止的, 调整分辨率既没有收益, 又会让"同一帧"在两次
+   * 截图之间变成不同像素 —— 这正是减少动效检查偶发误报的来源。
+   */
+  const reducedMotion = usePrefersReducedMotion()
 
   return (
     <Canvas
@@ -159,11 +165,13 @@ export default function ParticleField({ lenses }: { lenses: LensPoint[] }) {
     >
       <color attach="background" args={[PALETTE.bgVoid]} />
       <fog attach="fog" args={[PALETTE.bgVoid, 60, 130]} />
+      {!reducedMotion && (
       <PerformanceMonitor
         onDecline={() => setDpr(1)}
         onIncline={() => setDpr(1.8)}
       />
-      <AdaptiveDpr pixelated />
+      )}
+      {!reducedMotion && <AdaptiveDpr pixelated />}
       <ambientLight intensity={0.6} />
       <LensedField lenses={lenses} />
     </Canvas>

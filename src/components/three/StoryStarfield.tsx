@@ -225,7 +225,7 @@ export default function StoryStarfield({
       camera={{ fov: 52, position: [0, 1.5, 34] }}
     >
       <color attach="background" args={[PALETTE.bgVoid]} />
-      <AdaptiveDpr pixelated />
+      {!reducedMotion && <AdaptiveDpr pixelated />}
       <ambientLight intensity={1} />
       <OrbitControls
         enablePan={false}

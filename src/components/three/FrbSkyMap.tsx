@@ -280,7 +280,7 @@ export default function FrbSkyMap({
         camera={{ fov: 50, position: [0, 9, 24] }}
       >
         <color attach="background" args={[PALETTE.bgVoid]} />
-        <AdaptiveDpr pixelated />
+        {!reducedMotion && <AdaptiveDpr pixelated />}
         <ambientLight intensity={1} />
         <OrbitControls
           enablePan={false}

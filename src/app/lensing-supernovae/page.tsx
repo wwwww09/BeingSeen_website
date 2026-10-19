@@ -43,9 +43,15 @@ export default function LensingSupernovaePage() {
       {/* ------------------------------------------------ 结论 */}
       <section className="section">
         <div className="callout callout--gold">
+          {/*
+            原来写的是 "boosts detection rates by at least an order of magnitude"。
+            那句话算术上不成立: 无透镜时可见数是 0, 2/0 没有定义, 任何"倍数"或
+            "数量级"都无从计算; 而且 5 个样本给不出"率", 模拟星表本身也全是
+            已被透镜的系统, 没有对照组。改成只陈述能数出来的东西。
+          */}
           <p className="callout__quote">
-            &ldquo;Gravitational lensing boosts supernova detection rates by at least an
-            order of magnitude.&rdquo;
+            &ldquo;Two of these five supernovae were seen only because of
+            lensing.&rdquo;
           </p>
           <p className="callout__note">
             Without gravitational lensing,{' '}

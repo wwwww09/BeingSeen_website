@@ -204,8 +204,19 @@ check('S1', '问题标题', await evaluate(HAS('Can Lensing Make Distant Superno
 check('S2', '文案: 无透镜 0/5 可见, 有透镜 2 颗可见',
   (await evaluate(HAS('Without gravitational lensing, 0 of 5'))) &&
   (await evaluate(HAS('2 became visible'))))
-check('S3', '结论框含 order of magnitude 引语',
-  await evaluate(HAS('Gravitational lensing boosts supernova detection rates by at least an order of magnitude.')))
+// 原来这条保护的是"结论框里要有那句 order of magnitude"。但那个说法本身是错的
+// (无透镜时 0 个 → 2/0 无定义), 所以改成检查结论框给出的是能数出来的计数。
+check(
+  'S3',
+  '结论框给出的是样本里的计数',
+  await evaluate(`(() => {
+    const q = document.querySelector('.callout--gold .callout__quote');
+    if (!q) return false;
+    const t = q.textContent.toLowerCase();
+    return /two of these five/.test(t) && !/order of magnitude/.test(t);
+  })()`),
+  '五颗里有两颗是因为透镜才被看见 —— 计数, 不是倍率',
+)
 check('S4', '主图: 有/无透镜亮度对比', await evaluate(`Boolean(document.querySelector('.explorer'))`),
   '交互式哑铃图, 同一行左右两点即"无透镜/有透镜"')
 // 纲要要求的副图是"模拟星表的分布 vs 真实样本"。

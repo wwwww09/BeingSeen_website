@@ -133,6 +133,10 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             strokeWidth={2}
             strokeDasharray="6 4"
           />
+          {/*
+            边界标签放在线的**左下角**: 线以上是柱子(会和柱顶数值标签撞),
+            线以下到坐标轴之间的这块是空的。右端同样被第二组柱子的标签占着。
+          */}
           <text
             x={PAD.left + 8}
             y={massToY(GAP_LOWER) - 7}
@@ -140,7 +144,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             fontSize={11.5}
             fontWeight={600}
           >
-            mass-gap boundary {GAP_LOWER} M☉
+            gap edge {GAP_LOWER} M☉
           </text>
           <text
             x={PAD.left + innerW - 8}

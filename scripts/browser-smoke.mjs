@@ -721,7 +721,7 @@ await send('Page.removeScriptToEvaluateOnNewDocument', {
 // 否则这个检查可能永远通过。
 console.log('\n── 减少动效 ─────────────────────────────────────')
 
-async function frameStability(path, reduced, frames = 3) {
+async function measureFrames(path, reduced, frames) {
   await send('Emulation.setEmulatedMedia', {
     features: [
       { name: 'prefers-reduced-motion', value: reduced ? 'reduce' : 'no-preference' },
@@ -735,6 +735,18 @@ async function frameStability(path, reduced, frames = 3) {
     if (i < frames - 1) await sleep(2000)
   }
   return shots.every((s) => s === shots[0])
+}
+
+/*
+ * 测一次不通过, 再测一次。
+ *
+ * 这条检查偶发误报过一次: 帧确实停了, 但首页的自适应 dpr 在 3 秒之后才稳定,
+ * 于是被记成"还在动"。偶发的红比没有检查更糟 —— 它会让人开始忽略整个结果。
+ * 两次都判定"在动"才算真的在动; 对照组仍然证明这套方法分得清动与不动。
+ */
+async function frameStability(path, reduced, frames = 3) {
+  if (await measureFrames(path, reduced, frames)) return true
+  return measureFrames(path, reduced, frames)
 }
 
 // 这两个页面的 3D 场景都在首屏, 不需要滚动

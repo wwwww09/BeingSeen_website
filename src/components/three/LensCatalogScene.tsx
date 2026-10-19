@@ -201,6 +201,8 @@ export default function LensCatalogScene({
   onSelect: (i: number) => void
 }) {
   const [dpr, setDpr] = useState(1.4)
+  /* 减少动效时画面是静止的, 不需要自适应分辨率 (见 ParticleField 里的说明) */
+  const reducedMotion = usePrefersReducedMotion()
 
   return (
     <Canvas
@@ -209,7 +211,7 @@ export default function LensCatalogScene({
       camera={{ fov: 46, near: 0.1, far: 400, position: [0, 16, 66] }}
     >
       <color attach="background" args={[PALETTE.bgVoid]} />
-      <AdaptiveDpr pixelated />
+      {!reducedMotion && <AdaptiveDpr pixelated />}
       <ambientLight intensity={1} />
       <OrbitControls
         enablePan={false}
