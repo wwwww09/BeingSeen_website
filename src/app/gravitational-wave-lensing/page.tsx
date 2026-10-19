@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import MassCorrectionScene from '@/components/MassCorrectionScene'
 import { getGravitationalWaves } from '@/lib/data'
+import GwMassChart from '@/components/charts/GwMassChart'
 
 export const metadata: Metadata = {
   title: 'Can GW Lensing Correct Black Hole Masses?',
@@ -181,15 +181,7 @@ export default function GravitationalWaveLensingPage() {
         </div>
 
         <div className="panel panel--flush" style={{ marginTop: 18 }}>
-          <div className="chart-scroll">
-            <Image
-              src="/charts/gw_mass_correction.png"
-              alt="Bar chart comparing observed and lensing-corrected black hole masses for two gravitational wave events, with error bars and the mass gap boundary marked."
-              width={1600}
-              height={928}
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-            />
-          </div>
+          <GwMassChart candidates={gw.candidates} gapLowerBound={gw.gapLowerBound} />
         </div>
       </section>
 

@@ -28,7 +28,9 @@ const VERT = /* glsl */ `
     vAlpha = smoothstep(2.4, 0.0, d) * uProgress;
 
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = (15.0 / -mv.z) * (0.45 + vAlpha * 1.7);
+    // 原来 15.0 的点在小窗里只有一两个像素, 脉冲几乎看不见 —— 放大到 26.0,
+    // 并让"正在经过"的那一段明显更大, 这样"光在走"这件事才读得出来
+    gl_PointSize = (26.0 / -mv.z) * (0.55 + vAlpha * 2.4);
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -67,8 +69,9 @@ function LightPaths({ path }: { path: 'short' | 'long' }) {
     () => (isShort ? bentPath(1, 1.15) : bentPath(1, 2.35)),
     [isShort],
   )
-  const color = isShort ? PALETTE.accent : PALETTE.gold
-  const dimColor = isShort ? PALETTE.accentDeep : PALETTE.goldDeep
+  // 会动的脉冲用亮一档的颜色, 静态轨迹用本色 —— 两者都在单色调里
+  const color = isShort ? PALETTE.accentBright : PALETTE.goldSoft
+  const dimColor = isShort ? PALETTE.accent : PALETTE.gold
 
   const uniforms = useMemo(
     () => ({
@@ -107,7 +110,7 @@ function LightPaths({ path }: { path: 'short' | 'long' }) {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} count={160} />
         </bufferGeometry>
-        <lineBasicMaterial color={dimColor} transparent opacity={0.24} />
+        <lineBasicMaterial color={dimColor} transparent opacity={0.5} />
       </line>
     </group>
   )
@@ -125,11 +128,11 @@ function LensGalaxy({ onClick }: { onClick: () => void }) {
     <group>
       <mesh ref={ref} onClick={onClick}>
         <sphereGeometry args={[0.85, 32, 24]} />
-        <meshBasicMaterial color={PALETTE.borderBright} transparent opacity={0.55} />
+        <meshBasicMaterial color={PALETTE.accentDeep} transparent opacity={0.75} />
       </mesh>
       <mesh rotation={[Math.PI / 2.3, 0.4, 0]}>
         <torusGeometry args={[1.5, 0.045, 12, 80]} />
-        <meshBasicMaterial color={PALETTE.violet} transparent opacity={0.6} />
+        <meshBasicMaterial color={PALETTE.violet} transparent opacity={0.9} />
       </mesh>
       <pointLight position={[0, 0, 0]} intensity={2} color={PALETTE.violet} />
     </group>
@@ -147,12 +150,12 @@ function Marker({
   return (
     <group position={position}>
       <mesh>
-        <sphereGeometry args={[0.22, 20, 16]} />
+        <sphereGeometry args={[0.3, 20, 16]} />
         <meshBasicMaterial color={color} />
       </mesh>
       <mesh>
-        <sphereGeometry args={[0.42, 20, 16]} />
-        <meshBasicMaterial color={color} transparent opacity={0.16} />
+        <sphereGeometry args={[0.62, 20, 16]} />
+        <meshBasicMaterial color={color} transparent opacity={0.3} />
       </mesh>
     </group>
   )
@@ -186,8 +189,8 @@ export default function TimeDelayScene() {
         {showLong && <LightPaths path="long" />}
 
         <LensGalaxy onClick={() => setShowLong((v) => !v)} />
-        <Marker position={[-6, 0, 0]} color={PALETTE.red} />
-        <Marker position={[6, 0, 0]} color={PALETTE.accent} />
+        <Marker position={[-6, 0, 0]} color={PALETTE.goldSoft} />
+        <Marker position={[6, 0, 0]} color={PALETTE.accentBright} />
 
         <gridHelper args={[22, 22, PALETTE.border, PALETTE.bgDeep]} position={[0, -2.6, 0]} />
       </Canvas>

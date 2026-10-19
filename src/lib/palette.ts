@@ -16,35 +16,36 @@
 
 export const PALETTE = {
   // 背景层次
-  bgVoid: '#05070d',
-  bgDeep: '#080b12',
-  bgPanel: '#0c1018',
-  bgPanel2: '#101520',
-  bgElevated: '#141a26',
+  bgVoid: '#05070f',
+  bgDeep: '#070b16',
+  bgPanel: '#0b1020',
+  bgPanel2: '#0f1526',
+  bgElevated: '#141b30',
 
   // 文字
-  text: '#dfe6ef',
-  textDim: '#8e9aa8',
-  textFaint: '#8b96a4',
+  text: '#dfe7f6',
+  textDim: '#94a1c0',
+  textFaint: '#8e9ab8',
 
   // 描边
-  border: '#171d28',
-  borderBright: '#232c3a',
+  border: '#1a2138',
+  borderBright: '#27304d',
 
   // 语义色
-  accent: '#7d8fa3',
-  accentSoft: '#5c6a7a',
-  accentDeep: '#4a5666',
+  accent: '#7f92c4',
+  accentBright: '#b9c6e8',
+  accentSoft: '#5e6f9c',
+  accentDeep: '#4c5a80',
   gold: '#d9c8a4',
   goldSoft: '#e8dcc2',
   goldDeep: '#8a7c62',
-  lensGreen: '#9fb0b2',
-  lensGreenSoft: '#788789',
-  lensGreenBright: '#bcc9cb',
-  red: '#9d8c8c',
-  redSoft: '#bba9a9',
-  redDeep: '#6b5e5e',
-  violet: '#9391ac',
+  lensGreen: '#9ab0c2',
+  lensGreenSoft: '#74889a',
+  lensGreenBright: '#b9cbdc',
+  red: '#a08c9e',
+  redSoft: '#c2acba',
+  redDeep: '#6d5e6a',
+  violet: '#9b95c9',
 } as const
 
 export type PaletteKey = keyof typeof PALETTE

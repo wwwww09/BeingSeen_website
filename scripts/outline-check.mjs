@@ -227,8 +227,10 @@ check('F2', '文案: 路径弯折 / 更晚到达 / 在 CHIME 目录中搜寻',
   (await evaluate(HAS('CHIME/FRB Catalogue'))))
 check('F3', '主图1: 3D 光路示意图 (时间延迟机制)',
   await evaluate(`document.querySelectorAll('canvas').length >= 1`))
+// 纲要要的是"候选体筛选用图"这件事本身。原来这里查的是那张 PNG 的文件名,
+// 图从 matplotlib 换成 SVG 之后就假失败了 —— 又是"查实现而不是查要求"。
 check('F4', '主图2: 候选体筛选用图',
-  await evaluate(`[...document.images].some(i => i.src.includes('frb_dm_vs_separation'))`),
+  await evaluate(`Boolean(document.querySelector('.chartpanel--wide svg'))`),
   '纲要写的是 time_delay_histogram.png —— 见下方说明')
 check('F5', '副图: 全样本 3D 分布 (颜色=DM, 大小=SNR)',
   await evaluate(`document.querySelectorAll('canvas').length >= 2`))
@@ -246,8 +248,15 @@ check('W2', '文案: 两个事件落入质量间隙',
   (await evaluate(HAS('pair-instability'))) && (await evaluate(HAS('GWTC-5.0'))))
 check('W3', '结论框: "may simply be lensed"',
   await evaluate(HAS("some 'anomalous' black holes may simply be lensed")))
+// 要求是"有一张观测 vs 修正的图, 带误差棒"。误差棒在 SVG 里是 <line>,
+// 所以查"图在 + 有误差棒", 而不是查那张 PNG 的文件名。
 check('W4', '主图: 观测 vs 修正, 带误差棒',
-  await evaluate(`[...document.images].some(i => i.src.includes('gw_mass_correction'))`))
+  await evaluate(`(() => {
+    const svg = document.querySelector('.chartpanel--wide svg');
+    if (!svg) return false;
+    // 误差棒 = 带 stroke-width 且不是轴线的短竖线; 用数量粗判即可
+    return svg.querySelectorAll('line').length > 20;
+  })()`))
 check('W5', '副图: 修正过程 (高度下降, 红→蓝)',
   await evaluate(`Boolean(document.querySelector('.explorer input[type=range]'))`))
 
@@ -298,8 +307,8 @@ console.log(`
       等于在画不存在的候选体。页面改用 DM-间距分布图, 它才是这个 null result
       的证据 (真正的透镜像对必须同时满足小间距与 DM 一致, 而那个角落是空的)。
   W4  纲要要 mass_correction_with_errors.png。原图用的是算错的公式
-      (m_corr = m_obs/μ, 那不是质量), 已按 m_obs = m_true·√μ 重算为
-      gw_mass_correction.png, 仍然带误差棒。
+      (m_corr = m_obs/μ, 那不是质量), 已按 m_obs = m_true·√μ 重算,
+      仍然带误差棒 —— 现在是 SVG 组件 (GwMassChart), 不再是图片。
   另:  页面五按项目要求用 Supabase, 不是纲要写的 Firebase。
 `)
 
