@@ -214,14 +214,25 @@ export default function GravitationalWaveLensingPage() {
                 <tr key={c.name}>
                   <td style={{ color: 'var(--text)' }}>{c.name}</td>
                   <td>{c.m1Obs.toFixed(1)}</td>
-                  <td style={{ color: 'var(--lens-green-bright)' }}>{c.m1Corr.toFixed(1)}</td>
+                  <td style={{ color: 'var(--lens-green-bright)' }}>
+                    {c.m1Corr.toFixed(1)}
+                    {/* 这个数不是算出来的: 它是反解放大率时"假定真实质量落在
+                        边界上"的那个假定值本身, 所以必须标出来 */}
+                    <span className="table__assumed" title="assumed value, not a measurement">*</span>
+                  </td>
                   <td>{c.m2Obs.toFixed(1)}</td>
                   <td style={{ color: 'var(--lens-green-bright)' }}>{c.m2Corr.toFixed(1)}</td>
                   <td>{c.sqrtMu.toFixed(3)}</td>
                   <td style={{ color: 'var(--gold)' }}>{c.mu.toFixed(2)}</td>
                   <td>
-                    {c.m1Corr < gw.gapLowerBound &&
-                    c.m2Corr < gw.gapLowerBound ? (
+                    {/*
+                      用 <= 而不是 <: 反解放大率时, 目标就是"真实质量落到 45 M☉
+                      这个边界上", 所以 m1Corr 恰好等于 45。间隙是"45 以上",
+                      正好 45 就不在间隙里 —— 用严格小于会让这一列永远显示 no,
+                      那是同义反复, 不是结论。
+                    */}
+                    {c.m1Corr <= gw.gapLowerBound &&
+                    c.m2Corr <= gw.gapLowerBound ? (
                       <span className="badge badge--green">yes</span>
                     ) : (
                       <span className="badge badge--red">no</span>
@@ -231,6 +242,16 @@ export default function GravitationalWaveLensingPage() {
               ))}
             </tbody>
           </table>
+          <p className="small muted" style={{ marginTop: 10 }}>
+            <span className="table__assumed">*</span> Assumed, not measured. The required
+            magnification is defined as the factor that puts the <em>true</em> primary mass
+            exactly on the {gw.gapLowerBound} M☉ boundary, so the corrected m₁ is that
+            boundary by construction — every event has the same value, and it carries no
+            information about the individual event. The corrected m₂ is then whatever that
+            same factor does to the secondary mass. &ldquo;Out of gap&rdquo; therefore means
+            &ldquo;at or below the boundary after this correction&rdquo;, not &ldquo;measured
+            to be below it&rdquo;.
+          </p>
         </div>
       </section>
 

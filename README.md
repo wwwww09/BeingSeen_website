@@ -330,11 +330,18 @@ not "is the site broken" but "does it do what `网页布局纲要.docx` asked fo
 turns every requirement in the brief — the five pages and their order, the fixed
 navigation, the dark palette, each page's headline copy verbatim, each named
 chart and its interactivity — into an assertion against the running site, and
-reports 37 of them.
+reports 38 of them.
 
 ```bash
 ./dev.sh outline    # exits non-zero if any requirement is unmet
 ```
+
+One of the 38 is not from the brief. W6 guards an arithmetic property the page
+had got wrong: the required magnification is derived by assuming the true mass
+sits on the 45 M☉ boundary, so a strict `<` comparison against that boundary
+could only ever report "no" — a tautology dressed as a result. W6 asserts both
+that the data actually puts the mass at or below the boundary and that the page
+says so.
 
 It normalises typographic quotes and dashes before comparing: the pages use
 ’ ‘ “ ” and —, the brief is plain text, and without that step the check reports

@@ -851,6 +851,13 @@ p.body {
 .chartpanel--wide {
   padding: 10px 18px 6px;
 }
+
+/* 表格里标"假定值"的星标 —— 让读者一眼知道这个数不是测量结果 */
+.table__assumed {
+  color: var(--gold);
+  font-weight: 700;
+  cursor: help;
+}
 .chartpanel svg {
   display: block;
   width: 100%;

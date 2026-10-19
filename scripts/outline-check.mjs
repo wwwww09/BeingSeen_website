@@ -260,6 +260,41 @@ check('W4', '主图: 观测 vs 修正, 带误差棒',
 check('W5', '副图: 修正过程 (高度下降, 红→蓝)',
   await evaluate(`Boolean(document.querySelector('.explorer input[type=range]'))`))
 
+/*
+ * 这一条不是纲要要求, 是防回归 —— 页面曾经用一个**永远为假**的判定冒充结论:
+ * 反解放大率时把真实质量定义在边界 45 上, 然后用 `m1Corr < 45` 去问"是否脱离
+ * 间隙", 45 < 45 恒为假, 于是"Out of gap?"只能显示 no, 和页面自己的叙述矛盾。
+ *
+ * 现在断言两件事: 数据上要求的放大率确实能把质量压到边界或以下; 页面上也确实
+ * 显示 yes。少了任何一条, 这一节就又变成自说自话。
+ */
+{
+  const gwData = JSON.parse(readFileSync(join(REPO, 'public/data/gravitational-waves.json'), 'utf8'))
+    .gravitationalWaves
+  const bound = gwData.gapLowerBound
+  const eps = 0.01
+  const arithmeticOk = gwData.candidates.every(
+    (c) => c.m1Obs / c.sqrtMu <= bound + eps && c.m2Obs / c.sqrtMu <= bound + eps,
+  )
+  // 页面上有好几张表 (两张候选详情卡也是表), 必须先按表头找到"判定"那一张
+  const tableSaysYes = await evaluate(`(() => {
+    const table = [...document.querySelectorAll('table')].find((t) =>
+      /out of gap/i.test(t.querySelector('thead')?.textContent || ''),
+    );
+    if (!table) return false;
+    const cells = [...table.querySelectorAll('tbody tr')].map((tr) =>
+      tr.lastElementChild?.textContent?.trim(),
+    );
+    return cells.length > 0 && cells.every((c) => c === 'yes');
+  })()`)
+  check(
+    'W6',
+    '要求的放大率确实能把两颗质量压到边界 45 M☉ 或以下',
+    arithmeticOk && tableSaysYes,
+    `数据: ${arithmeticOk ? '满足' : '不满足'} · 表格: ${tableSaysYes ? 'yes' : '仍显示 no'}`,
+  )
+}
+
 // ---------------------------------------------------------------- 页面五
 console.log('\n── 页面五 Being Seen ──')
 await goto('/being-seen')

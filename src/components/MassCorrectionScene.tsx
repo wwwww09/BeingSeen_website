@@ -21,6 +21,16 @@ const W = 760
 const H = 400
 const PAD = { top: 34, right: 26, bottom: 56, left: 62 }
 const GAP_LOWER = 45
+
+/*
+ * 判定"是否已经落到边界或以下"时的容差。
+ *
+ * 为什么必须要有: 要求的放大率是反解出来的 (sqrtMu = m1Obs / 45), 代回去算
+ * 68 / (68/45) 得到的是 45.000000000000004 这种数, 严格比较 `<= 45` 为假 ——
+ * 于是"正好压到边界"反而被判成"没出来"。滑块的步长 0.005 也够不到精确阈值。
+ * 质量本身的报数精度是 0.1 M☉, 所以 0.05 的容差远小于任何有意义的差异。
+ */
+const AT_BOUNDARY = 0.05
 const GAP_UPPER = 120
 
 export default function MassCorrectionScene({ candidates }: { candidates: GwCandidate[] }) {
@@ -46,8 +56,13 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
   const rows = candidates.map((c) => {
     const m1 = c.m1Obs / sqrtMu
     const m2 = c.m2Obs / sqrtMu
-    const m1Escaped = m1 < GAP_LOWER
-    const m2Escaped = m2 < GAP_LOWER
+    /*
+     * <= 而不是 <: 要求的放大率是按"把质量正好压到边界"反解的, 所以滑块
+     * 拉到那个值时 m1 恰好等于 GAP_LOWER。间隙指的是边界以上, 正好落在边界
+     * 就算已经出来了 —— 用严格小于的话, "Gap cleared" 永远出不来。
+     */
+    const m1Escaped = m1 <= GAP_LOWER + AT_BOUNDARY
+    const m2Escaped = m2 <= GAP_LOWER + AT_BOUNDARY
     return { c, m1, m2, m1Escaped, m2Escaped, bothEscaped: m1Escaped && m2Escaped }
   })
 
@@ -302,7 +317,7 @@ export default function MassCorrectionScene({ candidates }: { candidates: GwCand
             <>
               <span className="badge badge--green">Gap cleared</span>
               <span className="small muted" style={{ marginTop: 6, display: 'block' }}>
-                Both events now sit below {GAP_LOWER} M☉. Required magnification:{' '}
+                Both events now sit at or below {GAP_LOWER} M☉. Required magnification:{' '}
                 {reqSqrtMu.map((s, i) => (
                   <span key={i}>
                     {i > 0 && ' · '}
