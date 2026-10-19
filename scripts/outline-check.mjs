@@ -154,7 +154,24 @@ const navPos = await evaluate(`getComputedStyle(document.querySelector('.nav')).
 check('G2', '导航栏固定在顶部', navPos === 'sticky' || navPos === 'fixed', `position: ${navPos}`)
 const bg = await evaluate(`getComputedStyle(document.body).backgroundColor`)
 const fg = await evaluate(`getComputedStyle(document.body).color`)
-check('G3', '深色背景 + 浅色文字', bg === 'rgb(4, 6, 15)' && fg === 'rgb(232, 238, 252)', `${bg} / ${fg}`)
+// 纲要要的是"深色背景 + 浅色文字"这个**性质**, 不是某几个具体色值。
+// 原来这里写死了旧版的 rgb(4,6,15) 和 rgb(232,238,252) —— 一改配色就假失败。
+{
+  const relLum = (css) => {
+    const [r, g, b] = css.match(/\d+/g).slice(0, 3).map(Number).map((v) => v / 255)
+    const f = (u) => (u <= 0.03928 ? u / 12.92 : Math.pow((u + 0.055) / 1.055, 2.4))
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+  }
+  const bgL = relLum(bg)
+  const fgL = relLum(fg)
+  const ratio = (Math.max(bgL, fgL) + 0.05) / (Math.min(bgL, fgL) + 0.05)
+  check(
+    'G3',
+    '深色背景 + 浅色文字',
+    bgL < 0.02 && fgL > 0.6 && ratio >= 12,
+    `背景 ${bg} (亮度 ${bgL.toFixed(4)}) / 文字 ${fg} (亮度 ${fgL.toFixed(3)}), 对比 ${ratio.toFixed(1)}:1`,
+  )
+}
 const routes = ['/', '/lensing-supernovae', '/lensing-frbs', '/gravitational-wave-lensing', '/being-seen']
 check('G4', '五个页面 (一页一子问题 + 留言板收尾)',
   (await Promise.all(routes.map(async (r) => (await fetch(BASE + r)).ok))).every(Boolean), routes.join(' '))

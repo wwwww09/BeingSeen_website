@@ -4,61 +4,66 @@
    ========================================================================== */
 
 :root {
-  /* 背景层次 */
-  --bg-void: #04060f;
-  --bg-deep: #070c1a;
-  --bg-panel: #0d1424;
-  --bg-panel-2: #111a2e;
-  --bg-elevated: #16203a;
+  /* ==========================================================================
+     单色调色板 —— 全站只有"一个色调"
 
-  /* 文字 */
-  --text: #e8eefc;
-  --text-dim: #9aabc7;
+     设计意图: 整页属于同一个冷灰蓝色相, 各类信息靠**明度**区分轻重, 不靠
+     色相打架。唯一的暖色是香槟金, 而且只留给一件事: 被透镜照亮 / 被看见。
+
+     和上一版的区别很关键: 上一版只是把散落的色值收成了变量 (工程上的一致性),
+     但蓝、红、绿、金四种饱和色仍然同时出现, 所以看起来还是"跳"。这一版是把
+     饱和度和色相范围一起压下来, 换来的是一种安静的、夜里观星的感觉。
+
+     状态对照 (同色相, 不同明度/极细微的色偏):
+       香槟金  = 被看见 / 被照亮 / 有故事        <- 全站唯一的高光
+       冷灰蓝  = 中性数据、星表、结构
+       更暗的灰 = 看不见、够不到、没有透镜
+     ========================================================================== */
+
+  /* 背景: 近乎无彩, 只带一点点冷 */
+  --bg-void: #05070d;
+  --bg-deep: #080b12;
+  --bg-panel: #0c1018;
+  --bg-panel-2: #101520;
+  --bg-elevated: #141a26;
+
+  /* 文字: 冷白 -> 冷灰, 三级 */
+  --text: #dfe6ef;
+  --text-dim: #8e9aa8;
   /*
-   * 原来是 #6a7b98, 在面板和结论框上只有 3.4–4.3:1, 达不到 WCAG AA 要求的
-   * 4.5:1 —— 而这个颜色专门用在 10–13px 的说明文字上 (图注、提示、备注),
-   * 小字本来就最难读。提亮到 #8595b2 后最差也有约 4.9:1, 同时仍然明显比
-   * --text-dim 暗, 层级关系没变。
+   * 说明文字专用 (图注/提示/备注)。
+   * 单色调版一开始取的是 #7b8695 —— 在普通面板上够 4.5:1, 但在**带香槟金底的
+   * 结论框**上只有 4.10:1 (底色被金色抬亮了)。提出来的 #8b96a4 在最亮的那块
+   * 底上也有 5.0:1, 同时仍然明显比 --text-dim 暗, 层级没有塌。
    */
-  --text-faint: #8595b2;
+  --text-faint: #8b96a4;
 
   /* 描边 */
-  --border: #1e2b47;
-  --border-bright: #2d3f63;
+  --border: #171d28;
+  --border-bright: #232c3a;
 
-  /* 强调色 */
-  --accent: #4da3ff;
-  --accent-soft: #2d6fbf;
-  --gold: #ffb703;
-  --lens-green: #27ae60;
-  --lens-green-soft: #1e7a45;
-  /* 从 #e05252 微调: 在深色面板上原本只有 4.48:1, 正好卡在 4.5:1 门槛下 */
-  --red: #e56060;
-  --violet: #9b7bff;
+  /* 中性数据 —— 星表点、直方图柱、参考量 */
+  --accent: #7d8fa3;
+  --accent-soft: #5c6a7a;
+  --accent-deep: #4a5666;
 
-  /* ==========================================================================
-     数据色 —— 图表和 3D 场景里的"语义"颜色
+  /* 唯一的高光: 香槟金 —— 只用于"被看见" */
+  --gold: #d9c8a4;
+  --gold-soft: #e8dcc2;
+  --gold-deep: #8a7c62;
 
-     这里之前是一片混乱: 全站散落 39 种硬编码色值、116 处引用, 其中 31 种不在
-     色板里 —— 光是"红"就有 4 个 (#c0392b / #e05252 / #e56060 / #ff6b6b),
-     "蓝"有 3 个。同一个意思用不同颜色, 页面读起来就像一堆独立零件拼出来的。
+  /* 可探测 —— 极淡的青灰, 只是比中性色亮一点点 */
+  --lens-green: #9fb0b2;
+  --lens-green-soft: #788789;
+  --lens-green-bright: #bcc9cb;
 
-     现在收敛成下面这几个, 每个只表达一件事。改主题色只需要改这一处 ——
-     图表、3D 场景、图注全部跟着变 (见 src/lib/palette.ts)。
-     ========================================================================== */
-  /* 金色系 —— 被透镜照亮、可见、有故事 */
-  --gold-soft: #ffd166; /* 更浅: 星点高光、被选中的对象 */
-  --gold-deep: #a8761b; /* 更暗: 暗淡的金色、渐变起点 */
+  /* 看不见/失败 —— 压到灰玫瑰, 不抢眼 */
+  --red: #9d8c8c;
+  --red-soft: #bba9a9;
+  --red-deep: #6b5e5e;
 
-  /* 红色系 —— 看不见、没有透镜、失败 */
-  --red-soft: #ff8b8b; /* 更浅: 差一点就够到的状态 */
-  --red-deep: #c0392b; /* 更暗: 不可探测区域、渐变起点 */
-
-  /* 绿色系 —— 可探测、跨过门槛 */
-  --lens-green-bright: #5fd68f;
-
-  /* 蓝色系 —— 中性数据、星表、参考量 */
-  --accent-deep: #2b6ea8;
+  /* 时间延迟 */
+  --violet: #9391ac;
 
   --nav-h: 62px;
   --maxw: 1180px;
@@ -84,9 +89,9 @@ body {
 body {
   /* 极淡的星云渐层, 给深色背景一点纵深 */
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(45, 111, 191, 0.16), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 85% 5%, rgba(155, 123, 255, 0.1), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(39, 174, 96, 0.06), transparent 60%);
+    radial-gradient(ellipse 80% 50% at 20% -10%, color-mix(in srgb, var(--accent-soft) 16%, transparent), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 5%, color-mix(in srgb, var(--violet) 10%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, color-mix(in srgb, var(--lens-green) 6%, transparent), transparent 60%);
   background-attachment: fixed;
   min-height: 100dvh;
 }
@@ -184,7 +189,7 @@ p.body {
   align-items: center;
   backdrop-filter: blur(14px) saturate(160%);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
-  background: rgba(6, 9, 20, 0.72);
+  background: color-mix(in srgb, var(--bg-void) 72%, transparent);
   border-bottom: 1px solid var(--border);
 }
 
@@ -280,7 +285,7 @@ p.body {
 /* ------------------------------------------------------------------ 结论框 */
 .callout {
   position: relative;
-  background: linear-gradient(150deg, rgba(45, 111, 191, 0.14), rgba(13, 20, 36, 0.9));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--accent-soft) 14%, transparent), color-mix(in srgb, var(--bg-panel) 90%, transparent));
   border: 1px solid var(--border-bright);
   border-left: 3px solid var(--accent);
   border-radius: 10px;
@@ -289,12 +294,12 @@ p.body {
 
 .callout--gold {
   border-left-color: var(--gold);
-  background: linear-gradient(150deg, rgba(255, 183, 3, 0.12), rgba(13, 20, 36, 0.9));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--gold) 12%, transparent), color-mix(in srgb, var(--bg-panel) 90%, transparent));
 }
 
 .callout--green {
   border-left-color: var(--lens-green);
-  background: linear-gradient(150deg, rgba(39, 174, 96, 0.12), rgba(13, 20, 36, 0.9));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--lens-green) 12%, transparent), color-mix(in srgb, var(--bg-panel) 90%, transparent));
 }
 
 .callout__quote {
@@ -358,7 +363,7 @@ p.body {
   font-family: inherit;
 }
 .btn:hover:not(:disabled) {
-  background: #1d2a48;
+  background: var(--bg-elevated);
   border-color: var(--accent-soft);
 }
 .btn:active:not(:disabled) {
@@ -371,17 +376,20 @@ p.body {
 
 .btn--primary {
   /*
-   * 原来的渐变最亮端是 #2f7fd6, 白字在上面只有 4.1:1, 低于 AA 的 4.5:1。
-   * 整体压深一档后是 4.8:1。hover 不再靠"变亮"来提示 (那会把对比度又压到
-   * 4.1), 而是靠边框变亮 + 轻微上浮, 两个状态都过。
+   * 全站唯一的高光色: 香槟金 + 深色字。
+   *
+   * 原来是饱和的蓝色渐变 (#2b73c4 -> #1e578f), 单色调改版后它成了页面上最抢眼
+   * 的东西 —— 而按钮本来不该是视线的终点。换成香槟金之后, "金色 = 被看见"
+   * 这条语义在全站就一致了: 星星、探测极限线、主按钮, 都是同一个意思。
+   * 深色字在香槟金上是 9:1 以上, hover 靠边框变亮 + 轻微上浮提示。
    */
-  background: linear-gradient(160deg, #2b73c4, #1e578f);
-  border-color: #3f8ad8;
-  color: #fff;
+  background: linear-gradient(160deg, var(--gold-soft), var(--gold));
+  border-color: var(--gold-soft);
+  color: var(--bg-void);
 }
 .btn--primary:hover:not(:disabled) {
-  background: linear-gradient(160deg, #2b73c4, #1e578f);
-  border-color: #7cbcf5;
+  background: linear-gradient(160deg, var(--gold-soft), var(--gold-soft));
+  border-color: var(--text);
   transform: translateY(-1px);
 }
 
@@ -412,7 +420,7 @@ p.body {
 .textarea:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 /* ------------------------------------------------------------------ 滑块 */
@@ -443,8 +451,8 @@ p.body {
   height: 20px;
   border-radius: 50%;
   background: var(--gold);
-  border: 2px solid #0b1020;
-  box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.25);
+  border: 2px solid var(--bg-void);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent);
   cursor: pointer;
 }
 .slider::-moz-range-thumb {
@@ -452,7 +460,7 @@ p.body {
   height: 18px;
   border-radius: 50%;
   background: var(--gold);
-  border: 2px solid #0b1020;
+  border: 2px solid var(--bg-void);
   cursor: pointer;
 }
 
@@ -471,19 +479,19 @@ p.body {
   letter-spacing: 0.02em;
 }
 .badge--gold {
-  border-color: rgba(255, 183, 3, 0.4);
-  background: rgba(255, 183, 3, 0.13);
+  border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+  background: color-mix(in srgb, var(--gold) 13%, transparent);
   color: var(--gold);
 }
 .badge--green {
-  border-color: rgba(39, 174, 96, 0.4);
-  background: rgba(39, 174, 96, 0.13);
-  color: #5fd68f;
+  border-color: color-mix(in srgb, var(--lens-green) 40%, transparent);
+  background: color-mix(in srgb, var(--lens-green) 13%, transparent);
+  color: var(--lens-green-bright);
 }
 .badge--red {
-  border-color: rgba(224, 82, 82, 0.4);
-  background: rgba(224, 82, 82, 0.13);
-  color: #ff8b8b;
+  border-color: color-mix(in srgb, var(--red) 40%, transparent);
+  background: color-mix(in srgb, var(--red) 13%, transparent);
+  color: var(--red-soft);
 }
 
 /* ------------------------------------------------------------------ 表格 */
@@ -518,7 +526,7 @@ p.body {
   width: 100%;
   border-radius: var(--radius);
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #0a1226, #04060f 75%);
+  background: radial-gradient(ellipse at center, var(--bg-panel-2), var(--bg-void) 75%);
   border: 1px solid var(--border);
 }
 .canvas-wrap canvas {
@@ -633,7 +641,7 @@ p.body {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: radial-gradient(ellipse at center, #0a1226, #04060f 75%);
+  background: radial-gradient(ellipse at center, var(--bg-panel-2), var(--bg-void) 75%);
 }
 
 /* 让文字区域可读的渐层遮罩 */
@@ -642,12 +650,12 @@ p.body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 58% 68% at 20% 46%, rgba(4, 6, 15, 0.92), transparent 74%),
+    radial-gradient(ellipse 58% 68% at 20% 46%, color-mix(in srgb, var(--bg-void) 92%, transparent), transparent 74%),
     linear-gradient(
       to bottom,
-      rgba(4, 6, 15, 0.5) 0%,
+      color-mix(in srgb, var(--bg-void) 50%, transparent) 0%,
       transparent 26%,
-      rgba(4, 6, 15, 0.82) 100%
+      color-mix(in srgb, var(--bg-void) 82%, transparent) 100%
     );
   pointer-events: none;
 }
@@ -678,7 +686,7 @@ p.body {
 
 .hero__title {
   margin: 0;
-  background: linear-gradient(150deg, #ffffff 26%, #7fb4f0 100%);
+  background: linear-gradient(150deg, var(--gold-soft) 26%, var(--gold) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -706,7 +714,7 @@ p.body {
   position: relative;
   z-index: 1;
   border-top: 1px solid var(--border);
-  background: rgba(6, 9, 20, 0.66);
+  background: color-mix(in srgb, var(--bg-void) 66%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -781,8 +789,8 @@ p.body {
   font-weight: 700;
   color: var(--gold);
   font-variant-numeric: tabular-nums;
-  background: rgba(255, 183, 3, 0.1);
-  border: 1px solid rgba(255, 183, 3, 0.32);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
   border-radius: 8px;
   padding: 5px 12px;
   white-space: nowrap;
@@ -930,7 +938,7 @@ p.body {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  background: rgba(6, 9, 20, 0.78);
+  background: color-mix(in srgb, var(--bg-void) 78%, transparent);
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 10px 12px;
@@ -962,7 +970,7 @@ p.body {
   display: flex;
   align-items: center;
   gap: 7px;
-  background: rgba(6, 9, 20, 0.78);
+  background: color-mix(in srgb, var(--bg-void) 78%, transparent);
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 8px 11px;
@@ -996,8 +1004,8 @@ p.body {
   background: var(--bg-panel-2);
 }
 .funnel__row--zero {
-  border-color: rgba(224, 82, 82, 0.4);
-  background: rgba(224, 82, 82, 0.07);
+  border-color: color-mix(in srgb, var(--red) 40%, transparent);
+  background: color-mix(in srgb, var(--red) 7%, transparent);
 }
 .funnel__row--start {
   border-color: var(--border-bright);
@@ -1049,12 +1057,12 @@ p.body {
   background: var(--bg-panel);
 }
 .paircard--pass {
-  border-color: rgba(255, 183, 3, 0.36);
-  background: linear-gradient(150deg, rgba(255, 183, 3, 0.06), var(--bg-panel));
+  border-color: color-mix(in srgb, var(--gold) 36%, transparent);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--gold) 6%, transparent), var(--bg-panel));
 }
 .paircard--fail {
-  border-color: rgba(224, 82, 82, 0.32);
-  background: linear-gradient(150deg, rgba(224, 82, 82, 0.06), var(--bg-panel));
+  border-color: color-mix(in srgb, var(--red) 32%, transparent);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--red) 6%, transparent), var(--bg-panel));
 }
 .paircard__names {
   font-size: 14.5px;
@@ -1107,7 +1115,7 @@ p.body {
 }
 .swatch--ghost {
   background: transparent;
-  border: 1.5px dashed #e05252;
+  border: 1.5px dashed var(--red);
 }
 
 .explorer__actions {
@@ -1140,7 +1148,7 @@ p.body {
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
-  background: radial-gradient(ellipse at center, #0a1226, #04060f 78%);
+  background: radial-gradient(ellipse at center, var(--bg-panel-2), var(--bg-void) 78%);
 }
 
 .guestbook__hint {
@@ -1211,7 +1219,7 @@ p.body {
 }
 .storylist__item--active {
   border-left-color: var(--gold);
-  background: rgba(255, 183, 3, 0.06);
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
 }
 
 /*

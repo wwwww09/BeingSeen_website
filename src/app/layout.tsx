@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import Nav from '@/components/Nav'
+import { PALETTE } from '@/lib/palette'
 import './globals.css'
 
 /** 完整 URL(带协议), 例如 https://example.com —— 用于 NEXT_PUBLIC_SITE_URL */
@@ -92,7 +93,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#04060f',
+  /* 手机浏览器地址栏的底色 —— 从色板取, 免得主题一改这里就变成另一个色 */
+  themeColor: PALETTE.bgVoid,
   width: 'device-width',
   initialScale: 1,
 }

@@ -70,7 +70,19 @@ const EXEMPT = [join('src', 'lib', 'palette.ts')]
 let offenders = 0
 for (const file of walk(join(REPO, 'src'))) {
   if (EXEMPT.some((e) => file.endsWith(e))) continue
-  const text = readFileSync(file, 'utf8')
+  let text = readFileSync(file, 'utf8')
+  /*
+   * CSS 里 :root 之外的字面量也要抓 —— 之前只扫 .tsx, 结果 globals.css 里
+   * 藏了 22 处旧色值和 33 处旧色板的 rgba(), 它们不跟着主题变,
+   * 而且半透明的色块底色直接把文字对比度拖到了 4.5:1 以下。
+   */
+  if (file.endsWith('globals.css')) {
+    const end = text.indexOf('}', text.indexOf(':root {')) + 1
+    const root = text.slice(0, end)
+    const rest = text.slice(end)
+    text = rest.replace(/:root \{[\s\S]*?\}/g, '')
+    void root
+  }
   text.split('\n').forEach((line, i) => {
     for (const m of line.matchAll(/#[0-9a-fA-F]{6}\b/g)) {
       const hex = m[0].toLowerCase()
