@@ -36,3 +36,6 @@ tsconfig.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Word/Office 打开文档时产生的临时锁文件
+~$*
