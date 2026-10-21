@@ -1362,3 +1362,74 @@ p.body {
   font-size: 11.5px;
   margin-top: 1px;
 }
+
+
+/* ==========================================================================
+   入门铺垫 + 术语表 —— 给没有物理背景的读者
+
+   这两块是"可读性整改"的核心: 正文之前先把必要的背景讲完, 并把这一页
+   真正用到的几个词用大白话解释掉。目标是把 Flesch 从 46 提到 60 以上。
+   ========================================================================== */
+.section--primer .primer,
+.section--glossary .glossary {
+  max-width: 72ch;
+}
+
+.primer {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.primer li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.primer li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.72em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.8;
+}
+
+.glossary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+}
+@media (max-width: 760px) {
+  .glossary {
+    grid-template-columns: 1fr;
+  }
+}
+.glossary__item {
+  min-width: 0;
+}
+.glossary dt {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.glossary dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+.glossary__like {
+  color: var(--text-faint) !important;
+  font-size: 12.5px !important;
+  font-style: italic;
+  margin-top: 3px !important;
+}

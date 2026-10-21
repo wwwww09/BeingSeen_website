@@ -63,12 +63,86 @@ export default function LensingSupernovaePage() {
         <p className="section__label">Sub-question 1 · Magnification</p>
         <h1 className="title">Can Lensing Make Distant Supernovae Visible?</h1>
         <p className="lede">
-          A supernova at high redshift is too faint for any telescope to see. But if a
-          massive galaxy happens to sit between us and the explosion, its gravity bends
-          the light into our line of sight and makes the supernova brighter — sometimes
-          dramatically so. This is the universe&rsquo;s own telescope.
+          A supernova is a star exploding. Faraway explosions are far too faint to see.
+          Gravity can act as a lens and make one visible. This page asks how much that
+          really helps.
         </p>
       </header>
+
+      {/* ------------------------------------------------ 入门铺垫 */}
+      <section className="section section--primer">
+        <p className="section__label">Before you start</p>
+        <h2 className="section-title">What you need to know</h2>
+        <ul className="primer">
+          <li>
+            A supernova is the explosion that ends a massive star&rsquo;s life. For a few
+            weeks it can outshine a whole galaxy.
+          </li>
+          <li>
+            Distance dims everything. Ten times further away looks a hundred times
+            fainter.
+          </li>
+          <li>
+            Gravity bends light. A heavy galaxy sitting in front of the explosion works
+            like a lens.
+          </li>
+          <li>
+            The lens makes the explosion look brighter. It can also split it into several
+            images.
+          </li>
+          <li>
+            So the question is simple: does that extra brightness let us see explosions we
+            would otherwise miss?
+          </li>
+        </ul>
+      </section>
+
+      {/* ------------------------------------------------ 术语表 */}
+      <section className="section section--glossary">
+        <p className="section__label">Four words</p>
+        <h2 className="section-title">The only vocabulary you need</h2>
+        <dl className="glossary">
+          <div className="glossary__item">
+            <dt>Redshift</dt>
+            <dd>
+              How much the universe has stretched the light before it reaches us. A bigger
+              redshift means further away.
+            </dd>
+            <dd className="glossary__like">
+              Like the pitch of an ambulance dropping as it passes you.
+            </dd>
+          </div>
+          <div className="glossary__item">
+            <dt>Apparent magnitude</dt>
+            <dd>
+              How bright something looks from Earth. <strong>Smaller numbers mean
+              brighter.</strong> The Sun is about −27; the faintest star you can see is
+              about +6.
+            </dd>
+            <dd className="glossary__like">Think of a score where lower is better.</dd>
+          </div>
+          <div className="glossary__item">
+            <dt>Detection limit</dt>
+            <dd>
+              The faintest magnitude a given telescope can still catch. Anything fainter is
+              invisible to it.
+            </dd>
+            <dd className="glossary__like">
+              Like the dimmest light your eyes can still make out.
+            </dd>
+          </div>
+          <div className="glossary__item">
+            <dt>Magnification (μ)</dt>
+            <dd>
+              How much brighter the lens makes the image. μ = 10 means ten times as much
+              light.
+            </dd>
+            <dd className="glossary__like">
+              Like a magnifying glass focusing sunlight onto one spot.
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       {/* ------------------------------------------------ 结论 */}
       <section className="section">
@@ -90,9 +164,9 @@ export default function LensingSupernovaePage() {
             </strong>{' '}
             known lensed supernovae in this sample could be detected by ZTF
             <Cite n={1} />. With
-            lensing, <strong>{supernovae.detectedLensed} became visible</strong> — the
-            universe&rsquo;s own telescope at work. The comparison below uses a simulated
-            catalogue of {mockSupernovae.totalRows.toLocaleString()} lensed systems.
+            lensing, <strong>{supernovae.detectedLensed} became visible</strong>. The
+            comparison below uses {mockSupernovae.totalRows.toLocaleString()} simulated
+            lensing systems.
           </p>
         </div>
       </section>
@@ -102,9 +176,9 @@ export default function LensingSupernovaePage() {
         <p className="section__label">Interactive · Be the telescope</p>
         <h2 className="section-title">Find out for yourself</h2>
         <p className="lede">
-          You are operating a survey telescope. Set your detection limit and watch which
-          supernovae cross into view. The red dots are the same explosions if gravity did
-          not bend their light; the green dots are what lensing does to them.
+          You are running a survey telescope. Move the slider to set how faint a supernova
+          you can still detect. Red dots are the same explosions without lensing. Green
+          dots are with it.
         </p>
         <div className="panel" style={{ marginTop: 18 }}>
           <SupernovaExplorer data={supernovae} />
@@ -119,9 +193,9 @@ export default function LensingSupernovaePage() {
           are reachable
         </h2>
         <p className="lede">
-          The left panel shows the simulated population: the vast majority sit far below
-          any realistic detection limit. The right panel shows the real sample — and how
-          far lensing moves each one.
+          Computers can simulate lensing for a huge number of explosions. The left panel
+          shows {mockSupernovae.totalRows.toLocaleString()} of them. Almost all sit far
+          below what any telescope can reach. The right panel shows the five real ones.
         </p>
 
         <div className="panel panel--flush" style={{ marginTop: 18 }}>
@@ -172,12 +246,12 @@ export default function LensingSupernovaePage() {
 
       {/* ------------------------------------------------ 散点 */}
       <section className="section">
-        <p className="section__label">Where the light gets lost</p>
-        <h2 className="section-title">Apparent magnitude against redshift</h2>
+        <p className="section__label">Brightness against distance</p>
+        <h2 className="section-title">Distance, not lensing, decides what we can see</h2>
         <p className="lede">
-          Each point is one simulated system. Fainter magnitudes are higher up. Redshift
-          pushes systems down the brightness scale, which is why distance — not lensing
-          quality — is the dominant reason these explosions stay unseen.
+          Each point is one simulated system. Fainter systems sit higher up. Moving further
+          away makes a system fainter far more than lensing makes it brighter. That is why
+          most of them stay unseen.
         </p>
         <div className="panel" style={{ marginTop: 18 }}>
           <div className="chart-scroll">
@@ -192,24 +266,23 @@ export default function LensingSupernovaePage() {
             />
           </div>
           <p className="small muted" style={{ marginTop: 8 }}>
-            Showing a random sample of {scatterPoints.length.toLocaleString()} of{' '}
-            {mockSupernovae.totalRows.toLocaleString()} systems. Gold points are above the
-            detection limit.
+            A random sample of {scatterPoints.length.toLocaleString()} out of{' '}
+            {mockSupernovae.totalRows.toLocaleString()} systems. Gold points are bright
+            enough to be detected.
           </p>
         </div>
       </section>
 
       {/* ------------------------------------------------ 放大率分布 */}
       <section className="section">
-        <p className="section__label">How much magnification is there?</p>
-        <h2 className="section-title">The magnification distribution</h2>
+        <p className="section__label">How much brighter?</p>
+        <h2 className="section-title">Most lenses give only a small boost</h2>
         <p className="lede">
-          Most lensing events give only a modest boost. The median total magnification in
-          the simulated catalogue is{' '}
-          <strong>{mockSupernovae.stats.muTotalMedian.toFixed(2)}×</strong> — roughly{' '}
-          {(2.5 * Math.log10(mockSupernovae.stats.muTotalMedian)).toFixed(1)} magnitudes.
-          The real gISNe sample is biased towards the spectacular end, where magnifications
-          reach 8× to 52×.
+          Half of the simulated systems are magnified by less than{' '}
+          <strong>{mockSupernovae.stats.muTotalMedian.toFixed(2)}×</strong>. That is about{' '}
+          {(2.5 * Math.log10(mockSupernovae.stats.muTotalMedian)).toFixed(1)} magnitudes of
+          extra brightness. The five real ones sit far to the right, between 8× and 52×.
+          They are the extreme cases, which is exactly why we could see them.
         </p>
         <div className="panel" style={{ marginTop: 18 }}>
           <div className="chart-scroll">
@@ -219,8 +292,9 @@ export default function LensingSupernovaePage() {
             />
           </div>
           <p className="small muted" style={{ marginTop: 8 }}>
-            Total magnification μ of simulated systems (logarithmic bins). Real
-            strongly-lensed supernovae sit well into the right-hand tail.
+            Total magnification μ for the simulated systems. Bins are logarithmic, so
+            each step to the right is a doubling or more. The real five sit in the far
+            right tail.
           </p>
         </div>
       </section>
@@ -229,6 +303,11 @@ export default function LensingSupernovaePage() {
       <section className="section">
         <p className="section__label">The real sample</p>
         <h2 className="section-title">Five lensed supernovae in this sample</h2>
+        <p className="lede">
+          Each row is one explosion. &ldquo;m (no lens)&rdquo; is how bright it would look
+          without a lens. &ldquo;m (lensed)&rdquo; is how bright it actually looks. The
+          last column asks whether a telescope like ZTF could have caught it.
+        </p>
         <div className="panel" style={{ marginTop: 18, overflowX: 'auto' }}>
           <table className="table">
             <thead>
@@ -298,10 +377,10 @@ export default function LensingSupernovaePage() {
           actually seen
         </h2>
         <p className="lede">
-          Every blue point is a gravitational lens someone has already catalogued — a
-          galaxy or cluster massive enough to bend light. The five gold stars are the
-          only lensed supernovae we have ever caught in the act. Drag to rotate the sky,
-          scroll to zoom, and click a gold star to see what lensing did for it.
+          Each blue point is a galaxy or cluster heavy enough to bend light. Someone has
+          already catalogued all of them. The five gold stars are the only lensed
+          supernovae we have ever caught in the act. Drag to rotate, scroll to zoom, and
+          click a gold star for details.
         </p>
 
         <LensCatalogExplorer
@@ -312,12 +391,13 @@ export default function LensingSupernovaePage() {
         />
 
         <p className="small muted" style={{ marginTop: 12, maxWidth: '84ch' }}>
-          <strong>Why the sky looks so sparse.</strong> The lens catalogue is a list of{' '}
-          <em>lenses</em>, not of lensed supernovae. A lens only helps us if a bright
-          source happens to sit behind it at the right redshift, and if a survey happens
-          to be looking at that patch of sky at the moment the supernova peaks. That
-          coincidence is what makes five events out of{' '}
-          {lenses.total.toLocaleString()} lenses the honest headline number.
+          <strong>Why the sky looks so sparse.</strong> This is a catalogue of{' '}
+          <em>lenses</em>, not of lensed supernovae. A lens only helps if three things
+          line up at once. Something bright must sit right behind it. The alignment must
+          be close enough to bend the light into several images. And a survey must be
+          looking at that patch of sky the moment the explosion peaks. That is the
+          coincidence behind the number above: five events out of{' '}
+          {lenses.total.toLocaleString()} lenses.
         </p>
       </section>
 
