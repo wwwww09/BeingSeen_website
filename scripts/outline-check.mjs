@@ -339,6 +339,27 @@ check('W5', '副图: 修正过程 (高度下降, 红→蓝)',
   )
 }
 
+/*
+ * 防回归 (W7): 页面曾说 "Out of 161 events, exactly 2 have both masses above 45"
+ * —— 但那 161 个里有 57 个没有公布质量, 对它们无从判断。分母必须是 104,
+ * 而且缺的 57 个要说出来。
+ */
+check(
+  'W7',
+  'GW 分母只说有公布质量的事件, 并交代缺失的那些',
+  await evaluate(`(() => {
+    const p = [...document.querySelectorAll('p')].find((x) =>
+      /GWTC-5\.0 lists/i.test(x.textContent || ''),
+    );
+    if (!p) return false;
+    const t = p.textContent || '';
+    return /57 of them have no published component masses/i.test(t) &&
+      /104 that do/i.test(t) &&
+      !/Out of 161/i.test(t);
+  })()`),
+  '161 个事件里 57 个没有公布分量质量, 能与判据比较的是 104 个',
+)
+
 // ---------------------------------------------------------------- 页面五
 console.log('\n── 页面五 Being Seen ──')
 await goto('/being-seen')

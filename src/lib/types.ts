@@ -157,8 +157,13 @@ export interface GwCandidate {
 
 export interface GwEventBrief {
   name: string
-  m1: number
-  m2: number
+  /*
+   * 注意: GWTC-5.0 里有 57 个事件没有公布分量质量 (源数据这两列是空的),
+   * 所以这里是可空的 —— 之前类型写成 number 是在撒谎, 而页面据此说出了
+   * "161 个里恰好 2 个" 这种无法成立的话。
+   */
+  m1: number | null
+  m2: number | null
   distance: number
   snr: number
 }

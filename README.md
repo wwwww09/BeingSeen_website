@@ -330,7 +330,7 @@ not "is the site broken" but "does it do what `网页布局纲要.docx` asked fo
 turns every requirement in the brief — the five pages and their order, the fixed
 navigation, the dark palette, each page's headline copy verbatim, each named
 chart and its interactivity — into an assertion against the running site, and
-reports 40 of them.
+reports 41 of them.
 
 ```bash
 ./dev.sh outline    # exits non-zero if any requirement is unmet

@@ -12,6 +12,12 @@ export const metadata: Metadata = {
 export default function GravitationalWaveLensingPage() {
   const { gravitationalWaves: gw } = getGravitationalWaves()
   const [a, b] = gw.candidates
+  /*
+   * 只有公布了分量质量的事件才能参与"两个分量是否都 > 45 M☉"的判断。
+   * 161 个里有 57 个没公布, 所以分母是 104 —— 见下面那句的注释。
+   */
+  const gwWithMass = gw.allEvents.filter((e) => e.m1 !== null && e.m2 !== null).length
+  const gwWithoutMass = gw.allEvents.length - gwWithMass
 
   return (
     <main className="page">
@@ -103,11 +109,18 @@ export default function GravitationalWaveLensingPage() {
       <section className="section">
         <p className="section__label">Observed vs corrected</p>
         <h2 className="section-title">The two candidates in GWTC-5.0</h2>
+        {/*
+          原来这里写的是 "Out of 161 events, exactly 2 have both component masses
+          above 45 M☉"。但 GWTC-5.0 的 161 个事件里有 57 个**没有公布分量质量**
+          —— 对它们根本无从判断, 所以"161 个里恰好 2 个"站不住。分母必须换成
+          真正有质量的那 104 个, 并且把缺的 57 个说出来。
+        */}
         <p className="lede">
-          Out of {gw.catalogTotal} gravitational-wave events in GWTC-5.0, exactly{' '}
-          {gw.candidateCount} have both component masses above {gw.gapLowerBound} M☉ —
-          inside the range where pair-instability should prevent black holes from
-          forming at all.
+          GWTC-5.0 lists {gw.catalogTotal} gravitational-wave events;{' '}
+          {gwWithoutMass} of them have no published component masses. Of the{' '}
+          {gwWithMass} that do, exactly {gw.candidateCount} have both components above{' '}
+          {gw.gapLowerBound} M☉ — inside the range where pair-instability should prevent
+          black holes from forming at all.
         </p>
 
         <div className="grid grid--2" style={{ marginTop: 18 }}>
