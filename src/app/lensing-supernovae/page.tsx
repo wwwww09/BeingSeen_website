@@ -235,6 +235,30 @@ export default function LensingSupernovaePage() {
             </tbody>
           </table>
         </div>
+        <p className="small muted" style={{ marginTop: 12, maxWidth: '84ch' }}>
+          <strong>Where this list comes from.</strong> These five were compiled by hand from
+          the published literature — one row per paper — rather than queried from a
+          catalogue:{' '}
+          {supernovae.events.map((e, i) => (
+            <span key={e.name}>
+              {i > 0 ? (i === supernovae.events.length - 1 ? ' and ' : ', ') : ''}
+              {e.name} (
+              <a
+                href={`https://arxiv.org/abs/${e.reference}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                style={{ color: 'var(--gold)' }}
+              >
+                arXiv:{e.reference}
+              </a>
+              )
+            </span>
+          ))}
+          . That matters for how the numbers above should be read: a hand-compiled list is
+          not a complete catalogue, and a paper we missed would change the denominator —
+          which is one reason the claim on this page is about these five objects rather
+          than about lensed supernovae in general.
+        </p>
         <p className="small muted" style={{ marginTop: 10 }}>
           Apparent magnitudes are computed from a flat ΛCDM cosmology
           (H₀ = 70 km s⁻¹ Mpc⁻¹, Ω<sub>m</sub> = 0.3) with a standard SN Ia peak absolute

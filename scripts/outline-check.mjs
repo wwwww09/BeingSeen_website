@@ -225,6 +225,20 @@ check('S4', '主图: 有/无透镜亮度对比', await evaluate(`Boolean(documen
 check('S5', '副图: 模拟星表 vs 真实样本分布',
   await evaluate(`document.querySelectorAll('.gischart .chartpanel').length === 2`),
   '.gischart 里两个面板: 左=模拟星表直方图, 右=真实样本透镜前后')
+// 防回归: 这五颗是手工从文献里整理出来的, 出处必须留在页面上。
+// 少了它, 读者无从判断"为什么是这五颗", 也没法核。
+check(
+  'S5b',
+  '真实样本标注了文献出处 (手工整理, 非星表查询)',
+  await evaluate(`(() => {
+    const p = [...document.querySelectorAll('p')].find((x) =>
+      /compiled by hand/i.test(x.textContent || ''),
+    );
+    return Boolean(p) && p.querySelectorAll('a[href*="arxiv.org/abs/"]').length >= 5;
+  })()`),
+  '五条 arXiv 链接 + 一句"手工整理、不是完整星表"的说明',
+)
+
 check('S6', '模拟星表规模约 64,000 个事件', await evaluate(HAS('64,309')))
 check('S7', '可选 3D 图: lenscat 透镜系统 vs 真实 gISNe',
   await evaluate(`Boolean(document.querySelector('.canvas-wrap canvas'))`))
