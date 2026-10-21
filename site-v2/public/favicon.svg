@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Being Seen">
+  <rect width="64" height="64" rx="10" fill="#07080a" />
+  <circle cx="32" cy="32" r="11" fill="#0a0b0f" stroke="#ff5c35" stroke-width="1.4" />
+  <ellipse cx="32" cy="32" rx="21" ry="6.5" fill="none" stroke="#ff5c35" stroke-width="1" opacity=".9" transform="rotate(-24 32 32)" />
+  <ellipse cx="32" cy="32" rx="26" ry="9" fill="none" stroke="#efe9dd" stroke-width=".7" opacity=".32" transform="rotate(-24 32 32)" />
+  <circle cx="45" cy="23" r="1.2" fill="#efe9dd" />
+</svg>

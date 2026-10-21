@@ -1,0 +1,8 @@
+# site-v2 是独立项目：把它声明成自己的 pnpm 工作区根，
+# 依赖就装在 site-v2/node_modules，不会落到上一层旧站的 node_modules 里。
+packages:
+  - '.'
+minimumReleaseAgeExclude:
+  - framer-motion@14.5.0
+  - motion-dom@14.5.0
+  - vite@8.3.5
