@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import MassCorrectionScene from '@/components/MassCorrectionScene'
 import { getGravitationalWaves } from '@/lib/data'
+import { Cite, References, type Ref } from '@/components/References'
 import GwMassChart from '@/components/charts/GwMassChart'
 
 export const metadata: Metadata = {
@@ -18,6 +19,19 @@ export default function GravitationalWaveLensingPage() {
    */
   const gwWithMass = gw.allEvents.filter((e) => e.m1 !== null && e.m2 !== null).length
   const gwWithoutMass = gw.allEvents.length - gwWithMass
+
+  /* 本页出处: 条目待填, what 写明支撑哪句话 */
+  const refs: Ref[] = [
+    { n: 1, what: 'GWTC-5.0 — the 161 events, and the 104 with published component masses' },
+    {
+      n: 2,
+      what: 'Pair-instability mass gap and its lower edge (taken here as 45 M☉)',
+    },
+    {
+      n: 3,
+      what: 'Mass scales as the square root of magnification: m_obs = m_true × √μ',
+    },
+  ]
 
   return (
     <main className="page">
@@ -69,6 +83,7 @@ export default function GravitationalWaveLensingPage() {
               }}
             >
               m<sub>obs</sub> = m<sub>true</sub> × √μ
+              <Cite n={3} />
             </p>
             <p className="body" style={{ margin: 0 }}>
               Rearranged, the true mass is m<sub>true</sub> = m<sub>obs</sub> / √μ. With
@@ -116,11 +131,11 @@ export default function GravitationalWaveLensingPage() {
           真正有质量的那 104 个, 并且把缺的 57 个说出来。
         */}
         <p className="lede">
-          GWTC-5.0 lists {gw.catalogTotal} gravitational-wave events;{' '}
+          GWTC-5.0<Cite n={1} /> lists {gw.catalogTotal} gravitational-wave events;{' '}
           {gwWithoutMass} of them have no published component masses. Of the{' '}
           {gwWithMass} that do, exactly {gw.candidateCount} have both components above{' '}
-          {gw.gapLowerBound} M☉ — inside the range where pair-instability should prevent
-          black holes from forming at all.
+          {gw.gapLowerBound} M☉<Cite n={2} /> — inside the range where pair-instability
+          should prevent black holes from forming at all.
         </p>
 
         <div className="grid grid--2" style={{ marginTop: 18 }}>
@@ -294,6 +309,8 @@ export default function GravitationalWaveLensingPage() {
           central values.
         </p>
       </section>
+
+      <References refs={refs} />
     </main>
   )
 }

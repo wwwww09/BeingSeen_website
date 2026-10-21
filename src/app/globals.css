@@ -1293,3 +1293,72 @@ p.body {
     height: 460px;
   }
 }
+
+
+/* ==========================================================================
+   引用 —— 论文式的上标编号 + 页末出处列表
+   ========================================================================== */
+.cite {
+  font-size: 0.68em;
+  color: var(--gold);
+  padding-left: 1px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 首页的出处区: 放在统计条下面, 不要抢 hero 的注意力 */
+.hero__refs {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.section--refs {
+  border-top: 1px solid var(--border);
+  padding-top: 22px;
+}
+.section-title--refs {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.refs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-width: 86ch;
+}
+.refs__item {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.refs__n {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.refs__body {
+  display: block;
+  color: var(--text-dim);
+}
+.refs__entry {
+  color: var(--text);
+}
+/* 待补的条目: 明确显示"还缺", 而不是假装完整 */
+.refs__todo {
+  color: var(--text-faint);
+  font-style: italic;
+}
+.refs__what {
+  display: block;
+  color: var(--text-faint);
+  font-size: 11.5px;
+  margin-top: 1px;
+}

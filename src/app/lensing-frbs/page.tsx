@@ -3,6 +3,7 @@ import FrbSkyMapClient from '@/components/FrbSkyMapClient'
 import TimeDelaySceneClient from '@/components/TimeDelaySceneClient'
 import FrbSeparationChart from '@/components/charts/FrbSeparationChart'
 import { getFrbs } from '@/lib/data'
+import { Cite, References, type Ref } from '@/components/References'
 
 export const metadata: Metadata = {
   title: 'Can Lensing Copy FRB Signals?',
@@ -14,6 +15,21 @@ export default function LensingFrbsPage() {
   const { frbs } = getFrbs()
   const s = frbs.search
 
+  /*
+   * 本页出处。条目待填; what 写明支撑哪句话。
+   */
+  const refs: Ref[] = [
+    { n: 1, what: 'CHIME/FRB catalogue — the 536 events (474 non-repeaters) searched here' },
+    {
+      n: 2,
+      what: 'Gravitational lensing leaves dispersion measure unchanged: both images cross the same ionised medium',
+    },
+    {
+      n: 3,
+      what: 'The selection cuts used here — angular separation < 1° and |ΔDM| < 30 pc cm⁻³',
+    },
+  ]
+
   return (
     <main className="page">
       <header>
@@ -24,7 +40,7 @@ export default function LensingFrbsPage() {
           light takes a longer route, arriving later. If the burst is bright enough, we
           would see the <em>same</em> burst twice — separated in time. This is what a
           gravitationally lensed FRB would look like. We searched for such pairs in the
-          CHIME/FRB Catalogue.
+          CHIME/FRB Catalogue<Cite n={1} />.
         </p>
       </header>
 
@@ -38,7 +54,8 @@ export default function LensingFrbsPage() {
             dispersion-measure test.&rdquo;
           </p>
           <p className="callout__note">
-            A null result. Lensing does not change dispersion measure, so two images of
+            A null result. Lensing does not change dispersion measure<Cite n={2} />, so two
+            images of
             the same burst must arrive with the same DM. That single physical requirement
             is what eliminates the candidates — not a lack of data.
           </p>
@@ -211,7 +228,8 @@ export default function LensingFrbsPage() {
           {s.survivorCount} pair{s.survivorCount === 1 ? '' : 's'} survive a lenient DM cut
         </h2>
         <p className="lede">
-          Relaxing the DM tolerance to 30 pc cm⁻³ and requiring overlap within 1°,{' '}
+          Relaxing the DM tolerance to 30 pc cm⁻³ and requiring overlap within 1°
+          <Cite n={3} />,{' '}
           {s.survivorCount} pairs remain. None is convincing — but they are the only
           places worth pointing a follow-up telescope at.
         </p>
@@ -349,6 +367,8 @@ export default function LensingFrbsPage() {
           </div>
         </div>
       </section>
+
+      <References refs={refs} />
     </main>
   )
 }

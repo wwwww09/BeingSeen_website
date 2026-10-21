@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import SupernovaExplorer from '@/components/SupernovaExplorer'
 import LensCatalogExplorer from '@/components/LensCatalogExplorer'
 import ScatterChart from '@/components/charts/ScatterChart'
+import { Cite, References, type Ref } from '@/components/References'
 import GisneChart from '@/components/charts/GisneChart'
 import { getLenses, getSupernovae } from '@/lib/data'
 
@@ -14,12 +15,41 @@ export const metadata: Metadata = {
 /** 3D 天球上最多画多少个透镜系统 (再多也看不出来, 但会拖慢 HTML) */
 const LENS_RENDER_LIMIT = 2500
 
+/** 这五颗超新星的文献占本页的 [4]–[8] */
+const SNE_REFS_START = 4
+
 export default function LensingSupernovaePage() {
   const { supernovae, mockSupernovae } = getSupernovae()
   const { lenses } = getLenses()
 
   // 星表样本本身是随机顺序, 所以直接截取不会让天区分布产生偏移
   const lensSample = lenses.sample.slice(0, LENS_RENDER_LIMIT)
+
+  /*
+   * 本页的出处列表。条目的 what 写的是"这条支撑什么", 方便一条条对上;
+   * 真正的中文/英文文献条目还没定, 留空 —— 页面上会显示 "entry to be added",
+   * 不会假装完整。五颗超新星的 arXiv 号来自数据本身, 不是手打的。
+   */
+  const refs: Ref[] = [
+    {
+      n: 1,
+      what: 'ZTF limiting magnitude used as the detection threshold (m = 20.5)',
+    },
+    {
+      n: 2,
+      what: 'Cosmological parameters: flat ΛCDM, H₀ = 70 km s⁻¹ Mpc⁻¹, Ωm = 0.3',
+    },
+    { n: 3, what: 'Peak absolute magnitude assumed for a Type Ia supernova (−19.25)' },
+    ...supernovae.events.map((e, i) => ({
+      n: SNE_REFS_START + i,
+      what: `${e.name}: redshift, magnification and time delay`,
+      entry: `arXiv:${e.reference}`,
+    })),
+    {
+      n: 9,
+      what: 'Simulated lensed-supernova catalogue (N = 64,309) — provenance unknown; the file carries no metadata',
+    },
+  ]
 
   const scatterPoints = mockSupernovae.scatterSample.map((p) => ({
     x: p.sourceRedshift,
@@ -58,7 +88,8 @@ export default function LensingSupernovaePage() {
             <strong>
               {supernovae.detectedNoLens} of {supernovae.sampleSize}
             </strong>{' '}
-            known lensed supernovae in this sample could be detected by ZTF. With
+            known lensed supernovae in this sample could be detected by ZTF
+            <Cite n={1} />. With
             lensing, <strong>{supernovae.detectedLensed} became visible</strong> — the
             universe&rsquo;s own telescope at work. The comparison below uses a simulated
             catalogue of {mockSupernovae.totalRows.toLocaleString()} lensed systems.
@@ -132,7 +163,8 @@ export default function LensingSupernovaePage() {
         </div>
 
         <p className="small muted" style={{ marginTop: 14, maxWidth: '80ch' }}>
-          <strong>Note on provenance:</strong> {mockSupernovae.provenance} Individual image
+          <strong>Note on provenance:</strong> {mockSupernovae.provenance}
+          <Cite n={9} /> Individual image
           magnitudes are not necessarily brighter than a total magnitude, so the detection
           count above uses the first-arriving image and is conservative.
         </p>
@@ -196,7 +228,7 @@ export default function LensingSupernovaePage() {
       {/* ------------------------------------------------ 样本表 */}
       <section className="section">
         <p className="section__label">The real sample</p>
-        <h2 className="section-title">Five known lensed supernovae</h2>
+        <h2 className="section-title">Five lensed supernovae in this sample</h2>
         <div className="panel" style={{ marginTop: 18, overflowX: 'auto' }}>
           <table className="table">
             <thead>
@@ -242,16 +274,7 @@ export default function LensingSupernovaePage() {
           {supernovae.events.map((e, i) => (
             <span key={e.name}>
               {i > 0 ? (i === supernovae.events.length - 1 ? ' and ' : ', ') : ''}
-              {e.name} (
-              <a
-                href={`https://arxiv.org/abs/${e.reference}`}
-                target="_blank"
-                rel="noreferrer noopener"
-                style={{ color: 'var(--gold)' }}
-              >
-                arXiv:{e.reference}
-              </a>
-              )
+              {e.name} <Cite n={SNE_REFS_START + i} />
             </span>
           ))}
           . That matters for how the numbers above should be read: a hand-compiled list is
@@ -261,8 +284,9 @@ export default function LensingSupernovaePage() {
         </p>
         <p className="small muted" style={{ marginTop: 10 }}>
           Apparent magnitudes are computed from a flat ΛCDM cosmology
-          (H₀ = 70 km s⁻¹ Mpc⁻¹, Ω<sub>m</sub> = 0.3) with a standard SN Ia peak absolute
-          magnitude of −19.25, using m = M + μ<sub>dist</sub> − 2.5 log₁₀ μ.
+          (H₀ = 70 km s⁻¹ Mpc⁻¹, Ω<sub>m</sub> = 0.3)<Cite n={2} /> with a standard SN Ia
+          peak absolute magnitude of −19.25<Cite n={3} />, using
+          m = M + μ<sub>dist</sub> − 2.5 log₁₀ μ.
         </p>
       </section>
 
@@ -296,6 +320,8 @@ export default function LensingSupernovaePage() {
           {lenses.total.toLocaleString()} lenses the honest headline number.
         </p>
       </section>
+
+      <References refs={refs} />
     </main>
   )
 }

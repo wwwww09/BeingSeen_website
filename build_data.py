@@ -22,7 +22,9 @@ import pandas as pd
 # ----------------------------------------------------------------------------
 # 路径与常量
 # ----------------------------------------------------------------------------
-REPO = Path("/Users/eva/Documents/GitHub/BeingSeen_website")
+# 用脚本自己所在目录, 而不是写死某台机器上的绝对路径 —— 否则换台机器
+# (或者把仓库交给别人) 这个脚本就跑不起来, 数据也就无法复现。
+REPO = Path(__file__).resolve().parent
 OUT_DATA = Path(__file__).parent / "public" / "data"
 OUT_CHARTS = Path(__file__).parent / "public" / "charts"
 OUT_DATA.mkdir(parents=True, exist_ok=True)
