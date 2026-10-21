@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import Nav from '@/components/Nav'
+import Stage from '@/components/film/Stage'
+import { FilmProgress } from '@/components/film/scroll'
+import Footer from '@/components/Footer'
 import { PALETTE } from '@/lib/palette'
 import './globals.css'
+import './film.css'
 
 /** 完整 URL(带协议), 例如 https://example.com —— 用于 NEXT_PUBLIC_SITE_URL */
 function envUrl(value: string | undefined): string | undefined {
@@ -37,10 +41,6 @@ function envHost(value: string | undefined): string | undefined {
 /**
  * 站点自身的地址, 用来把分享卡片的图片转成绝对 URL —— 绝大多数平台都要求
  * openGraph 的图片是绝对地址, 否则预览卡片会不显示。
- *
- * 优先用 NEXT_PUBLIC_SITE_URL (绑定了自定义域名时设它);
- * 否则在 Vercel 上自动取部署域名, 零配置也能出正确的卡片;
- * 本地开发退回到 localhost。
  */
 const vercelHost =
   envHost(process.env.VERCEL_PROJECT_PRODUCTION_URL) ?? envHost(process.env.VERCEL_URL)
@@ -49,17 +49,16 @@ const siteUrl =
   envUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
   (vercelHost ? `https://${vercelHost}` : 'http://localhost:3000')
 
-const tagline =
-  'The universe has its own telescope. We just need to learn how to look.'
+const tagline = 'A journey through the unseen.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Being Seen — Gravitational Lensing and the Invisible Universe',
+    default: 'Being Seen — A journey through the unseen',
     template: '%s — Being Seen',
   },
   description:
-    'A serious game about how gravitational lensing helps us detect astronomical phenomena that would otherwise remain invisible. From supernovae to fast radio bursts to gravitational waves.',
+    'Some stars are invisible. Not because they do not exist, but because they are in the wrong place, at the wrong time, or emit the wrong kind of light.',
   keywords: [
     'gravitational lensing',
     'supernova',
@@ -93,22 +92,32 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  /* 手机浏览器地址栏的底色 —— 从色板取, 免得主题一改这里就变成另一个色 */
   themeColor: PALETTE.bgVoid,
   width: 'device-width',
   initialScale: 1,
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+/**
+ * 全站外壳。
+ *
+ * 布局来自新纲要: 一整块**固定**的全屏 3D 画布铺在最底层 (z-index: -1),
+ * 文字层在它上面正常滚动。所以这里不包任何容器 —— 每一页自己决定
+ * 内容怎么浮在星空上。
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Nav />
-        {children}
+        {/*
+          进度 provider 必须包住 Stage 和内容 —— 画布挂在 layout 上, 而滚动进度
+          由首页驱动。包错位置的话, 3D 场景读到的进度永远是 0 (这个坑踩过一次)。
+        */}
+        <FilmProgress>
+          <Stage />
+          <Nav />
+          {children}
+          <Footer />
+        </FilmProgress>
       </body>
     </html>
   )
