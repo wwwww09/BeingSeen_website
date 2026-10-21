@@ -194,7 +194,7 @@ check('H6', '星场同时表现 FRB 与透镜系统两类天体',
   // 3D 里的点无法从 DOM 断言, 这里查的是"两类数据都真的在首页上":
   // ParticleField 的蓝色点来自 lenses.json, 金色点代表未探测源, 两者都由首页传入。
   (await evaluate(HAS('Known gravitational lenses'))) &&
-    (await evaluate(HAS('Fast radio bursts searched'))),
+    (await evaluate(HAS('Fast radio bursts catalogued'))),
   'ParticleField: 蓝=已知透镜, 金=未探测源, 另有背景尘埃')
 
 // ---------------------------------------------------------------- 页面二
@@ -231,12 +231,17 @@ check(
   'S5b',
   '真实样本标注了文献出处 (手工整理, 非星表查询)',
   await evaluate(`(() => {
-    const p = [...document.querySelectorAll('p')].find((x) =>
+    // 正文: 必须有"手工整理、不是星表查询"这句话
+    const note = [...document.querySelectorAll('p')].find((x) =>
       /compiled by hand/i.test(x.textContent || ''),
     );
-    return Boolean(p) && p.querySelectorAll('a[href*="arxiv.org/abs/"]').length >= 5;
+    if (!note) return false;
+    // 出处: 页末的 References 里必须有 5 条 arXiv 编号
+    // (改成论文式上标编号之后, 编号在这里, 正文里只剩 [4]-[8])
+    const refs = [...document.querySelectorAll('.refs__item')].map((n) => n.textContent || '');
+    return refs.filter((t) => /arxiv:\\s*\\d{4}\\.\\d{4,5}/i.test(t)).length >= 5;
   })()`),
-  '五条 arXiv 链接 + 一句"手工整理、不是完整星表"的说明',
+  '正文一句"手工整理、不是完整星表" + 页末 5 条 arXiv 编号',
 )
 
 check('S6', '模拟星表规模约 64,000 个事件', await evaluate(HAS('64,309')))
@@ -349,13 +354,14 @@ check(
   'GW 分母只说有公布质量的事件, 并交代缺失的那些',
   await evaluate(`(() => {
     const p = [...document.querySelectorAll('p')].find((x) =>
-      /GWTC-5\.0 lists/i.test(x.textContent || ''),
+      /GWTC-5\\.0\\s*(\\[\\d+\\]\\s*)?lists/i.test(x.textContent || ''),
     );
     if (!p) return false;
     const t = p.textContent || '';
-    return /57 of them have no published component masses/i.test(t) &&
-      /104 that do/i.test(t) &&
-      !/Out of 161/i.test(t);
+    const flat = t.replace(/\\s+/g, ' ').replace(/\\[\\d+\\]/g, '');
+    return /57 of them have no published component masses/i.test(flat) &&
+      /104 that do/i.test(flat) &&
+      !/Out of 161/i.test(flat);
   })()`),
   '161 个事件里 57 个没有公布分量质量, 能与判据比较的是 104 个',
 )
