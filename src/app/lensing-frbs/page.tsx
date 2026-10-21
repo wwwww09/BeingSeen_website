@@ -186,9 +186,21 @@ export default function LensingFrbsPage() {
             ]}
           />
         </div>
+        {/*
+          这里原来写的是 "That corner of the plot is empty." —— 那是假的:
+          漏斗自己的下一步就是 "+ DM agrees (< 30) → 3", 而这三个候选的角距
+          (0.62° / 0.32° / 0.76°) 和 |ΔDM| (14.1 / 22.2 / 26.6) 全部落在角落里,
+          图表也把它们画成了绿点。图和句子互相打脸, 而且下一节标题紧接着就说
+          "3 pairs survive a lenient DM cut"。
+        */}
         <p className="small muted" style={{ marginTop: 10 }}>
           A genuine lensed pair must satisfy <em>both</em> conditions at once: small
-          separation <em>and</em> matching DM. That corner of the plot is empty.
+          separation <em>and</em> matching DM. {s.survivorCount} pair
+          {s.survivorCount === 1 ? '' : 's'} do reach that corner under the lenient{' '}
+          |&Delta;DM| &lt; 30 cut drawn here — but lensing barely touches dispersion
+          measure, because both images cross the same ionised medium. A real pair should
+          differ by a few pc cm<sup>-3</sup>, not tens. None of them survives the tighter
+          test.
         </p>
       </section>
 

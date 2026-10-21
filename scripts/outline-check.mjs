@@ -261,6 +261,25 @@ check('F5', '副图: 全样本 3D 分布 (颜色=DM, 大小=SNR)',
   await evaluate(`document.querySelectorAll('canvas').length >= 2`))
 check('F6', '高亮候选体',
   await evaluate(`document.querySelectorAll('.skymap__legend-row').length > 0`))
+
+/*
+ * 防回归 (F8): 图上那句话曾经是 "That corner of the plot is empty" —— 而数据里
+ * 有 3 对候选正落在那个角落, 图表本身也把它们画成了绿点。图和文案互相矛盾。
+ * 这里做一次语义交叉检查: 既然有存活候选, 文案就不能说"空"。
+ */
+check(
+  'F8',
+  '筛选用图的文案不与"有存活候选"矛盾',
+  await evaluate(`(() => {
+    const cap = [...document.querySelectorAll('p')].find((p) =>
+      /genuine lensed pair must satisfy/i.test(p.textContent || ''),
+    );
+    if (!cap) return false;
+    const text = cap.textContent || '';
+    return !/corner of the plot is empty/i.test(text) && /reach that corner/i.test(text);
+  })()`),
+  '3 对候选就在角落里 —— 不能再说"那个角落是空的"',
+)
 check('F7', '结论按复核后的结果呈现 (null result)',
   await evaluate(HAS('no reliable lensed candidate')),
   '纲要的 "546 events, 2 clean candidates" 经复核不成立')
