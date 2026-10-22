@@ -3,44 +3,41 @@ import { Link } from 'react-router-dom'
 import {
   motion,
   useScroll,
+  useSpring,
   useTransform,
   type MotionValue,
 } from 'framer-motion'
 import { Nav } from '../components/Nav'
 import { useWebGL } from '../lib/useWebGL'
 
-const FilmScene = lazy(() =>
-  import('../film/FilmScene').then((module) => ({ default: module.FilmScene })),
+const ParticleScene = lazy(() =>
+  import('../particle/ParticleScene').then((module) => ({ default: module.ParticleScene })),
 )
 
 function FilmText({
   progress,
   range,
   children,
-  hero = false,
   cta = false,
   hold = false,
 }: {
   progress: MotionValue<number>
   range: [number, number]
   children: ReactNode
-  hero?: boolean
   cta?: boolean
   hold?: boolean
 }) {
   const [start, end] = range
   const opacity = useTransform(
     progress,
-    [start, start + 0.015, end - 0.02, end],
-    [hero ? 1 : 0, 1, 1, hold ? 1 : 0],
+    [start, start + 0.014, end - 0.02, end],
+    [start === 0 ? 1 : 0, 1, 1, hold ? 1 : 0],
   )
-  const y = useTransform(progress, [start, end], [16, -16])
+  const y = useTransform(progress, [start, end], [18, -18])
 
   return (
     <motion.div
-      className={`film__text${hero ? ' film__text--hero' : ''}${
-        cta ? ' film__text--cta' : ''
-      }`}
+      className={`film__text${cta ? ' film__text--cta' : ''}`}
       style={{ opacity, y }}
     >
       {children}
@@ -52,7 +49,7 @@ function FilmRail({ progress }: { progress: MotionValue<number> }) {
   const scaleY = useTransform(progress, [0, 1], [0, 1])
   return (
     <div className="film__rail" aria-hidden="true">
-      <span className="film__rail-title">A film in four parts</span>
+      <span className="film__rail-title">A film in five parts</span>
       <div className="film__rail-track">
         <motion.div className="film__rail-fill" style={{ scaleY }} />
       </div>
@@ -61,15 +58,16 @@ function FilmRail({ progress }: { progress: MotionValue<number> }) {
         <span>II</span>
         <span>III</span>
         <span>IV</span>
+        <span>V</span>
       </div>
     </div>
   )
 }
 
 /**
- * The complete five-stage film. The Canvas and the text are fixed; a tall
- * invisible track supplies the scroll. Moving the scrollbar runs the camera,
- * the figure, the magnetar flash, the crowd and the final starfield.
+ * One continuous, single-points film. The Canvas holds exactly one
+ * THREE.Points cloud; every stage is a position target array interpolated by
+ * scroll. The film is read as five acts, not as five separate scenes.
  */
 export function HomePage() {
   const trackRef = useRef<HTMLDivElement>(null)
@@ -78,10 +76,16 @@ export function HomePage() {
     target: trackRef,
     offset: ['start start', 'end end'],
   })
+  const smooth = useSpring(scrollYProgress, {
+    stiffness: 70,
+    damping: 22,
+    mass: 0.45,
+    restDelta: 0.0005,
+  })
   const flash = useTransform(
     scrollYProgress,
-    [0.435, 0.452, 0.468, 0.49],
-    [0, 0.62, 0.38, 0],
+    [0.488, 0.496, 0.504, 0.514],
+    [0, 0.58, 0.32, 0],
   )
 
   useEffect(() => {
@@ -90,10 +94,12 @@ export function HomePage() {
 
   return (
     <div className="film">
+      <h1 className="film__sr-title">Being unseen — a film in five parts</h1>
+
       <div className={`film__canvas${webgl !== true ? ' film__canvas--fallback' : ''}`}>
         {webgl === true ? (
           <Suspense fallback={null}>
-            <FilmScene progress={scrollYProgress} />
+            <ParticleScene progress={smooth} />
           </Suspense>
         ) : null}
       </div>
@@ -104,34 +110,7 @@ export function HomePage() {
       <Nav progress={scrollYProgress} />
 
       <main id="main" className="film__overlay">
-        <FilmText progress={scrollYProgress} range={[0, 0.13]} hero>
-          <p className="eyebrow">A journey through the unseen</p>
-          <h1 className="film__title">Being unseen</h1>
-          <div className="film__hook">
-            <p>
-              Some stars are invisible. Not because they don't exist, but because
-              they are in the wrong place, at the wrong time, or emit the wrong
-              kind of light.
-            </p>
-            <p>
-              We spend our lives looking up, trying to understand the universe.
-              But what if the universe is also trying to be seen? What does it
-              mean for a cosmic event — or a person — to be truly{' '}
-              <em>witnessed</em>?
-            </p>
-            <p>
-              To answer this, we must look at how the universe hides its own
-              light. It turns out, the reasons a cosmic event goes unseen are the
-              exact same reasons we, as humans, sometimes feel invisible.
-            </p>
-          </div>
-          <p className="film__lead">Invisibility takes three forms:</p>
-          <p className="film__scroll">
-            Scroll <span aria-hidden="true" />
-          </p>
-        </FilmText>
-
-        <FilmText progress={scrollYProgress} range={[0.13, 0.245]}>
+        <FilmText progress={scrollYProgress} range={[0, 0.2]}>
           <p className="film__chapter">
             01 <span>The Intrinsic</span>
           </p>
@@ -139,21 +118,24 @@ export function HomePage() {
             “Sometimes, the deepest parts of us remain unseen, no matter how hard
             we try to show them.”
           </p>
+          <p className="film__scroll">
+            Scroll <span aria-hidden="true" />
+          </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.245, 0.345]}>
+        <FilmText progress={scrollYProgress} range={[0.2, 0.4]}>
           <p className="film__chapter">
-            01 <span>The Intrinsic</span>
+            02 <span>The Collapse</span>
           </p>
           <p className="film__body">
-            Here, in the cosmos, stellar black holes emit no light either. They
-            exist and they are completely dark.
+            Here, stellar black holes emit no light either. They exist, but they
+            are completely dark.
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.35, 0.455]}>
+        <FilmText progress={scrollYProgress} range={[0.4, 0.6]}>
           <p className="film__chapter">
-            02 <span>The Temporal</span>
+            03 <span>The Flash</span>
           </p>
           <p className="film__quote">
             “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes
@@ -161,20 +143,9 @@ export function HomePage() {
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.455, 0.56]}>
+        <FilmText progress={scrollYProgress} range={[0.6, 0.8]}>
           <p className="film__chapter">
-            02 <span>The Temporal</span>
-          </p>
-          <p className="film__body">
-            Sometimes, we are only visible for a brief moment. He looks around,
-            hoping someone saw. But the world wasn't looking at exactly the right
-            time. His signal is lost.
-          </p>
-        </FilmText>
-
-        <FilmText progress={scrollYProgress} range={[0.57, 0.685]}>
-          <p className="film__chapter">
-            03 <span>The Extrinsic</span>
+            04 <span>The Extrinsic</span>
           </p>
           <p className="film__quote">
             “Sometimes, we are shining, but the distance or the noise of the
@@ -182,30 +153,15 @@ export function HomePage() {
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.685, 0.78]}>
+        <FilmText progress={scrollYProgress} range={[0.8, 1]} hold>
           <p className="film__chapter">
-            03 <span>The Extrinsic</span>
-          </p>
-          <p className="film__body">
-            Out in the universe, light gets absorbed, diluted, or too faint to
-            reach us across billions of light-years.
-          </p>
-        </FilmText>
-
-        <FilmText progress={scrollYProgress} range={[0.78, 0.9]}>
-          <p className="film__chapter">
-            04 <span>The Unseen</span>
+            05 <span>The Universe</span>
           </p>
           <p className="film__quote">
             “We are made of stardust, yet we share the same blindness as the
             cosmos.”
           </p>
-        </FilmText>
-
-        <FilmText progress={scrollYProgress} range={[0.91, 1]} cta hold>
-          <p className="film__chapter">the science</p>
-          <p className="film__cta-line">Interested in the theory behind? click</p>
-          <Link className="film__cta" to="/science">
+          <Link className="film__science-link" to="/science">
             Explore the Science <span aria-hidden="true">↗</span>
           </Link>
         </FilmText>

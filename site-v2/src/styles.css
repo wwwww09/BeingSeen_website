@@ -1381,6 +1381,20 @@ a {
     #04060b;
 }
 
+
+.film__sr-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .film__scrim {
   position: fixed;
   inset: 0;
@@ -1551,6 +1565,29 @@ a {
   color: var(--dim);
 }
 
+
+.film__science-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin-top: 26px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.film__science-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .film__cta-line {
   margin: 0 0 18px;
   font-family: var(--mono);
@@ -1689,7 +1726,21 @@ a {
     display: none;
   }
 
-  .film__scrim {
+  
+.film__sr-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.film__scrim {
     background: linear-gradient(
       180deg,
       rgba(4, 6, 11, 0.92) 0%,
