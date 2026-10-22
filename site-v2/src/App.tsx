@@ -26,17 +26,18 @@ export default function App() {
           }
         />
 
-        <Route element={<SiteShell />}>
-          <Route index element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
 
+        <Route element={<SiteShell />}>
           <Route path="science" element={<ScienceLayout />}>
             <Route index element={<ScienceOverview />} />
             <Route path=":slug" element={<ScienceChapterPage />} />
           </Route>
 
           <Route path="message-board" element={<MessageBoardPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

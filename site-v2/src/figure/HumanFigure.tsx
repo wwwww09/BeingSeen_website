@@ -6,8 +6,10 @@ import * as THREE from 'three'
 import {
   lerp,
   lerpJoints,
+  reachPose,
   runPose,
   sitPose,
+  standPose,
   smoothstep,
   type Joints,
   type Vec3,
@@ -337,6 +339,7 @@ function buildPointGeometry(scene: THREE.Object3D): THREE.BufferGeometry {
 }
 
 const starFragment = /* glsl */ `
+  uniform float uOpacity;
   varying vec3 vColor;
   varying float vAlpha;
 
@@ -351,7 +354,7 @@ const starFragment = /* glsl */ `
     float spikeY = exp(-abs(p.y) * 42.0) * exp(-abs(p.x) * 7.0);
     float alpha = core + (spikeX + spikeY) * 0.42 + halo;
 
-    gl_FragColor = vec4(vColor, alpha * vAlpha);
+    gl_FragColor = vec4(vColor, alpha * vAlpha * uOpacity);
   }
 `
 
@@ -360,6 +363,7 @@ const vertexShader = /* glsl */ `
   uniform vec2 boneTextureSize;
   uniform float uTime;
   uniform float uPixelRatio;
+  uniform float uFlash;
 
   attribute vec4 skinIndex;
   attribute vec4 skinWeight;
@@ -404,7 +408,7 @@ const vertexShader = /* glsl */ `
     gl_PointSize = aSize * (760.0 / max(1.0, -mvPosition.z)) * uPixelRatio;
 
     float twinkle = 0.5 + 0.5 * sin(uTime * 2.0 + aPhase * 3.0);
-    vColor = aColor;
+    vColor = mix(aColor, vec3(0.55, 0.72, 1.0), uFlash);
     vAlpha = 0.3 + 0.56 * twinkle;
   }
 `
@@ -412,6 +416,7 @@ const vertexShader = /* glsl */ `
 const heartVertexShader = /* glsl */ `
   uniform float uTime;
   uniform float uPixelRatio;
+  uniform float uMix;
 
   attribute vec3 aColor;
   attribute float aSize;
@@ -431,7 +436,7 @@ const heartVertexShader = /* glsl */ `
     gl_PointSize = aSize * (760.0 / max(1.0, -mvPosition.z)) * uPixelRatio;
 
     float twinkle = 0.5 + 0.5 * sin(uTime * 2.4 + aPhase * 4.0);
-    vColor = aColor;
+    vColor = mix(aColor, vec3(0.5, 0.72, 1.0), uMix);
     vAlpha = 0.35 + 0.6 * twinkle;
   }
 `
@@ -471,6 +476,8 @@ function buildHeart() {
     uniforms: {
       uTime: { value: 0 },
       uPixelRatio: { value: 1 },
+      uOpacity: { value: 1 },
+      uMix: { value: 0 },
     },
     vertexShader: heartVertexShader,
     fragmentShader: starFragment,
@@ -503,8 +510,16 @@ function between(a: Vec3, b: Vec3, t: number): THREE.Vector3 {
  * and a drifting halo keep it from reading as a thin shell, and a small warm
  * star cluster replaces the old hollow black-hole placeholder at the chest.
  */
-export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
+export function HumanFigure({
+  progress,
+  mode = 'preview',
+}: {
+  progress: MotionValue<number>
+  mode?: 'preview' | 'film'
+}) {
   const group = useRef<THREE.Group>(null)
+  const core = useRef<THREE.Group>(null)
+  const coreMaterial = useRef<THREE.MeshBasicMaterial>(null)
   const bones = useRef<Partial<Record<BoneName, THREE.Object3D>>>({})
   const restQuaternions = useRef(new Map<THREE.Object3D, THREE.Quaternion>())
   const skeleton = useRef<THREE.Skeleton | null>(null)
@@ -523,6 +538,8 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
           boneTextureSize: { value: new THREE.Vector2(1, 1) },
           uTime: { value: 0 },
           uPixelRatio: { value: 1 },
+          uOpacity: { value: 1 },
+          uFlash: { value: 0 },
         },
         vertexShader,
         fragmentShader: starFragment,
@@ -586,14 +603,41 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
     const figure = group.current
     if (!figure) return
 
-    const runIn = smoothstep(Math.min(1, p / 0.45))
-    figure.position.z = lerp(-1.8, 0.2, runIn)
-    figure.rotation.y = -0.08
-    figure.updateMatrixWorld(true)
+    let sit: number
+    let stand: number
+    let fade = 1
+    let flash = 0
+    let magnetar = 0
+    let heartScale = 1
+    let heartMix = 0
+    let pose: Joints
 
-    const sit = smoothstep((p - 0.55) / 0.35)
-    const runPhase = 0.9 + Math.min(p, 0.5) * 30
-    const pose: Joints = lerpJoints(runPose(runPhase), sitPose, sit)
+    if (mode === 'film') {
+      const hero = smoothstep(Math.min(1, p / 0.15))
+      figure.position.z = lerp(-2.2, 0, hero)
+      figure.rotation.y = -0.06
+      const runPhase = state.clock.elapsedTime * 5.2
+      sit = smoothstep((p - 0.15) / 0.12)
+      stand = smoothstep((p - 0.5) / 0.08)
+      fade = 1 - smoothstep((p - 0.7) / 0.14)
+      flash = Math.exp(-Math.pow((p - 0.455) / 0.016, 2))
+      magnetar = smoothstep((p - 0.34) / 0.08) * (1 - smoothstep((p - 0.56) / 0.08))
+      heartScale = (1 - 0.55 * smoothstep((p - 0.16) / 0.12)) * (1 + 0.3 * magnetar)
+      heartMix = magnetar
+      const reach = smoothstep((p - 0.09) / 0.04) * (1 - smoothstep((p - 0.16) / 0.05))
+      const reaching = lerpJoints(runPose(runPhase), reachPose, reach)
+      pose = lerpJoints(lerpJoints(reaching, sitPose, sit), standPose, stand)
+    } else {
+      const runIn = smoothstep(Math.min(1, p / 0.45))
+      figure.position.z = lerp(-1.8, 0.2, runIn)
+      figure.rotation.y = -0.08
+      sit = smoothstep((p - 0.55) / 0.35)
+      stand = 0
+      const runPhase = 0.9 + Math.min(p, 0.5) * 30
+      pose = lerpJoints(runPose(runPhase), sitPose, sit)
+    }
+
+    figure.updateMatrixWorld(true)
 
     const b = bones.current
     const rest = restQuaternions.current
@@ -638,7 +682,7 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
 
     if (b.Head && headRestInGroup.current) {
       const groupWorld = figure.getWorldQuaternion(new THREE.Quaternion())
-      const tilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -sit * 0.22)
+      const tilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -sit * (1 - stand) * 0.22)
       const desiredHead = groupWorld.multiply(headRestInGroup.current.clone()).multiply(tilt)
       const neckWorld = b.Head.parent?.getWorldQuaternion(new THREE.Quaternion())
       if (neckWorld) {
@@ -667,20 +711,60 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
 
     material.uniforms.uTime.value = state.clock.elapsedTime
     material.uniforms.uPixelRatio.value = gl.getPixelRatio()
+    material.uniforms.uOpacity.value = fade
+    material.uniforms.uFlash.value = flash
 
-    // Warm star cluster at the chest, instead of a hollow sphere.
+    // Warm star cluster at the chest; it contracts, then turns blue for the
+    // magnetar and finally fades into the crowd.
     heart.position.set(pose.chest[0], pose.chest[1] - 0.01, pose.chest[2] + 0.07)
     heart.rotation.y = state.clock.elapsedTime * 0.25
     heart.rotation.z = Math.sin(state.clock.elapsedTime * 0.4) * 0.15
+    heart.scale.setScalar(heartScale)
     const heartMaterial = heart.material as THREE.ShaderMaterial
     heartMaterial.uniforms.uTime.value = state.clock.elapsedTime
     heartMaterial.uniforms.uPixelRatio.value = gl.getPixelRatio()
+    heartMaterial.uniforms.uOpacity.value = fade
+    heartMaterial.uniforms.uMix.value = heartMix
+
+    if (core.current) {
+      const coreScale = magnetar * 0.06 + flash * 0.16
+      core.current.position.set(pose.chest[0], pose.chest[1] - 0.01, pose.chest[2] + 0.08)
+      core.current.scale.setScalar(Math.max(0.0001, coreScale))
+      core.current.rotation.y = state.clock.elapsedTime * 1.2
+      core.current.visible = mode === 'film' && (magnetar > 0.01 || flash > 0.01)
+      if (coreMaterial.current) coreMaterial.current.opacity = 0.6 * magnetar * fade
+    }
   })
 
   return (
     <group ref={group}>
       <primitive object={scene} />
       <primitive object={heart} />
+      <group ref={core} visible={false}>
+        <mesh>
+          <sphereGeometry args={[1, 24, 24]} />
+          <meshBasicMaterial
+            ref={coreMaterial}
+            color="#5f8dff"
+            transparent
+            opacity={0}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </mesh>
+        <mesh>
+          <torusGeometry args={[1.55, 0.03, 8, 96]} />
+          <meshBasicMaterial
+            color="#a9c8ff"
+            transparent
+            opacity={0.55}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </mesh>
+      </group>
     </group>
   )
 }

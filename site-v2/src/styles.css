@@ -1345,3 +1345,355 @@ a {
     bottom: 120px;
   }
 }
+
+/* ==========================================================================
+   Home film — five stages, fixed canvas, fixed text
+   ========================================================================== */
+
+.film {
+  position: relative;
+  min-height: 100vh;
+  background: #04060b;
+}
+
+.film__canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 55% at 66% 45%, rgba(18, 30, 52, 0.7) 0%, transparent 66%),
+    #04060b;
+}
+
+.film__canvas canvas {
+  display: block;
+}
+
+.film__canvas--fallback {
+  background:
+    radial-gradient(1px 1px at 18% 24%, rgba(239, 233, 221, 0.55), transparent),
+    radial-gradient(1px 1px at 72% 18%, rgba(201, 214, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 42% 62%, rgba(239, 233, 221, 0.45), transparent),
+    radial-gradient(1px 1px at 84% 72%, rgba(201, 214, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 28% 82%, rgba(255, 215, 163, 0.4), transparent),
+    radial-gradient(ellipse 60% 55% at 66% 45%, rgba(22, 35, 58, 0.8) 0%, transparent 66%),
+    radial-gradient(ellipse 40% 45% at 30% 30%, rgba(10, 18, 32, 0.9) 0%, transparent 70%),
+    #04060b;
+}
+
+.film__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(4, 6, 11, 0.9) 0%,
+    rgba(4, 6, 11, 0.62) 34%,
+    rgba(4, 6, 11, 0.08) 66%,
+    transparent 100%
+  );
+}
+
+.film__flash {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 52% 44%,
+    rgba(220, 238, 255, 0.95) 0%,
+    rgba(120, 170, 255, 0.55) 22%,
+    rgba(60, 100, 220, 0.16) 44%,
+    transparent 66%
+  );
+  mix-blend-mode: screen;
+}
+
+.film__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.film__text {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: min(36rem, 44vw);
+}
+
+.film__text--hero {
+  justify-content: flex-start;
+  width: min(44rem, 50vw);
+  padding-top: 14vh;
+}
+
+.film__text--cta {
+  right: 0;
+  left: 0;
+  align-items: center;
+  width: auto;
+  padding: 0 22px;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.film__title {
+  margin: 8px 0 22px;
+  font-family: var(--display);
+  font-size: clamp(3.6rem, 7.5vw, 7.5rem);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  color: var(--text);
+}
+
+.film__hook p {
+  max-width: 35rem;
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--dim);
+}
+
+.film__hook em {
+  color: var(--text);
+  font-style: italic;
+}
+
+.film__lead {
+  margin-top: 22px;
+  font-family: var(--display);
+  font-size: clamp(1.2rem, 1.8vw, 1.55rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
+.film__scroll {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.film__scroll span {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 1px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.film__scroll span::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: var(--accent);
+  transform: translateX(-100%);
+  animation: film-scroll 2.2s ease-in-out infinite;
+}
+
+@keyframes film-scroll {
+  0% {
+    transform: translateX(-100%);
+  }
+  55%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.film__chapter {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.film__chapter span {
+  color: var(--faint);
+}
+
+.film__quote {
+  max-width: 32rem;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.55rem, 2.5vw, 2.45rem);
+  font-weight: 400;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.film__body {
+  max-width: 29rem;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.film__cta-line {
+  margin: 0 0 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.film__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--text);
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1;
+  color: var(--text);
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.film__cta:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.film__rail {
+  position: fixed;
+  top: 50%;
+  right: 2.6vw;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.film__rail-title,
+.film__rail-acts {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.film__rail-acts {
+  display: flex;
+  gap: 14px;
+}
+
+.film__rail-track {
+  position: relative;
+  width: 1px;
+  height: 118px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.film__rail-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: top;
+}
+
+.film__track {
+  height: 720vh;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .film__text {
+    right: 22px;
+    left: 22px;
+    justify-content: center;
+    width: auto;
+  }
+
+  .film__text--hero {
+    justify-content: flex-start;
+    padding-top: 12vh;
+  }
+
+  .film__text--cta {
+    right: 0;
+    left: 0;
+    padding: 0 22px;
+  }
+
+  .film__title {
+    font-size: clamp(2.9rem, 11vw, 4.2rem);
+    margin-bottom: 16px;
+  }
+
+  .film__hook p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .film__lead {
+    margin-top: 16px;
+    font-size: 1.2rem;
+  }
+
+  .film__scroll {
+    margin-top: 18px;
+  }
+
+  .film__chapter {
+    margin-bottom: 14px;
+  }
+
+  .film__quote {
+    max-width: none;
+    font-size: clamp(1.35rem, 6vw, 1.9rem);
+    line-height: 1.2;
+  }
+
+  .film__body {
+    max-width: none;
+    font-size: 14px;
+  }
+
+  .film__cta {
+    font-size: clamp(1.4rem, 7vw, 2rem);
+  }
+
+  .film__rail {
+    display: none;
+  }
+
+  .film__scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(4, 6, 11, 0.92) 0%,
+      rgba(4, 6, 11, 0.66) 45%,
+      rgba(4, 6, 11, 0.2) 72%,
+      rgba(4, 6, 11, 0.72) 100%
+    );
+  }
+}

@@ -2,13 +2,9 @@ import { motion, type MotionValue } from 'framer-motion'
 import { Link, NavLink } from 'react-router-dom'
 
 /**
- * Top-level hierarchy only:
+ * The three top-level states of the project:
  *
- *   Home · The Science · Message Board
- *
- * "The Science" stays active on all three sub-pages. The sub-navigation for
- * Supernovae / Fast radio bursts / Gravitational waves lives inside the
- * science layout, not here.
+ *   Being unseen · the science · Being seen
  */
 export function Nav({ progress }: { progress: MotionValue<number> }) {
   return (
@@ -19,19 +15,20 @@ export function Nav({ progress }: { progress: MotionValue<number> }) {
 
       <nav className="nav__links" aria-label="Main">
         <NavLink to="/" end className="nav__link">
-          Home
+          <span className="nav__full">Being unseen</span>
+          <span className="nav__short">Unseen</span>
         </NavLink>
-        <NavLink to="/science" className="nav__link" aria-label="The Science">
-          <span className="nav__full">The Science</span>
-          <span className="nav__short">Science</span>
+        <NavLink to="/science" className="nav__link" aria-label="the science">
+          <span className="nav__full">the science</span>
+          <span className="nav__short">science</span>
         </NavLink>
         <NavLink
           to="/message-board"
           className="nav__link"
-          aria-label="Message Board"
+          aria-label="Being seen"
         >
-          <span className="nav__full">Message Board</span>
-          <span className="nav__short">Board</span>
+          <span className="nav__full">Being seen</span>
+          <span className="nav__short">Seen</span>
         </NavLink>
       </nav>
 

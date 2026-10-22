@@ -149,6 +149,46 @@ export const sitPose: Joints = {
   footR: [0.3, 0.1, 0.46],
 }
 
+/** Standing, arms at the sides: the pose he rises into for act three. */
+export const standPose: Joints = {
+  head: [0, 1.62, 0.045],
+  neck: [0, 1.51, 0.04],
+  chest: [0, 1.31, 0.03],
+  hips: [0, 0.965, 0],
+  shoulderL: [-0.21, 1.44, 0.02],
+  shoulderR: [0.21, 1.44, 0.02],
+  elbowL: [-0.24, 1.18, 0.02],
+  elbowR: [0.24, 1.18, 0.02],
+  handL: [-0.235, 0.95, 0.03],
+  handR: [0.235, 0.95, 0.03],
+  hipL: [-0.114, 0.97, 0.005],
+  hipR: [0.114, 0.97, 0.005],
+  kneeL: [-0.114, 0.54, 0.005],
+  kneeR: [0.114, 0.54, 0.005],
+  footL: [-0.114, 0.1, 0.02],
+  footR: [0.114, 0.1, 0.02],
+}
+
+/** Reaching toward the camera before the collapse. */
+export const reachPose: Joints = {
+  head: [0, 1.62, 0.06],
+  neck: [0, 1.51, 0.05],
+  chest: [0, 1.31, 0.05],
+  hips: [0, 0.965, 0],
+  shoulderL: [-0.21, 1.44, 0.03],
+  shoulderR: [0.21, 1.44, 0.03],
+  elbowL: [-0.16, 1.38, 0.5],
+  elbowR: [0.23, 1.22, 0.08],
+  handL: [-0.08, 1.45, 0.85],
+  handR: [0.24, 1.0, 0.1],
+  hipL: [-0.114, 0.97, 0.005],
+  hipR: [0.114, 0.97, 0.005],
+  kneeL: [-0.114, 0.54, 0.005],
+  kneeR: [0.114, 0.54, 0.005],
+  footL: [-0.114, 0.1, 0.02],
+  footR: [0.114, 0.1, 0.02],
+}
+
 export function lerpJoints(a: Joints, b: Joints, t: number): Joints {
   const out = {} as Joints
   for (const key of Object.keys(a) as JointKey[]) {
