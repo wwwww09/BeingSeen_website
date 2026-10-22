@@ -40,7 +40,7 @@ use the previous shell until their rebuild.
 
 | Scroll | Stage | Particle action | Copy |
 |---|---|---|---|
-| 0.00–0.20 | 01 / The Intrinsic | side-profile run with a reaching hand and a trailing leg whose dust tears away; gravity fall/impact bounce; seated tremble; chest core collapse | “Sometimes, the deepest parts of us remain unseen, no matter how hard we try to show them.” |
+| 0.00–0.20 | 01 / The Intrinsic | 3D stardust runner with floating simplex shimmer, softly faded trailing hand/leg dust and a dissolving arm; early spiral → dense implosion; camera eases out | “Sometimes, the deepest parts of us remain unseen, no matter how hard we try to show them.” |
 | 0.20–0.40 | 02 / The Collapse | implosion → absolute black core + extremely flat rotating accretion/photon disk; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
 | 0.40–0.60 | 03 / The Flash | ring → blue magnetar + two polar beams; flash; camera shake, pull back | “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes blink, we miss them forever.” |
 | 0.60–0.80 | 04 / The Extrinsic | magnetar → standing human; crowd rushes in at 0.70 with GW ripples; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
@@ -73,12 +73,14 @@ scroll-driven, never autoplaying.
   so the human can genuinely be drowned.
 - The shader computes colour/opacity/size from five stage weights plus
   `uFlash`, `uWarm`, `uTime` and `uPixelRatio`; the photon ring is a local
-  shader boost near radius 0.99. `AdditiveBlending`, `depthWrite:false`,
+  shader boost near radius 0.99. Stage 1 adds a small time-varying
+  simplex float, a shimmering point size/alpha, a spiral that starts at 0.10
+  and a smoothstep alpha fade on the trailing edge so it dissolves into the
+  background instead of cutting out. `AdditiveBlending`, `depthWrite:false`,
   `depthTest:false` on the single object; the text sits above it at z-index 2
   with `pointer-events:none`.
-- `src/particle/ParticleCamera.tsx` owns the five moves: a Stage-1 profile
-  angle that resolves into the front, orbit, shake + pull-back, rapid dolly
-  out, stop. Stage 5 is unchanged.
+- `src/particle/ParticleCamera.tsx` owns the five moves: zoom out, orbit,
+  shake + pull-back, rapid dolly out, stop. Stage 5 is unchanged.
 
 ### Text and accessibility
 

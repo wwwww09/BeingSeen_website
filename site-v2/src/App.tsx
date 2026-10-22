@@ -13,12 +13,6 @@ const FigurePreviewPage = lazy(() =>
   })),
 )
 
-const HumanTestPage = lazy(() =>
-  import('./pages/HumanTestPage').then((module) => ({
-    default: module.HumanTestPage,
-  })),
-)
-
 const ShotPreviewPage = lazy(() =>
   import('./pages/ShotPreviewPage').then((module) => ({
     default: module.ShotPreviewPage,
@@ -43,15 +37,6 @@ export default function App() {
           element={
             <Suspense fallback={<div className="figure-preview" />}>
               <ShotPreviewPage />
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/human-test"
-          element={
-            <Suspense fallback={<div className="human-test" />}>
-              <HumanTestPage />
             </Suspense>
           }
         />

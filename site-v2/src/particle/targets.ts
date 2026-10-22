@@ -6,7 +6,6 @@ export const TOTAL = HUMAN_COUNT + CROWD_COUNT
 
 export interface ParticleTargets {
   run: Float32Array
-  sit: Float32Array
   ball: Float32Array
   stand: Float32Array
   hole: Float32Array
@@ -83,7 +82,6 @@ function starPoint(): [number, number, number] {
 
 export function buildTargets(): ParticleTargets {
   const run = new Float32Array(TOTAL * 3)
-  const sit = new Float32Array(TOTAL * 3)
   const ball = new Float32Array(TOTAL * 3)
   const stand = new Float32Array(TOTAL * 3)
   const hole = new Float32Array(TOTAL * 3)
@@ -110,7 +108,6 @@ export function buildTargets(): ParticleTargets {
     trail[i] = Math.min(1, Math.max(0, (Math.abs(runX) - 0.13) / 0.4))
     arm[i] = runX > 0.24 && runY > 1.15 ? 1 : 0
     writePoint(run, i, clouds.run[o], clouds.run[o + 1], clouds.run[o + 2])
-    writePoint(sit, i, clouds.sit[o], clouds.sit[o + 1], clouds.sit[o + 2])
     writePoint(ball, i, clouds.ball[o], clouds.ball[o + 1], clouds.ball[o + 2])
     writePoint(stand, i, clouds.stand[o], clouds.stand[o + 1], clouds.stand[o + 2])
 
@@ -132,7 +129,7 @@ export function buildTargets(): ParticleTargets {
     arm[i] = 0
 
     const far = crowdFar()
-    for (const target of [run, sit, ball, stand, hole, magnetar]) {
+    for (const target of [run, ball, stand, hole, magnetar]) {
       writePoint(target, i, far[0], far[1], far[2])
     }
     const n = crowdNear()
@@ -141,5 +138,5 @@ export function buildTargets(): ParticleTargets {
     writePoint(star, i, s[0], s[1], s[2])
   }
 
-  return { run, sit, ball, stand, hole, magnetar, crowd, star, role, warm, seed, trail, arm }
+  return { run, ball, stand, hole, magnetar, crowd, star, role, warm, seed, trail, arm }
 }
