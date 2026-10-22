@@ -13,6 +13,12 @@ const FigurePreviewPage = lazy(() =>
   })),
 )
 
+const ShotPreviewPage = lazy(() =>
+  import('./pages/ShotPreviewPage').then((module) => ({
+    default: module.ShotPreviewPage,
+  })),
+)
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -22,6 +28,15 @@ export default function App() {
           element={
             <Suspense fallback={<div className="figure-preview" />}>
               <FigurePreviewPage />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/shot-preview"
+          element={
+            <Suspense fallback={<div className="figure-preview" />}>
+              <ShotPreviewPage />
             </Suspense>
           }
         />

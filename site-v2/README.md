@@ -81,6 +81,22 @@ to run all five stages.
 No audio yet. When the music arrives it will have a persistent mute toggle and
 will not autoplay before a user gesture.
 
+## Shot preview — side run to front (unlisted)
+
+`/shot-preview` is a single camera test, not the finished film:
+
+- `0.00`: camera at the figure's side (+x); the figure is running in profile.
+- `0.50`: 45-degree three-quarter view; the camera has dollied partway in.
+- `1.00`: camera in front (+z), radius reduced from 6.2 to 4.2; the figure is front-on.
+
+The figure keeps its run and a small +z travel; the camera tracks that travel
+while it orbits, so the change is only the viewpoint. The shot is 8.5 seconds
+and can be scrubbed, so a wrong frame can be named by its value.
+
+The Home film is deliberately **not** changed yet. Once this shot is approved,
+it replaces the Hero camera in `HomePage`/`HumanFigure`; the rest of the film
+stays as it is.
+
 ## Figure preview (unlisted)
 
 `/figure-preview` is kept as a test bench for the faceless star figure that
@@ -97,6 +113,7 @@ and Stop; query helpers are `?t=0.6` and `?demo=1`.
 | `/science/fast-radio-bursts` | child | 02 Lensing & Fast Radio Bursts (frame) |
 | `/science/gravitational-waves` | child | 03 Gravitational Wave Lensing (frame) |
 | `/message-board` | Being seen | previous frame: the star-map board (next pass) |
+| `/shot-preview` | unlisted | side run → camera in → front (camera test) |
 
 `vercel.json` contains an SPA rewrite so those URLs work on a direct visit,
 not only after client-side navigation.
@@ -196,6 +213,10 @@ site-v2/
       ScienceNav.tsx     secondary nav inside the science
       Stage.tsx          old black-hole stage for those frames
       ProgressRail.tsx   right-edge scroll indicator
+    shot/
+      shotMotion.ts       side→front camera + figure travel constants
+      ShotCamera.tsx      the orbit/dolly
+      ShotScene.tsx       figure + star field for the shot
     film/
       FilmScene.tsx      fixed Canvas, bloom, star sea, crowd, figure
       FilmCamera.tsx     one continuous five-act camera move

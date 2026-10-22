@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import type { MotionValue } from 'framer-motion'
 import * as THREE from 'three'
+import { shotFigureZ, SHOT_FIGURE_X } from '../shot/shotMotion'
 import {
   BONES,
   HEAD_RADIUS,
@@ -230,7 +231,7 @@ export function HumanFigure({
   mode = 'preview',
 }: {
   progress: MotionValue<number>
-  mode?: 'preview' | 'film'
+  mode?: 'preview' | 'film' | 'shot'
 }) {
   const group = useRef<THREE.Group>(null)
   const gl = useThree((state) => state.gl)
@@ -289,6 +290,14 @@ export function HumanFigure({
       const reach = smoothstep((p - 0.09) / 0.04) * (1 - smoothstep((p - 0.16) / 0.05))
       const reaching = lerpJoints(runPose(runPhase), reachPose, reach)
       pose = lerpJoints(lerpJoints(reaching, sitPose, sit), standPose, stand)
+    } else if (mode === 'shot') {
+      const t = THREE.MathUtils.clamp(p, 0, 1)
+      figure.position.x = compact ? 0 : SHOT_FIGURE_X
+      figure.position.z = shotFigureZ(t)
+      figure.rotation.y = 0
+      sit = 0
+      stand = 0
+      pose = runPose(0.9 + t * 36)
     } else {
       const runIn = smoothstep(Math.min(1, p / 0.45))
       figure.position.x = 0
