@@ -3,9 +3,11 @@ import { Canvas } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import type { MotionValue } from 'framer-motion'
 import { HumanFigure } from '../figure/HumanFigure'
+import { CosmicCore } from './CosmicCore'
 import { CrowdField } from './CrowdField'
 import { FilmCamera } from './FilmCamera'
 import { StarSea } from './StarSea'
+import { StarCluster } from './StarCluster'
 
 export function FilmScene({ progress }: { progress: MotionValue<number> }) {
   return (
@@ -17,10 +19,12 @@ export function FilmScene({ progress }: { progress: MotionValue<number> }) {
       <color attach="background" args={['#04060b']} />
       <FilmCamera progress={progress} />
       <StarSea progress={progress} />
+      <StarCluster progress={progress} />
       <CrowdField progress={progress} />
       <Suspense fallback={null}>
         <HumanFigure mode="film" progress={progress} />
       </Suspense>
+      <CosmicCore progress={progress} />
       <EffectComposer multisampling={0}>
         <Bloom
           intensity={0.9}

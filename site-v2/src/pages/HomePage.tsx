@@ -81,7 +81,7 @@ export function HomePage() {
   const flash = useTransform(
     scrollYProgress,
     [0.435, 0.452, 0.468, 0.49],
-    [0, 0.9, 0.55, 0],
+    [0, 0.62, 0.38, 0],
   )
 
   useEffect(() => {

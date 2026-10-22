@@ -66,12 +66,10 @@ export function FigurePreviewPage() {
         <p className="eyebrow">Figure prototype · unlisted</p>
         <h1 className="figure-preview__title">Does this read as a person?</h1>
         <p className="figure-preview__note">
-          A real 3D human surface — skinned, then sampled into about 160,000
-          star points. The mesh itself is hidden. He runs at the screen, the
-          camera pulls back, and he sits. The body is a CC0 Quaternius base;
-          only its geometry and skin are used. The chest is filled with a warm
-          star cluster rather than a hollow hole. This is the gate before the
-          five acts.
+          A small, faceless human made of about 70,000 star points. A 13-bone
+          skeleton with a particle shell; no eyes, no face. He runs at the
+          screen, reaches, the camera pulls back, and he sits. This is the
+          figure that carries the Home film.
         </p>
       </header>
 
