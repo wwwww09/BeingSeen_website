@@ -1,58 +1,83 @@
 /**
- * The scroll chapters, mapped one-to-one onto the five parts of the brief:
+ * The site hierarchy and the brief's copy.
  *
- *   hero        Home
- *   01          Lensing & Supernovae
- *   02          Lensing & Fast Radio Bursts
- *   03          Gravitational Wave Lensing
- *   04          Being Seen
+ *   Home
+ *   The Science
+ *     ├── 01 Supernovae
+ *     ├── 02 Fast radio bursts
+ *     └── 03 Gravitational waves
+ *   Message Board
  *
- * The four question titles and the key paragraphs below are the brief's copy.
- * The supporting prose around them is new, and the numbers and charts will be
- * generated from the raw catalogues in the next pass.
+ * The question titles and the key paragraphs are the brief's copy. The
+ * summaries, chart labels, and layout notes are new scaffolding for this pass.
  */
-export interface Chapter {
-  id: string
+export interface ScienceChapter {
+  slug: string
   index: string
   kicker: string
   title: string
+  summary: string
   body: string
-  /** Optional build-status note shown under the paragraph. */
-  note?: string
+  chartLabel: string
+  chartNote: string
 }
 
-export const chapters: Chapter[] = [
+export const home = {
+  eyebrow: 'A serious game',
+  title: 'Being Seen',
+  quote:
+    'The universe has its own telescope. We just need to learn how to look.',
+  lede: 'This project explores how gravitational lensing — the bending of light by massive objects — helps us detect astronomical phenomena that would otherwise remain invisible. From supernovae to fast radio bursts to gravitational waves, we quantify how much the universe reveals when we let it do the work.',
+}
+
+export const science = {
+  eyebrow: 'The Science',
+  title: 'Three messages, one bend.',
+  lede: 'A lens does not care what kind of light passes it. The same geometry acts on an exploding star, a radio burst, and a gravitational wave — but each messenger gives us a different measurement to repair. Three chapters, one question at a time.',
+}
+
+export const scienceChapters: ScienceChapter[] = [
   {
-    id: 'supernovae',
+    slug: 'supernovae',
     index: '01',
     kicker: 'Supernovae',
     title: 'Can Lensing Make Distant Supernovae Visible?',
-    body:
-      'Without gravitational lensing, none of the five known lensed supernovae in this sample could be detected by ZTF. With lensing, two became visible.',
+    summary:
+      'A lens can make a faint explosion visible. The question is how many, and at what cost to the count.',
+    body: 'Without gravitational lensing, none of the five known lensed supernovae in this sample could be detected by ZTF. With lensing, two became visible. This is the power of the universe’s natural telescope.',
+    chartLabel: 'Brightness with and without lensing',
+    chartNote:
+      'The five known lensed supernovae, each as a pair: its brightness without a lens and with one. The chapter’s core number is the count that survives the detection limit.',
   },
   {
-    id: 'fast-radio-bursts',
+    slug: 'fast-radio-bursts',
     index: '02',
     kicker: 'Fast radio bursts',
-    title: 'Can Lensing \u2018Copy\u2019 FRB Signals?',
-    body:
-      'When a fast radio burst passes near a massive galaxy, its path is bent. Some light takes a longer route, arriving later. We searched for such time-delayed pairs in the CHIME/FRB Catalog.',
+    title: 'Can Lensing ‘Copy’ FRB Signals?',
+    summary:
+      'A lens can copy a burst in time. The question is whether any two arrivals in the catalogue are copies.',
+    body: 'When an FRB signal passes near a massive galaxy, its path is bent. Some light takes a longer route, arriving later. We searched for such ‘time-delayed’ pairs in the CHIME/FRB Catalogue.',
+    chartLabel: 'Time-delayed pairs in the CHIME/FRB catalogue',
+    chartNote:
+      'The search compares sky positions and dispersion measures. The chart and the result are the next pass.',
   },
   {
-    id: 'gravitational-waves',
+    slug: 'gravitational-waves',
     index: '03',
     kicker: 'Gravitational waves',
     title: 'Can GW Lensing Correct Black Hole Masses?',
-    body:
-      'Two events in GWTC-5.0 fall into the pair-instability mass gap — a range where stellar evolution theory says black holes should not exist. If their signals were magnified by lensing, their true masses would fall back into the normal range.',
-  },
-  {
-    id: 'being-seen',
-    index: '04',
-    kicker: 'Being Seen',
-    title: 'Being Seen',
-    body:
-      'Every dim star here represents an object in the universe that has not yet been fully seen. You can also leave an anonymous story — about a moment in your life when you felt unseen. Your story will not be tied to any identity; it will simply become the light of that star.',
-    note: 'The star field and the story form arrive in the next pass.',
+    summary:
+      'A lens can make a black hole look heavier. The question is how much magnification would be required.',
+    body: 'Two events in the GWTC-5.0 catalogue fall into the ‘pair-instability mass gap’ — a range where stellar evolution theory says black holes should not exist. But if their signals were magnified by lensing, their true masses would fall back into the normal range.',
+    chartLabel: 'Observed mass vs lens-corrected mass',
+    chartNote:
+      'The two candidates with error bars, before and after applying a common magnification. The correction is a hypothesis test, not a measurement.',
   },
 ]
+
+export const messageBoard = {
+  eyebrow: 'Message Board',
+  title: 'Being Seen',
+  body: 'Every dim star here represents an object in the universe that has not yet been fully seen. You can also leave an anonymous story — about a moment in your life when you felt unseen. Your story will not be tied to any identity; it will simply become the light of that star.',
+  note: 'The star field and the story form arrive in the next pass.',
+}

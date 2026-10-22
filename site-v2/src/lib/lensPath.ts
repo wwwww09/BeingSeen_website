@@ -11,7 +11,7 @@ export interface LensKey {
   x: number
 }
 
-export const LENS_X = 1.55
+export const LENS_X = 1.75
 
 export function sampleLensPath(keys: LensKey[], p: number): number {
   if (keys.length === 0) return LENS_X

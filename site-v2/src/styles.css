@@ -563,3 +563,628 @@ a {
     transition: none;
   }
 }
+
+/* ==========================================================================
+   Site hierarchy — Home / The Science / Message Board
+   ========================================================================== */
+
+.nav__full {
+  display: inline;
+}
+
+.nav__short {
+  display: none;
+}
+
+.nav__links a[aria-current='page'] {
+  color: var(--text);
+}
+
+.nav__links a[aria-current='page']::after {
+  display: block;
+  height: 1px;
+  margin-top: 5px;
+  content: '';
+  background: var(--accent);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 26px;
+}
+
+.hero__secondary {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.hero__secondary:hover {
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------- science shell */
+
+.science-shell {
+  padding-top: 92px;
+}
+
+.science-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 24px;
+  padding: 0 7vw;
+}
+
+.science-nav__label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.science-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.science-nav__link {
+  padding: 6px 0;
+  border-bottom: 1px solid transparent;
+  color: var(--faint);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.science-nav__link:hover {
+  color: var(--text);
+}
+
+.science-nav__link[aria-current='page'] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.science-nav__index {
+  margin-right: 5px;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------- page heads */
+
+.page-head {
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  padding: 18vh 7vw 12vh;
+}
+
+.science-shell .page-head {
+  padding-top: 8vh;
+}
+
+.page-head__inner {
+  width: min(100%, 44rem);
+  text-shadow: 0 1px 44px rgba(7, 8, 10, 0.9);
+}
+
+.page-head--right .page-head__inner {
+  margin-left: auto;
+}
+
+.page-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(3rem, 6.4vw, 6rem);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  color: var(--text);
+}
+
+.page-subtitle {
+  margin: 14px 0 0;
+  font-family: var(--display);
+  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--faint);
+}
+
+.page-lede {
+  max-width: 38rem;
+  margin: 0;
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  line-height: 1.75;
+  color: var(--dim);
+}
+
+.page-note {
+  max-width: 34rem;
+  margin: 22px 0 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.section-kicker {
+  margin: 0 0 22px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------- science index */
+
+.index-section {
+  display: flex;
+  align-items: center;
+  min-height: 82svh;
+  padding: 10vh 7vw 16vh;
+}
+
+.index-section__inner {
+  width: min(100%, 42rem);
+  text-shadow: 0 1px 40px rgba(7, 8, 10, 0.88);
+}
+
+.index-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.index-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 42px;
+  gap: 20px;
+  align-items: start;
+  padding: 30px 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+
+.index-row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.index-row__n {
+  padding-top: 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+
+.index-row__kicker {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.index-row__title {
+  display: block;
+  margin: 7px 0 9px;
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 2.8vw, 2.5rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  transition: color 200ms ease;
+}
+
+.index-row__summary {
+  display: block;
+  max-width: 38rem;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--dim);
+}
+
+.index-row__arrow {
+  align-self: center;
+  justify-self: end;
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--accent);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.index-row:hover .index-row__title {
+  color: var(--accent);
+}
+
+.index-row:hover .index-row__arrow {
+  transform: translateX(6px);
+}
+
+/* ---------------------------------------------------------- science data */
+
+.science-data {
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  padding: 12vh 7vw 16vh;
+}
+
+.science-data--right .science-data__inner {
+  margin-left: auto;
+}
+
+.science-data__inner {
+  width: min(100%, 40rem);
+  text-shadow: 0 1px 40px rgba(7, 8, 10, 0.88);
+}
+
+.science-data__title {
+  margin: 0 0 18px;
+  font-family: var(--display);
+  font-size: clamp(2rem, 3.8vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.science-data__note {
+  max-width: 36rem;
+  margin: 0;
+  font-size: clamp(0.98rem, 1.1vw, 1.08rem);
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.chart-frame {
+  position: relative;
+  height: clamp(260px, 38vh, 360px);
+  margin-top: 34px;
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.chart-frame::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background-image: linear-gradient(var(--line) 1px, transparent 1px);
+  background-size: 100% 25%;
+  opacity: 0.35;
+}
+
+.chart-frame__label {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.chart-frame__axis {
+  display: none;
+}
+
+.science-data__todo {
+  margin: 16px 0 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.chapter-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 26px;
+  margin-top: 58px;
+}
+
+.next-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.next-link__label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.next-link__title {
+  display: block;
+  max-width: 34rem;
+  margin-top: 8px;
+  font-family: var(--display);
+  font-size: clamp(1.35rem, 2.3vw, 2rem);
+  line-height: 1.1;
+  color: var(--text);
+  transition: color 200ms ease;
+}
+
+.next-link:hover .next-link__title {
+  color: var(--accent);
+}
+
+.back-link {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------- message board */
+
+.board-field {
+  display: flex;
+  align-items: flex-end;
+  min-height: 58svh;
+  padding: 8vh 7vw 6vh;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: radial-gradient(
+    ellipse 60% 70% at 32% 44%,
+    rgba(255, 92, 53, 0.05),
+    transparent 70%
+  );
+}
+
+.board-field__inner {
+  width: min(100%, 30rem);
+  text-shadow: 0 1px 34px rgba(7, 8, 10, 0.9);
+}
+
+.board-field__label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.board-field__note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--dim);
+}
+
+.board-workspace {
+  min-height: 82svh;
+  padding: 10vh 7vw 18vh;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 46px;
+  width: min(100%, 40rem);
+}
+
+.board-title {
+  margin: 0 0 22px;
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 2.8vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+
+.board-label {
+  display: block;
+  margin-bottom: 9px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.board-textarea {
+  width: 100%;
+  min-height: 176px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.board-textarea::placeholder {
+  color: var(--faint);
+}
+
+.board-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.board-form__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.board-submit {
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid var(--faint);
+  background: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+.board-stories {
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.board-back {
+  display: flex;
+  gap: 26px;
+  margin-top: 64px;
+}
+
+/* ---------------------------------------------------------- responsive v2 */
+
+@media (max-width: 720px) {
+  .nav__full {
+    display: none;
+  }
+
+  .nav__short {
+    display: inline;
+  }
+
+  .nav__link {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+
+  .science-shell {
+    padding-top: 76px;
+  }
+
+  .science-nav {
+    gap: 7px 14px;
+    padding: 0 20px;
+  }
+
+  .science-nav__label {
+    display: none;
+  }
+
+  .science-nav__links {
+    gap: 5px 14px;
+    font-size: 9px;
+  }
+
+  .page-head {
+    padding: 34vh 20px 10vh;
+  }
+
+  .science-shell .page-head {
+    padding-top: 30vh;
+  }
+
+  .page-title {
+    font-size: clamp(2.6rem, 11vw, 4rem);
+  }
+
+  .page-lede {
+    font-size: 15px;
+  }
+
+  .index-section {
+    min-height: 0;
+    padding: 8vh 20px 12vh;
+  }
+
+  .index-row {
+    grid-template-columns: 34px 1fr 24px;
+    gap: 12px;
+    padding: 22px 0;
+  }
+
+  .index-row__n {
+    padding-top: 3px;
+    font-size: 10px;
+  }
+
+  .index-row__title {
+    font-size: 1.45rem;
+  }
+
+  .index-row__summary {
+    font-size: 13px;
+  }
+
+  .science-data {
+    align-items: flex-start;
+    padding: 22vh 20px 12vh;
+  }
+
+  .science-data--right .science-data__inner {
+    margin-left: 0;
+  }
+
+  .chart-frame {
+    height: 240px;
+  }
+
+  .chapter-next {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+  }
+
+  .board-field {
+    min-height: 46svh;
+    padding: 8vh 20px;
+  }
+
+  .board-workspace {
+    padding: 8vh 20px 14vh;
+  }
+
+    .board-stories {
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  .board-back {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

@@ -6,45 +6,73 @@ repository but not the code, the layout, or the writing.
 The shell is a full-screen WebGL stage with a scroll-driven story on top of it:
 
 - **Vite + React 19 + TypeScript** — the build output is static `dist/`
+- **React Router** — Home / The Science (three child pages) / Message Board
 - **React Three Fiber / Three.js** — one fixed canvas behind the whole document
 - **Framer Motion** — scroll progress, viewport reveals, reduced-motion handling
 - **Supabase JS** — installed now, wired up in the guestbook pass
 
-## Status — black-hole stage, chapters mapped to the brief (0.2)
+## Status — hierarchy skeleton (0.3)
 
-The shell now has a subject and a continuous choreography:
+The site now has the intended three-level hierarchy:
+
+```
+/                         Home
+/science                  The Science (index)
+/science/supernovae       01 Lensing & Supernovae
+/science/fast-radio-bursts 02 Lensing & Fast Radio Bursts
+/science/gravitational-waves 03 Gravitational Wave Lensing
+/message-board            Message Board
+```
+
+The top navigation has exactly three items: **Home · The Science · Message
+Board**. "The Science" stays active on all three child pages; a secondary
+navigation (Overview / 01 / 02 / 03) appears only inside that branch.
+
+Still in place from the previous pass:
 
 - a fixed full-viewport black hole: event horizon, photon ring, tilted
   accretion disk, and a starfield
-- the lens follows a **continuous path** built from the measured centre of each
-  section — it glides across the screen between chapters, with no side switch
-- `useScroll` → camera dolly; a slow free camera orbit keeps the frame alive
-- Framer Motion chapter reveals, hero fade, hairline progress
-- responsive, frameless editorial layout (no cards, no panels)
-- graceful fallback when WebGL is unavailable
-- `prefers-reduced-motion` honoured by both CSS and the scene
+- a **continuous lens path** measured from the sections the current route
+  renders — it glides between sides, with no threshold switch
+- `useScroll` → camera dolly; a slow free camera orbit
+- Framer Motion reveals, hairline progress, reduced-motion handling
+- WebGL fallback that leaves every page readable
 
-The four chapters now carry the brief's question titles and key paragraphs.
-Charts, data files, and the guestbook interaction are the next pass.
+What is deliberately still a frame:
 
-## Chapter mapping
+- the three science pages carry the brief's question titles and key paragraphs,
+  plus a labelled chart frame; the charts and their numbers are the next pass
+- the Message Board has its page frame: a reserved **star field** area (no
+  canvas yet), a disabled story form, and an empty stories area. No Supabase
+  wiring and no star map yet.
 
-| Scroll | Brief |
-|---|---|
-| hero | Home |
-| 01 Supernovae | Lensing & Supernovae |
-| 02 Fast radio bursts | Lensing & Fast Radio Bursts |
-| 03 Gravitational waves | Gravitational Wave Lensing |
-| 04 Being Seen | Being Seen |
+## Routes and hierarchy
 
-## Science note for the next pass
+| Route | Level | Content |
+|---|---|---|
+| `/` | Home | hero + links into the two top-level sections |
+| `/science` | The Science | index of the three chapters |
+| `/science/supernovae` | child | 01 Lensing & Supernovae |
+| `/science/fast-radio-bursts` | child | 02 Lensing & Fast Radio Bursts |
+| `/science/gravitational-waves` | child | 03 Gravitational Wave Lensing |
+| `/message-board` | top level | Being Seen (frame only) |
+
+`vercel.json` contains an SPA rewrite so those URLs work on a direct visit,
+not only after client-side navigation.
+
+## FRB science — open decision
 
 The brief's FRB conclusion (two clean candidates) does not survive checking
 against the CHIME catalogue: the two flagged pairs differ in DM by 75.8 and
-739.5 pc cm⁻³, not 0.0 and 5.2. The chapter will keep the brief's question and
-structure but present the reproducible null result. The SNe claim will use the
-countable 0/5 → 2/5 comparison rather than an "order of magnitude" multiplier,
-which cannot be computed from zero. The GW chart will use `m_obs = m_true·√μ`.
+739.5 pc cm⁻³, not 0.0 and 5.2, and lensing does not change dispersion measure.
+The chapter skeleton therefore keeps the question and the search description
+but **states no candidate count**. How to present the discrepancy (corrected
+null result, both versions side by side, or a further check) is an open decision
+and is being discussed, not silently decided.
+
+Two related notes for the chart passes: the SNe claim will use the countable
+0/5 → 2/5 comparison rather than an "order of magnitude" multiplier, which
+cannot be computed from zero; the GW chart will use `m_obs = m_true·√μ`.
 
 ## Run
 
@@ -75,55 +103,67 @@ NODE_BIN=/path/to/node PNPM_BIN=/path/to/pnpm.mjs ./run.sh install
 
 ### Verification (this pass)
 
-- install resolved 120 packages with no peer warnings
+- install resolved 124 packages with no peer warnings
 - `tsc --noEmit` clean
-- `vite build` clean: initial chunk **119.5 kB gzip**, lazy 3D chunk **243.6 kB gzip**
-- headless Chrome: 1 canvas on the hero, no console errors, no horizontal
-  overflow at 390 px, all four chapters reveal on scroll
-- two frames captured mid-glide show the lens between the two halves of the
-  screen, confirming the path is continuous
+- `vite build` clean: initial chunk **134.1 kB gzip**, lazy 3D chunk **243.7 kB gzip**
+- headless Chrome: all six routes load directly, one canvas each, no console
+  errors, no horizontal overflow at 390 px
+- top nav and science sub-nav show the correct active item on every route
+- the lens path is rebuilt per route; a mid-glide frame confirms it is
+  continuous rather than a side switch
 - WebGL-disabled and reduced-motion checks pass
 - production `vite preview` re-checked through the same pass
 
 Versions: React 19.3.1 · React Three Fiber 9.8.2 · three 0.186.1 ·
-framer-motion 14.5.0 · Vite 8.3.5 · Node 24.21.0
+framer-motion 14.5.0 · react-router-dom 7.18.4 · Vite 8.3.5 · Node 24.21.0
 
 ## Deploy
 
-Create a **new** Vercel project (leave the old site's project alone):
+The `being-seen-website-z59h` Vercel project already points at this folder:
 
-1. Import the same GitHub repository.
-2. Set **Root Directory** to `site-v2`.
-3. Vercel detects Vite; build `pnpm build`, output `dist`.
+1. Root Directory: `site-v2`
+2. Build: `pnpm build`, output: `dist`
+3. SPA rewrite: `vercel.json` sends unknown paths to `index.html`, so a direct
+   visit to `/science/supernovae` works, not only in-app navigation.
 4. Add the Supabase variables (`VITE_SUPABASE_URL`,
-   `VITE_SUPABASE_PUBLISHABLE_KEY`) when the guestbook pass lands.
+   `VITE_SUPABASE_PUBLISHABLE_KEY`) when the message board pass lands.
 
-`vercel.json` in this folder pins the build command and output directory, so
-the dashboard only needs the root directory.
+The old site's project and URL are separate and untouched.
 
 ## Layout
 
 ```
 site-v2/
   index.html
+  vercel.json            Vite build + SPA rewrite
   src/
-    App.tsx              scroll track, chapters, hero, outro
-    content.ts           placeholder chapter copy
+    App.tsx              router: /, /science/*, /message-board
+    content.ts           hierarchy, brief copy, chapter scaffolding
     styles.css           frameless editorial layout
     components/
+      SiteShell.tsx      fixed nav + shared stage + scroll track
+      Nav.tsx            Home / The Science / Message Board
+      ScienceNav.tsx     secondary nav inside The Science
       Stage.tsx          fixed Canvas + WebGL fallback
-      Nav.tsx            wordmark, chapter anchors, progress hairline
       ProgressRail.tsx   right-edge scroll indicator
+    pages/
+      HomePage.tsx
+      ScienceLayout.tsx  science sub-nav + outlet
+      ScienceOverview.tsx
+      ScienceChapterPage.tsx
+      MessageBoardPage.tsx
     scene/
-      Scene.tsx          fog, lights, composition
+      Scene.tsx          fog, composition
       Starfield.tsx      distant star shell
       LensCore.tsx       event horizon, photon ring, accretion disk
-      dotTexture.ts      soft round point sprite, generated at runtime
-      CameraRig.tsx      scroll-driven camera
+      CameraRig.tsx      scroll dolly + slow orbit
+      diskTexture.ts     runtime accretion-disk sprite
+      dotTexture.ts      runtime round particle sprite
     lib/
+      lensPath.ts        continuous lens path from measured sections
+      scrollContext.ts   page scroll progress
       useWebGL.ts        capability probe
   run.sh                 local runner (macOS signing workaround)
-  vercel.json            Vite build + dist output
 ```
 
 ## Why a separate workspace

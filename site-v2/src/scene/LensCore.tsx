@@ -34,7 +34,7 @@ export function LensCore({
   const width = useThree((state) => state.size.width)
   const compact = width < 900
   const lift = compact ? 2.4 : 0
-  const baseScale = compact ? 0.56 : 0.86
+  const baseScale = compact ? 0.56 : 0.78
   const initialX = compact ? 0 : (lensKeys[0]?.x ?? LENS_X)
 
   useFrame((_, delta) => {
@@ -42,7 +42,7 @@ export function LensCore({
     const p = THREE.MathUtils.clamp(progress.get(), 0, 1)
 
     if (group.current) {
-      const targetScale = baseScale * (1 + p * 0.14)
+      const targetScale = baseScale * (compact ? 1 - p * 0.08 : 1 + p * 0.14)
       group.current.scale.setScalar(
         THREE.MathUtils.damp(group.current.scale.x, targetScale, 2.4, d),
       )
@@ -54,6 +54,17 @@ export function LensCore({
         1.9,
         d,
       )
+
+      // On a phone the lens is a page-opening ornament: as the reader scrolls
+      // it rises out of the frame so long copy never sits behind the shadow.
+      if (compact) {
+        group.current.position.y = THREE.MathUtils.damp(
+          group.current.position.y,
+          lift + p * 5.2,
+          1.8,
+          d,
+        )
+      }
     }
 
     if (!reduced && diskSpin.current) {

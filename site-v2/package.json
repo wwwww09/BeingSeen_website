@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Being Seen — a scrollytelling serious game built on a full-screen WebGL stage",
+  "description": "Being Seen \u2014 a scrollytelling serious game built on a full-screen WebGL stage",
   "packageManager": "pnpm@11.7.0",
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,8 @@
     "framer-motion": "14.5.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "three": "0.186.1"
+    "three": "0.186.1",
+    "react-router-dom": "7.18.4"
   },
   "devDependencies": {
     "@types/react": "19.3.0",

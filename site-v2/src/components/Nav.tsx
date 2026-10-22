@@ -1,28 +1,38 @@
 import { motion, type MotionValue } from 'framer-motion'
-import { chapters } from '../content'
+import { Link, NavLink } from 'react-router-dom'
 
 /**
- * A frameless top bar: wordmark, chapter numbers, and a hairline progress line.
- * No pills, no bar background, no boxes.
+ * Top-level hierarchy only:
+ *
+ *   Home · The Science · Message Board
+ *
+ * "The Science" stays active on all three sub-pages. The sub-navigation for
+ * Supernovae / Fast radio bursts / Gravitational waves lives inside the
+ * science layout, not here.
  */
 export function Nav({ progress }: { progress: MotionValue<number> }) {
   return (
     <header className="nav">
-      <a className="nav__mark" href="#main">
+      <Link className="nav__mark" to="/">
         Being Seen
-      </a>
+      </Link>
 
-      <nav className="nav__links" aria-label="Chapters">
-        {chapters.map((chapter) => (
-          <a
-            key={chapter.id}
-            href={`#${chapter.id}`}
-            title={`${chapter.kicker} — chapter ${chapter.index}`}
-            aria-label={`Chapter ${chapter.index}: ${chapter.kicker}`}
-          >
-            {chapter.index}
-          </a>
-        ))}
+      <nav className="nav__links" aria-label="Main">
+        <NavLink to="/" end className="nav__link">
+          Home
+        </NavLink>
+        <NavLink to="/science" className="nav__link" aria-label="The Science">
+          <span className="nav__full">The Science</span>
+          <span className="nav__short">Science</span>
+        </NavLink>
+        <NavLink
+          to="/message-board"
+          className="nav__link"
+          aria-label="Message Board"
+        >
+          <span className="nav__full">Message Board</span>
+          <span className="nav__short">Board</span>
+        </NavLink>
       </nav>
 
       <motion.div
