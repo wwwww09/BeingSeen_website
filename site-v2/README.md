@@ -46,6 +46,29 @@ What is deliberately still a frame:
   canvas yet), a disabled story form, and an empty stories area. No Supabase
   wiring and no star map yet.
 
+## Figure prototype (current pass, unlisted)
+
+`/figure-preview` is an unlisted route for judging the human figure before the
+five-act homepage is built on top of it.
+
+- 13 capsule bones + joint spheres: head, neck, chest, hips, shoulders, elbows,
+  hands, knees, feet. Proportions are deliberately human, not a robot.
+- ~4,000 particles ride the same bones as a soft shell.
+- A matte, rim-lit body; no specular highlights.
+- `collapse` blends the running pose into the curled pose; the black hole grows
+  out of the torso as the figure folds.
+- Controls: Run / Collapse slider, stride pause, demo loop.
+- Query helpers: `?collapse=0.8`, `?running=0`, `?demo=1`.
+
+This is a gate, not the finished homepage. The five acts (Hero + Intrinsic /
+Temporal / Extrinsic / Unseen) are the next pass, and the top-level labels will
+become **Being unseen / the science / Being seen** in that pass. The Science
+and Being seen pages are deliberately untouched here.
+
+No audio yet. When the music file arrives it can always be muted: the player
+will have a persistent mute toggle, and it will not autoplay before a user
+gesture.
+
 ## Routes and hierarchy
 
 | Route | Level | Content |
@@ -108,6 +131,8 @@ NODE_BIN=/path/to/node PNPM_BIN=/path/to/pnpm.mjs ./run.sh install
 - `vite build` clean: initial chunk **134.1 kB gzip**, lazy 3D chunk **243.7 kB gzip**
 - headless Chrome: all six routes load directly, one canvas each, no console
   errors, no horizontal overflow at 390 px
+- `/figure-preview`: canvas renders, slider/demo run, no console errors at
+  1440 and 390 px; run and collapse frames captured
 - top nav and science sub-nav show the correct active item on every route
 - the lens path is rebuilt per route; a mid-glide frame confirms it is
   continuous rather than a side switch
@@ -146,7 +171,12 @@ site-v2/
       ScienceNav.tsx     secondary nav inside The Science
       Stage.tsx          fixed Canvas + WebGL fallback
       ProgressRail.tsx   right-edge scroll indicator
+    figure/
+      pose.ts             running/curled skeleton, bones, joints
+      HumanFigure.tsx     capsules + particle shell + chest black hole
+      FigureScene.tsx     lights, dust, camera
     pages/
+      FigurePreviewPage.tsx  unlisted /figure-preview controls
       HomePage.tsx
       ScienceLayout.tsx  science sub-nav + outlet
       ScienceOverview.tsx
