@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import type { MotionValue } from 'framer-motion'
 import * as THREE from 'three'
 import { smoothstep } from '../figure/pose'
@@ -31,6 +31,7 @@ function getClusterGlow(): THREE.Texture {
  */
 export function StarCluster({ progress }: { progress: MotionValue<number> }) {
   const group = useRef<THREE.Group>(null)
+  const compact = useThree((state) => state.size.width < 900)
   const material = useRef<THREE.PointsMaterial>(null)
   const glowMaterial = useRef<THREE.SpriteMaterial>(null)
   const glowTexture = useMemo(() => getClusterGlow(), [])
@@ -83,7 +84,7 @@ export function StarCluster({ progress }: { progress: MotionValue<number> }) {
   })
 
   return (
-    <group ref={group} position={[0, 1.2, -3.2]} visible={false}>
+    <group ref={group} position={[compact ? 0 : 1.6, 1.1, -3.2]} visible={false}>
       <points>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />

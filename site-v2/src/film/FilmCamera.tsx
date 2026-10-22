@@ -9,7 +9,8 @@ import { lerp, smoothstep } from '../figure/pose'
  * magnetar, then keep pulling until the crowd is only a field of stars.
  */
 export function FilmCamera({ progress }: { progress: MotionValue<number> }) {
-  const { camera } = useThree()
+  const { camera, size } = useThree()
+  const compact = size.width < 900
 
   useFrame((_, delta) => {
     const p = THREE.MathUtils.clamp(progress.get(), 0, 1)
@@ -28,8 +29,9 @@ export function FilmCamera({ progress }: { progress: MotionValue<number> }) {
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 3.0, d)
     camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 2.6, d)
 
-    const lookY = lerp(0.95, 0.78, fold) + crowd * 0.12 + stars * 0.18
-    camera.lookAt(0.1, lookY, 0.2)
+    const lookY = lerp(0.95, 0.78, fold) + crowd * 0.12 + stars * 0.18 + (compact ? 0.6 : 0)
+    const lookX = compact ? 0.1 : 0.55
+    camera.lookAt(lookX, lookY, 0.2)
   })
 
   return null

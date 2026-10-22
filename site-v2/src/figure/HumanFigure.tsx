@@ -234,6 +234,7 @@ export function HumanFigure({
 }) {
   const group = useRef<THREE.Group>(null)
   const gl = useThree((state) => state.gl)
+  const compact = useThree((state) => state.size.width < 900)
 
   const geometry = useMemo(buildGeometry, [])
 
@@ -273,9 +274,11 @@ export function HumanFigure({
     let fade = 1
     let flash = 0
     let pose: Joints
+    const t = state.clock.elapsedTime
 
     if (mode === 'film') {
       const hero = smoothstep(Math.min(1, p / 0.15))
+      figure.position.x = compact ? 0 : 1.15
       figure.position.z = lerp(-2.2, 0, hero)
       figure.rotation.y = -0.06
       const runPhase = state.clock.elapsedTime * 5.2
@@ -288,6 +291,7 @@ export function HumanFigure({
       pose = lerpJoints(lerpJoints(reaching, sitPose, sit), standPose, stand)
     } else {
       const runIn = smoothstep(Math.min(1, p / 0.45))
+      figure.position.x = 0
       figure.position.z = lerp(-1.8, 0.2, runIn)
       figure.rotation.y = -0.12
       sit = smoothstep((p - 0.55) / 0.35)
@@ -296,6 +300,8 @@ export function HumanFigure({
       pose = lerpJoints(runPose(runPhase), sitPose, sit)
     }
 
+    figure.position.y = Math.sin(t * 0.8) * 0.015
+    figure.rotation.z = Math.sin(t * 0.5) * 0.006
     figure.updateMatrixWorld(true)
 
     const u = material.uniforms

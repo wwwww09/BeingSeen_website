@@ -63,8 +63,8 @@ to run all five stages.
 - **Stellar black hole** (Act 1): event horizon, thin photon ring, tilted
   accretion disk generated from the old runtime disk texture, and a faint
   lensing halo at chest height.
-- **Magnetar** (Act 2): a blue neutron star, cracked wireframe surface, three
-  dipole field rings, polar beams and a short FRB glow. The screen flash is
+- **Magnetar** (Act 2): a blue neutron star, a cracked crust, curved dipole field
+  lines, polar hot spots and beamed emission, and a short FRB glow. The screen flash is
   deliberately brief and not a solid sphere.
 - **Globular cluster** (Act 4): 14,000 stars in a King-like concentration with
   a bright core and halo; it replaces the crowd's outlines.
@@ -145,9 +145,9 @@ NODE_BIN=/path/to/node PNPM_BIN=/path/to/pnpm.mjs ./run.sh install
 ### Verification (this pass)
 
 - `tsc --noEmit` clean
-- `vite build` clean: the initial Home text/nav is **135.8 kB gzip**; the film
-  scene (10.9 kB gzip), shared 3D chunk (242.1 kB gzip) and figure code
-  (25.4 kB gzip) load lazily after the WebGL probe. No external model is shipped.
+- `vite build` clean: the initial Home text/nav is **135.7 kB gzip**; the film
+  scene (3.9 kB gzip), shared 3D chunk (242.1 kB gzip) and figure code
+  (25.5 kB gzip) load lazily after the WebGL probe. No external model is shipped.
 - headless Chrome at 1440×900: the Home film checked at ten scroll positions
   from Hero to CTA; one canvas; no console errors; no horizontal overflow.
 - the CTA is fully visible at 390×844; the mobile film checked at six positions;

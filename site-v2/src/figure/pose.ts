@@ -131,22 +131,22 @@ export function runPose(time: number): Joints {
 
 /** Seated slump: knees up, feet forward, hands resting, head slightly down. */
 export const sitPose: Joints = {
-  head: [0, 1.02, 0.16],
-  neck: [0, 0.92, 0.12],
-  chest: [0, 0.78, 0.08],
-  hips: [0, 0.48, 0],
-  shoulderL: [-0.18, 0.84, 0.06],
-  shoulderR: [0.18, 0.84, 0.06],
-  elbowL: [-0.32, 0.7, 0.2],
-  elbowR: [0.32, 0.7, 0.2],
-  handL: [-0.26, 0.57, 0.38],
-  handR: [0.26, 0.57, 0.38],
-  hipL: [-0.12, 0.48, 0.02],
-  hipR: [0.12, 0.48, 0.02],
-  kneeL: [-0.26, 0.57, 0.36],
-  kneeR: [0.26, 0.57, 0.36],
-  footL: [-0.3, 0.1, 0.46],
-  footR: [0.3, 0.1, 0.46],
+  head: [0, 1.0, 0.18],
+  neck: [0, 0.88, 0.14],
+  chest: [0, 0.74, 0.1],
+  hips: [0, 0.5, 0],
+  shoulderL: [-0.17, 0.83, 0.08],
+  shoulderR: [0.17, 0.83, 0.08],
+  elbowL: [-0.24, 0.66, 0.2],
+  elbowR: [0.24, 0.66, 0.2],
+  handL: [-0.15, 0.55, 0.34],
+  handR: [0.15, 0.55, 0.34],
+  hipL: [-0.1, 0.5, 0.02],
+  hipR: [0.1, 0.5, 0.02],
+  kneeL: [-0.15, 0.58, 0.3],
+  kneeR: [0.15, 0.58, 0.3],
+  footL: [-0.17, 0.12, 0.38],
+  footR: [0.17, 0.12, 0.38],
 }
 
 /** Standing, arms at the sides: the pose he rises into for act three. */
