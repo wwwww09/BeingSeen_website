@@ -51,19 +51,24 @@ What is deliberately still a frame:
 `/figure-preview` is an unlisted route for judging the human figure before the
 five-act homepage is built on top of it.
 
-- 13 capsule bones + joint spheres: head, neck, chest, hips, shoulders, elbows,
-  hands, knees, feet. Proportions are deliberately human, not a robot.
-- ~4,000 particles ride the same bones as a soft shell.
-- A matte, rim-lit body; no specular highlights.
-- `collapse` blends the running pose into the curled pose; the black hole grows
-  out of the torso as the figure folds.
-- Controls: Run / Collapse slider, stride pause, demo loop.
-- Query helpers: `?collapse=0.8`, `?running=0`, `?demo=1`.
-
-This is a gate, not the finished homepage. The five acts (Hero + Intrinsic /
-Temporal / Extrinsic / Unseen) are the next pass, and the top-level labels will
-become **Being unseen / the science / Being seen** in that pass. The Science
-and Being seen pages are deliberately untouched here.
+- A dense **GPU point cloud**: about 62,000 particles. Thirteen bone segments
+  plus a spherical head; the vertex shader rebuilds a tube around each bone
+  every frame, so JS only uploads the 13 bone endpoints.
+- No solid body mesh. The human silhouette comes from the density of the
+  points, and the points fill the volume, not just a surface shell.
+- Additive points with bloom (`@react-three/postprocessing`), lavender / ivory
+  / ember palette. The reference is a TouchDesigner FBX-to-particles effect.
+- Frontal run: the figure faces +z, lifts one knee toward the camera and
+  counter-swings the arms. A small 3/4 offset keeps the depth legible.
+- The shot: run at the screen (0–0.45), camera pulls back (0.45–0.72), the
+  figure sits (0.55–1), and the black hole grows in the chest (0.72–1).
+- No face. That is the slightly eerie part.
+- Controls: sequence slider, Run / Sit, Play sequence, Stop. Query helpers:
+  `?t=0.6`, `?demo=1`.
+- This is a gate, not the finished homepage. The five acts (Hero + Intrinsic /
+  Temporal / Extrinsic / Unseen) are the next pass, and the top-level labels
+  will become **Being unseen / the science / Being seen** in that pass. The
+  Science and Being seen pages are deliberately untouched here.
 
 No audio yet. When the music file arrives it can always be muted: the player
 will have a persistent mute toggle, and it will not autoplay before a user
@@ -128,11 +133,12 @@ NODE_BIN=/path/to/node PNPM_BIN=/path/to/pnpm.mjs ./run.sh install
 
 - install resolved 124 packages with no peer warnings
 - `tsc --noEmit` clean
-- `vite build` clean: initial chunk **134.1 kB gzip**, lazy 3D chunk **243.7 kB gzip**
+- `vite build` clean: initial chunk stays small; the figure route and the
+  postprocessing are lazy-loaded
 - headless Chrome: all six routes load directly, one canvas each, no console
   errors, no horizontal overflow at 390 px
-- `/figure-preview`: canvas renders, slider/demo run, no console errors at
-  1440 and 390 px; run and collapse frames captured
+- `/figure-preview`: canvas renders, sequence slider and demo run, no console
+  errors at 1440 and 390 px; run and sit frames captured
 - top nav and science sub-nav show the correct active item on every route
 - the lens path is rebuilt per route; a mid-glide frame confirms it is
   continuous rather than a side switch
@@ -140,7 +146,8 @@ NODE_BIN=/path/to/node PNPM_BIN=/path/to/pnpm.mjs ./run.sh install
 - production `vite preview` re-checked through the same pass
 
 Versions: React 19.3.1 · React Three Fiber 9.8.2 · three 0.186.1 ·
-framer-motion 14.5.0 · react-router-dom 7.18.4 · Vite 8.3.5 · Node 24.21.0
+framer-motion 14.5.0 · react-router-dom 7.18.4 · Vite 8.3.5 ·
+@react-three/postprocessing 3.2.2 · postprocessing 6.39.5 · Node 24.21.0
 
 ## Deploy
 
@@ -172,9 +179,9 @@ site-v2/
       Stage.tsx          fixed Canvas + WebGL fallback
       ProgressRail.tsx   right-edge scroll indicator
     figure/
-      pose.ts             running/curled skeleton, bones, joints
-      HumanFigure.tsx     capsules + particle shell + chest black hole
-      FigureScene.tsx     lights, dust, camera
+      pose.ts             frontal run + seated slump, 13 bone segments
+      HumanFigure.tsx     ~62k GPU points + chest void
+      FigureScene.tsx     camera pullback, dust, bloom
     pages/
       FigurePreviewPage.tsx  unlisted /figure-preview controls
       HomePage.tsx
