@@ -1,0 +1,14 @@
+human.glb is derived from the "Superhero Male Full Body" model in the
+Quaternius Universal Base Characters kit.
+
+  Author: Quaternius — https://quaternius.com
+  Pack: Universal Base Characters
+  License: CC0 1.0 Universal (public domain dedication)
+  https://creativecommons.org/publicdomain/zero/1.0/
+
+The source model was taken from the CC0 archive mirrored at:
+  https://github.com/EVEngine/EVEngine/tree/dev/examples/character-motion-lab/assets/quaternius
+
+Only the geometry, skin and node data were kept; materials and textures were
+removed because the website renders the surface as a particle cloud. The
+geometry, bind pose and skin weights are unchanged.

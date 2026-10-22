@@ -64,15 +64,15 @@ export function runPose(time: number): Joints {
   const bob = Math.cos(phase * 2) * 0.025
   const sway = Math.sin(phase) * 0.02
 
-  const hips: Vec3 = [sway, 1.0 + bob, 0]
-  const chest: Vec3 = [0, 1.32 + bob, 0.03]
-  const neck: Vec3 = [0, 1.45 + bob, 0.04]
-  const head: Vec3 = [0, 1.6 + bob, 0.045]
+  const hips: Vec3 = [sway, 0.965 + bob, 0]
+  const chest: Vec3 = [0, 1.31 + bob, 0.03]
+  const neck: Vec3 = [0, 1.51 + bob, 0.04]
+  const head: Vec3 = [0, 1.62 + bob, 0.045]
 
-  const shoulderL: Vec3 = [-0.21, 1.38 + bob, 0.02 + Math.sin(phase) * 0.035]
-  const shoulderR: Vec3 = [0.21, 1.38 + bob, 0.02 - Math.sin(phase) * 0.035]
-  const hipL: Vec3 = [-0.11, 1.0 + bob, Math.sin(phase) * 0.02]
-  const hipR: Vec3 = [0.11, 1.0 + bob, -Math.sin(phase) * 0.02]
+  const shoulderL: Vec3 = [-0.21, 1.44 + bob, 0.02 + Math.sin(phase) * 0.035]
+  const shoulderR: Vec3 = [0.21, 1.44 + bob, 0.02 - Math.sin(phase) * 0.035]
+  const hipL: Vec3 = [-0.114, 0.97 + bob, Math.sin(phase) * 0.02]
+  const hipR: Vec3 = [0.114, 0.97 + bob, -Math.sin(phase) * 0.02]
 
   const leg = (side: -1 | 1, ph: number) => {
     const lift = Math.max(0, Math.sin(ph))
@@ -131,22 +131,22 @@ export function runPose(time: number): Joints {
 
 /** Seated slump: knees up, feet forward, hands resting, head slightly down. */
 export const sitPose: Joints = {
-  head: [0, 0.98, 0.17],
-  neck: [0, 0.88, 0.1],
-  chest: [0, 0.72, 0.04],
-  hips: [0, 0.38, 0],
-  shoulderL: [-0.19, 0.8, 0.06],
-  shoulderR: [0.19, 0.8, 0.06],
-  elbowL: [-0.3, 0.63, 0.16],
-  elbowR: [0.3, 0.63, 0.16],
-  handL: [-0.22, 0.53, 0.32],
-  handR: [0.22, 0.53, 0.32],
-  hipL: [-0.11, 0.38, 0.02],
-  hipR: [0.11, 0.38, 0.02],
-  kneeL: [-0.22, 0.52, 0.32],
-  kneeR: [0.22, 0.52, 0.32],
-  footL: [-0.24, 0.08, 0.42],
-  footR: [0.24, 0.08, 0.42],
+  head: [0, 1.02, 0.16],
+  neck: [0, 0.92, 0.12],
+  chest: [0, 0.78, 0.08],
+  hips: [0, 0.48, 0],
+  shoulderL: [-0.18, 0.84, 0.06],
+  shoulderR: [0.18, 0.84, 0.06],
+  elbowL: [-0.32, 0.7, 0.2],
+  elbowR: [0.32, 0.7, 0.2],
+  handL: [-0.26, 0.57, 0.38],
+  handR: [0.26, 0.57, 0.38],
+  hipL: [-0.12, 0.48, 0.02],
+  hipR: [0.12, 0.48, 0.02],
+  kneeL: [-0.26, 0.57, 0.36],
+  kneeR: [0.26, 0.57, 0.36],
+  footL: [-0.3, 0.1, 0.46],
+  footR: [0.3, 0.1, 0.46],
 }
 
 export function lerpJoints(a: Joints, b: Joints, t: number): Joints {

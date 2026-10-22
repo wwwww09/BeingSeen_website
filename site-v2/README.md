@@ -51,18 +51,21 @@ What is deliberately still a frame:
 `/figure-preview` is an unlisted route for judging the human figure before the
 five-act homepage is built on top of it.
 
-- A dense **GPU point cloud**: about 62,000 particles. Thirteen bone segments
-  plus a spherical head; the vertex shader rebuilds a tube around each bone
-  every frame, so JS only uploads the 13 bone endpoints.
-- No solid body mesh. The human silhouette comes from the density of the
-  points, and the points fill the volume, not just a surface shell.
-- Additive points with bloom (`@react-three/postprocessing`), lavender / ivory
-  / ember palette. The reference is a TouchDesigner FBX-to-particles effect.
-- Frontal run: the figure faces +z, lifts one knee toward the camera and
-  counter-swings the arms. A small 3/4 offset keeps the depth legible.
+- A **real, skinned 3D human surface** sampled into about 120,000 star points.
+  The source mesh is hidden; only the point cloud is rendered. This is not a
+  capsule approximation and not a flat silhouette.
+- The body is the CC0 **Quaternius Superhero Male** base (`public/models/human.glb`,
+  geometry and skin only; materials and textures removed). The original license
+  is in `public/models/LICENSE.txt`.
+- GPU skinning: each point carries four bone indices/weights; the vertex shader
+  samples the skeleton's bone texture, so the real human surface deforms with
+  the 65-bone rig. JS only poses the rig.
+- The pose is authored by aiming the real bones at target joints: a frontal run
+  at the camera (one knee toward the viewer, arms counter-swinging), then a
+  seated slump as the camera pulls back. The star points use a lavender / ivory
+  / ember palette with bloom.
 - The shot: run at the screen (0–0.45), camera pulls back (0.45–0.72), the
   figure sits (0.55–1), and the black hole grows in the chest (0.72–1).
-- No face. That is the slightly eerie part.
 - Controls: sequence slider, Run / Sit, Play sequence, Stop. Query helpers:
   `?t=0.6`, `?demo=1`.
 - This is a gate, not the finished homepage. The five acts (Hero + Intrinsic /
@@ -179,9 +182,12 @@ site-v2/
       Stage.tsx          fixed Canvas + WebGL fallback
       ProgressRail.tsx   right-edge scroll indicator
     figure/
-      pose.ts             frontal run + seated slump, 13 bone segments
-      HumanFigure.tsx     ~62k GPU points + chest void
+      pose.ts             frontal run + seated slump target joints
+      HumanFigure.tsx     skinned human surface -> ~120k star points
       FigureScene.tsx     camera pullback, dust, bloom
+    public/models/
+      human.glb           CC0 Quaternius human, geometry + skin only
+      LICENSE.txt         source and CC0 notice
     pages/
       FigurePreviewPage.tsx  unlisted /figure-preview controls
       HomePage.tsx
