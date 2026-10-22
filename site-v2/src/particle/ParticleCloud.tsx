@@ -24,7 +24,14 @@ const vertexShader = /* glsl */ `
   varying float vAlpha;
 
   void main() {
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    vec3 p = position;
+    float holeSpin = uTime * 0.35 * uHole;
+    float cs = cos(holeSpin);
+    float sn = sin(holeSpin);
+    p.xz = mat2(cs, -sn, sn, cs) * p.xz;
+    float head = smoothstep(1.4, 1.62, p.y);
+    p.x += sin(uTime * 0.9 + 0.4) * 0.03 * head * uHuman;
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
 
     float isCrowd = step(2.5, aRole);
@@ -50,7 +57,7 @@ const vertexShader = /* glsl */ `
       magColor * uMag +
       crowdColor * uCrowd +
       starColor * uStar;
-    float holeRadius = length(vec2(position.x, position.z));
+    float holeRadius = length(vec2(p.x, p.z));
     float photon = exp(-pow((holeRadius - 0.99) / 0.05, 2.0));
     color += uHole * photon * vec3(1.0, 0.82, 0.58) * 0.9;
     color *= 0.9 + 0.1 * sin(uTime * 1.7 + aSeed);
@@ -135,7 +142,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     const e1 = smoothstep(Math.min(1, p / 0.2))
     const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.2)))
     const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.4) / 0.2)))
-    const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.6) / 0.12)))
+    const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.6) / 0.08)))
     const e5 = smoothstep(Math.min(1, Math.max(0, (p - 0.8) / 0.2)))
 
     for (let i = 0; i < TOTAL; i++) {
@@ -150,7 +157,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
 
       if (i < HUMAN_COUNT) {
         if (p < 0.2) {
-          ax = targets.human[o]; ay = targets.human[o + 1]; az = targets.human[o + 2]
+          ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
           bx = targets.ball[o]; by = targets.ball[o + 1]; bz = targets.ball[o + 2]
           t = e1
         } else if (p < 0.4) {
@@ -163,19 +170,19 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
           t = e3
         } else if (p < 0.8) {
           ax = targets.magnetar[o]; ay = targets.magnetar[o + 1]; az = targets.magnetar[o + 2]
-          bx = targets.human[o]; by = targets.human[o + 1]; bz = targets.human[o + 2]
+          bx = targets.stand[o]; by = targets.stand[o + 1]; bz = targets.stand[o + 2]
           t = e4
         } else {
-          ax = targets.human[o]; ay = targets.human[o + 1]; az = targets.human[o + 2]
+          ax = targets.stand[o]; ay = targets.stand[o + 1]; az = targets.stand[o + 2]
           bx = targets.star[o]; by = targets.star[o + 1]; bz = targets.star[o + 2]
           t = e5
         }
       } else if (p < 0.6) {
-        ax = targets.human[o]; ay = targets.human[o + 1]; az = targets.human[o + 2]
+        ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
         bx = ax; by = ay; bz = az
         t = 0
       } else if (p < 0.8) {
-        ax = targets.human[o]; ay = targets.human[o + 1]; az = targets.human[o + 2]
+        ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
         bx = targets.crowd[o]; by = targets.crowd[o + 1]; bz = targets.crowd[o + 2]
         t = e4
       } else {
@@ -184,16 +191,26 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
         t = e5
       }
 
-      position[o] = lerp(ax, bx, t)
-      position[o + 1] = lerp(ay, by, t)
-      position[o + 2] = lerp(az, bz, t)
+      let x = lerp(ax, bx, t)
+      const y = lerp(ay, by, t)
+      let z = lerp(az, bz, t)
+      if (i < HUMAN_COUNT && p >= 0.2 && p < 0.4) {
+        const radius = Math.hypot(x, z)
+        const angle = Math.atan2(z, x)
+        const swirl = Math.sin(e2 * Math.PI) * 1.15 * (0.6 + targets.seed[i])
+        x = Math.cos(angle + swirl) * radius
+        z = Math.sin(angle + swirl) * radius
+      }
+      position[o] = x
+      position[o + 1] = y
+      position[o + 2] = z
     }
 
     const attribute = geometry.getAttribute('position') as THREE.BufferAttribute
     attribute.needsUpdate = true
 
     const humanW =
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.18) / 0.05, 0, 1))) +
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.16) / 0.08, 0, 1))) +
       smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.05, 0, 1)) *
         (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
     const holeW =
@@ -203,7 +220,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       smoothstep(THREE.MathUtils.clamp((p - 0.38) / 0.04, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.04, 0, 1)))
     const crowdW =
-      smoothstep(THREE.MathUtils.clamp((p - 0.62) / 0.06, 0, 1)) *
+      smoothstep(THREE.MathUtils.clamp((p - 0.7) / 0.06, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
     const starW = smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.06, 0, 1))
     const flash = Math.exp(-Math.pow((p - 0.5) / 0.019, 2))

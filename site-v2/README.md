@@ -40,10 +40,10 @@ use the previous shell until their rebuild.
 
 | Scroll | Stage | Particle action | Copy |
 |---|---|---|---|
-| 0.00–0.20 | 01 / The Intrinsic | grey human → ball; camera eases in | “Sometimes, the deepest parts of us remain unseen, no matter how hard we try to show them.” |
-| 0.20–0.40 | 02 / The Collapse | ball → dark core + accretion/photon ring; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
+| 0.00–0.20 | 01 / The Intrinsic | 3D stardust runner → dense ball; camera eases out | “Sometimes, the deepest parts of us remain unseen, no matter how hard we try to show them.” |
+| 0.20–0.40 | 02 / The Collapse | ball spirals into a dark core + rotating accretion/photon ring; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
 | 0.40–0.60 | 03 / The Flash | ring → blue magnetar + two polar beams; flash; camera shake, pull back | “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes blink, we miss them forever.” |
-| 0.60–0.80 | 04 / The Extrinsic | magnetar → human; crowd rushes in; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
+| 0.60–0.80 | 04 / The Extrinsic | magnetar → standing human; crowd rushes in at 0.70; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
 | 0.80–1.00 | 05 / The Universe | 40,000 particles → cold star map; camera stops | “We are made of stardust, yet we share the same blindness as the cosmos.” |
 
 All body copy is the brief’s text, verbatim. Extra text is limited to the stage
@@ -54,26 +54,30 @@ scroll-driven, never autoplaying.
 
 - **40,000 particles total**: 16,000 human particles and 24,000 crowd/star
   particles.
-- Six target arrays — `human`, `ball`, `hole`, `magnetar`, `crowd`, `star` —
+- Seven target arrays — `run`, `ball`, `stand`, `hole`, `magnetar`, `crowd`, `star` —
   built once in `src/particle/targets.ts`. Scroll interpolates the live
   `Float32Array` position attribute between them. No per-stage object is ever
   mounted or unmounted.
-- The human silhouette is sampled procedurally from the 13-bone `standPose`
-  skeleton plus a spherical head. There is no face, no eyes, no model.
+- The human is a **3D stardust cloud**, not a 2D mask and not a visible rig:
+  soft ellipsoid/capsule volumes are sampled and then displaced with
+  low-frequency value noise. There is no pixel cut-out, no bounding box, no
+  face, no eyes and no model. The run is a forward-leaning spray with one
+  reaching hand; the stage-1 end is a tight dense sphere; the stage-4 return is
+  an upright stand with a subtle head sway.
 - Human roles: **ring**, **core**, **beam**. At the black hole stage the core
   particles are alpha-0, which is what creates the pitch-black centre; at the
   magnetar stage the same particles ignite; at stage 4 all roles return to the
   human; at stage 5 they become stars.
 - The crowd only exists as the 24,000 role-3 particles. They wait far outside
-  the frame, then move in at 0.60–0.72. Their alpha is separate from the human,
+  the frame, then move in at 0.70–0.80. Their alpha is separate from the human,
   so the human can genuinely be drowned.
 - The shader computes colour/opacity/size from five stage weights plus
   `uFlash`, `uWarm`, `uTime` and `uPixelRatio`; the photon ring is a local
   shader boost near radius 0.99. `AdditiveBlending`, `depthWrite:false`,
   `depthTest:false` on the single object; the text sits above it at z-index 2
   with `pointer-events:none`.
-- `src/particle/ParticleCamera.tsx` owns the five moves: slight zoom, orbit,
-  shake + pull-back, rapid dolly out, stop.
+- `src/particle/ParticleCamera.tsx` owns the five moves: zoom out, orbit,
+  shake + pull-back, rapid dolly out, stop. Stage 5 is unchanged.
 
 ### Text and accessibility
 
@@ -158,7 +162,8 @@ site-v2/
       Stage.tsx          old black-hole stage for those frames
       ProgressRail.tsx   right-edge scroll indicator
     particle/
-      targets.ts         human/ball/hole/magnetar/crowd/star target arrays
+      humanCloud.ts      noisy 3D ellipsoid/capsule human clouds (run/ball/stand)
+      targets.ts         run/ball/stand/hole/magnetar/crowd/star target arrays
       ParticleCloud.tsx  the one THREE.Points + shader + morph
       ParticleCamera.tsx five-stage camera move
       ParticleScene.tsx  the fixed Canvas, bloom, background
