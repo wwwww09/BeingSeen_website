@@ -21,6 +21,9 @@ const vertexShader = /* glsl */ `
   uniform float uRipple;
   uniform float uDiskSpeed;
   uniform float uNoise;
+  uniform float uFall;
+  uniform float uTremble;
+  uniform float uCollapse;
 
   attribute float aRole;
   attribute float aWarm;
@@ -100,6 +103,25 @@ float snoise(vec3 v) {
     );
     p += jn * uJitter;
 
+    // Stage 1: gravity drop, floor impact and breathing/trembling.
+    float fall = uFall;
+    p.y -= fall * fall * 0.42;
+    p.y += sin(clamp((fall - 0.55) / 0.45, 0.0, 1.0) * 3.14159) * 0.14;
+    float shakeHead = smoothstep(1.05, 1.28, p.y);
+    float tremble = uTremble;
+    p.x += sin(uTime * 47.0 + aSeed * 17.0) * tremble * (0.004 + shakeHead * 0.012);
+    p.y += cos(uTime * 53.0 + aSeed * 11.0) * tremble * 0.005;
+
+    // Stage 1: outer dust falls away while the chest core spirals in.
+    float collapse = uCollapse;
+    p.y -= collapse * aTrail * 0.3;
+    p.z += collapse * aTrail * 0.2;
+    float coreMask = step(0.5, aRole) * (1.0 - step(1.5, aRole));
+    float coreSpin = collapse * 2.4;
+    float ccos = cos(coreSpin);
+    float csin = sin(coreSpin);
+    p.xz = mix(p.xz, mat2(ccos, -csin, csin, ccos) * p.xz, coreMask);
+
     // Stage 1 -> 2: violent implosion.
     p = mix(p, vec3(0.0, 1.0, 0.0), uImplode);
 
@@ -172,7 +194,7 @@ float snoise(vec3 v) {
         uHole * photon * 0.5;
     }
     alpha += uFlash * (isBeam * 0.9 + 0.12);
-    float visibility = max(0.0, 1.0 - trail * 0.75 - arm * 0.8);
+    float visibility = max(0.0, 1.0 - trail * 0.75 - arm * 0.8 - collapse * aTrail * 0.75);
     vAlpha = alpha * (0.8 + 0.2 * sin(uTime * 2.0 + aSeed * 1.7)) * visibility;
   }
 `
@@ -283,6 +305,9 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
         uRipple: { value: 0 },
         uDiskSpeed: { value: 1 },
         uNoise: { value: 0.018 },
+        uFall: { value: 0 },
+        uTremble: { value: 0 },
+        uCollapse: { value: 0 },
       },
       transparent: true,
       depthWrite: false,
@@ -293,7 +318,8 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
 
   useFrame((state) => {
     const p = THREE.MathUtils.clamp(progress.get(), 0, 1)
-    const e1 = smoothstep(Math.min(1, p / 0.2))
+    const eFall = smoothstep(Math.min(1, Math.max(0, (p - 0.08) / 0.07)))
+    const eCore = smoothstep(Math.min(1, Math.max(0, (p - 0.15) / 0.05)))
     const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.2)))
     const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.4) / 0.2)))
     const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.6) / 0.08)))
@@ -310,10 +336,18 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       let t: number
 
       if (i < HUMAN_COUNT) {
-        if (p < 0.2) {
+        if (p < 0.08) {
           ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
+          bx = ax; by = ay; bz = az
+          t = 0
+        } else if (p < 0.15) {
+          ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
+          bx = targets.sit[o]; by = targets.sit[o + 1]; bz = targets.sit[o + 2]
+          t = eFall
+        } else if (p < 0.2) {
+          ax = targets.sit[o]; ay = targets.sit[o + 1]; az = targets.sit[o + 2]
           bx = targets.ball[o]; by = targets.ball[o + 1]; bz = targets.ball[o + 2]
-          t = e1
+          t = eCore
         } else if (p < 0.4) {
           ax = targets.ball[o]; ay = targets.ball[o + 1]; az = targets.ball[o + 2]
           bx = targets.hole[o]; by = targets.hole[o + 1]; bz = targets.hole[o + 2]
@@ -410,6 +444,18 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uRipple.value = ripple
     material.uniforms.uDiskSpeed.value = diskSpeed
     material.uniforms.uNoise.value = noise
+    const fall =
+      smoothstep(THREE.MathUtils.clamp((p - 0.08) / 0.045, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.14) / 0.03, 0, 1)))
+    const tremble =
+      smoothstep(THREE.MathUtils.clamp((p - 0.1) / 0.04, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.2) / 0.03, 0, 1)))
+    const collapse =
+      smoothstep(THREE.MathUtils.clamp((p - 0.15) / 0.04, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.22) / 0.02, 0, 1)))
+    material.uniforms.uFall.value = fall
+    material.uniforms.uTremble.value = tremble
+    material.uniforms.uCollapse.value = collapse
     material.uniforms.uTime.value = state.clock.elapsedTime
     material.uniforms.uPixelRatio.value = Math.min(2, state.gl.getPixelRatio())
   })

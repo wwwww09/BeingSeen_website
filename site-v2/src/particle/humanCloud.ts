@@ -268,13 +268,48 @@ function ballPoints(count: number): Float32Array {
 
 export interface HumanClouds {
   run: Float32Array
+  sit: Float32Array
   ball: Float32Array
   stand: Float32Array
+}
+
+
+function sitPoints(count: number): Float32Array {
+  const out = new Float32Array(count * 3)
+  for (let i = 0; i < count; i++) {
+    const head = i < 2_000
+    let p: Vec3
+    if (head) {
+      const theta = Math.random() * Math.PI * 2
+      const phi = Math.acos(2 * Math.random() - 1)
+      const r = 0.145 * Math.cbrt(Math.random())
+      p = [
+        0.04 + Math.sin(phi) * Math.cos(theta) * r,
+        1.08 + Math.cos(phi) * r,
+        0.08 + Math.sin(phi) * Math.sin(theta) * r,
+      ]
+    } else {
+      const theta = Math.random() * Math.PI * 2
+      const phi = Math.acos(2 * Math.random() - 1)
+      const r = 0.46 * Math.cbrt(Math.random())
+      p = [
+        Math.sin(phi) * Math.cos(theta) * r,
+        0.6 + Math.cos(phi) * r * 0.85,
+        Math.sin(phi) * Math.sin(theta) * r,
+      ]
+    }
+    const j = jitter(p, head ? 0.03 : 0.055, i * 0.11)
+    out[i * 3] = j[0]
+    out[i * 3 + 1] = j[1]
+    out[i * 3 + 2] = j[2]
+  }
+  return out
 }
 
 export function buildHumanClouds(): HumanClouds {
   const run = leanRun(sampleParts(runParts(), HUMAN_POINTS)[0])
   const stand = sampleParts(standParts(), HUMAN_POINTS)[0]
+  const sit = sitPoints(HUMAN_POINTS)
   const ball = ballPoints(HUMAN_POINTS)
 
   // Soft global drift so the cloud reads as dust, never as a solid skin.
@@ -291,5 +326,5 @@ export function buildHumanClouds(): HumanClouds {
     stand[o + 2] += rz * 0.8
   }
 
-  return { run, ball, stand }
+  return { run, sit, ball, stand }
 }
