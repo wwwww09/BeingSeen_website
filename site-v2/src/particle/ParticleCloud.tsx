@@ -15,22 +15,118 @@ const vertexShader = /* glsl */ `
   uniform float uWarm;
   uniform float uTime;
   uniform float uPixelRatio;
+  uniform float uTear;
+  uniform float uJitter;
+  uniform float uImplode;
+  uniform float uRipple;
+  uniform float uDiskSpeed;
+  uniform float uNoise;
 
   attribute float aRole;
   attribute float aWarm;
   attribute float aSeed;
+  attribute float aTrail;
+  attribute float aArm;
 
   varying vec3 vColor;
   varying float vAlpha;
 
+
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
+
   void main() {
     vec3 p = position;
-    float holeSpin = uTime * 0.35 * uHole;
+    float crowd = step(2.5, aRole);
+
+    // Stage 1: edge particles trail away like sand; the reaching arm dissolves.
+    float trail = aTrail * uTear;
+    p.z -= trail * 1.35;
+    p.x += trail * 0.5 * (0.5 + 0.5 * sin(uTime * 11.0 + aSeed * 4.0));
+    p.y -= trail * 0.16;
+    float arm = aArm * uTear;
+    p += vec3(arm * 0.55, arm * 0.2, arm * 0.35) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
+
+    // Stage 1: high-frequency struggle jitter.
+    vec3 jn = vec3(
+      snoise(p * 8.0 + vec3(0.0, 0.0, uTime * 9.0)),
+      snoise(p * 8.0 + vec3(13.0, 7.0, 5.0) + uTime * 9.0),
+      snoise(p * 8.0 + vec3(4.0, 17.0, 9.0) + uTime * 9.0)
+    );
+    p += jn * uJitter;
+
+    // Stage 1 -> 2: violent implosion.
+    p = mix(p, vec3(0.0, 1.0, 0.0), uImplode);
+
+    // Continuous organic stardust displacement.
+    vec3 bodyNoise = vec3(
+      snoise(p * 1.7 + vec3(0.0, 0.0, uTime * 0.09)),
+      snoise(p * 1.7 + vec3(31.0, 7.0, 11.0) + uTime * 0.09),
+      snoise(p * 1.7 + vec3(4.0, 17.0, 29.0) + uTime * 0.09)
+    );
+    p += bodyNoise * uNoise;
+
+    // Stage 2/3: accretion disk spins faster as the black hole breaks.
+    float holeSpin = uTime * 0.22 * uHole * uDiskSpeed;
     float cs = cos(holeSpin);
     float sn = sin(holeSpin);
     p.xz = mat2(cs, -sn, sn, cs) * p.xz;
+
+    // Stage 4: crowd gravitational-wave ripples.
+    float dist = length(p.xy - vec2(0.0, 1.0));
+    float wave = sin(dist * 10.0 - uTime * 6.0 + aSeed * 2.0);
+    p.z += wave * uRipple * crowd * (0.4 + aSeed * 0.6);
+    p.xy += normalize(p.xy - vec2(0.0, 1.0) + 0.001) * wave * uRipple * 0.12 * crowd;
+
+    // Stage 4 head sway.
     float head = smoothstep(1.4, 1.62, p.y);
     p.x += sin(uTime * 0.9 + 0.4) * 0.03 * head * uHuman;
+
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
 
@@ -76,13 +172,63 @@ const vertexShader = /* glsl */ `
         uHole * photon * 0.5;
     }
     alpha += uFlash * (isBeam * 0.9 + 0.12);
-    vAlpha = alpha * (0.8 + 0.2 * sin(uTime * 2.0 + aSeed * 1.7));
+    float visibility = max(0.0, 1.0 - trail * 0.75 - arm * 0.8);
+    vAlpha = alpha * (0.8 + 0.2 * sin(uTime * 2.0 + aSeed * 1.7)) * visibility;
   }
 `
 
 const fragmentShader = /* glsl */ `
   varying vec3 vColor;
   varying float vAlpha;
+
+
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
 
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
@@ -112,6 +258,8 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     g.setAttribute('aRole', new THREE.BufferAttribute(targets.role, 1))
     g.setAttribute('aWarm', new THREE.BufferAttribute(targets.warm, 1))
     g.setAttribute('aSeed', new THREE.BufferAttribute(targets.seed, 1))
+    g.setAttribute('aTrail', new THREE.BufferAttribute(targets.trail, 1))
+    g.setAttribute('aArm', new THREE.BufferAttribute(targets.arm, 1))
     return g
   }, [position, targets])
 
@@ -129,6 +277,12 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
         uWarm: { value: 0 },
         uTime: { value: 0 },
         uPixelRatio: { value: 1 },
+        uTear: { value: 0.65 },
+        uJitter: { value: 0 },
+        uImplode: { value: 0 },
+        uRipple: { value: 0 },
+        uDiskSpeed: { value: 1 },
+        uNoise: { value: 0.018 },
       },
       transparent: true,
       depthWrite: false,
@@ -235,6 +389,27 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
+    const tear = (1 - smoothstep(THREE.MathUtils.clamp((p - 0.12) / 0.06, 0, 1))) * 0.65
+    const jitter =
+      smoothstep(THREE.MathUtils.clamp((p - 0.06) / 0.06, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.19) / 0.04, 0, 1))) *
+      0.04
+    const implode =
+      smoothstep(THREE.MathUtils.clamp((p - 0.17) / 0.03, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.21) / 0.02, 0, 1))) *
+      0.85
+    const ripple =
+      smoothstep(THREE.MathUtils.clamp((p - 0.62) / 0.06, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.78) / 0.05, 0, 1))) *
+      0.32
+    const diskSpeed = 1 + 3 * smoothstep(THREE.MathUtils.clamp((p - 0.28) / 0.1, 0, 1))
+    const noise = 0.018 * (1 - starW) + 0.006
+    material.uniforms.uTear.value = tear
+    material.uniforms.uJitter.value = jitter
+    material.uniforms.uImplode.value = implode
+    material.uniforms.uRipple.value = ripple
+    material.uniforms.uDiskSpeed.value = diskSpeed
+    material.uniforms.uNoise.value = noise
     material.uniforms.uTime.value = state.clock.elapsedTime
     material.uniforms.uPixelRatio.value = Math.min(2, state.gl.getPixelRatio())
   })

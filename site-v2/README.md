@@ -40,10 +40,10 @@ use the previous shell until their rebuild.
 
 | Scroll | Stage | Particle action | Copy |
 |---|---|---|---|
-| 0.00–0.20 | 01 / The Intrinsic | 3D stardust runner → dense ball; camera eases out | “Sometimes, the deepest parts of us remain unseen, no matter how hard we try to show them.” |
-| 0.20–0.40 | 02 / The Collapse | ball spirals into a dark core + rotating accretion/photon ring; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
+| 0.00–0.20 | 01 / The Intrinsic | 3D stardust runner with trailing edge particles and a dissolving arm → jittering dense ball; implosion; camera eases out | “Sometimes, the deepest parts of us remain unseen, no matter how hard we try to show them.” |
+| 0.20–0.40 | 02 / The Collapse | implosion → absolute black core + extremely flat rotating accretion/photon disk; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
 | 0.40–0.60 | 03 / The Flash | ring → blue magnetar + two polar beams; flash; camera shake, pull back | “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes blink, we miss them forever.” |
-| 0.60–0.80 | 04 / The Extrinsic | magnetar → standing human; crowd rushes in at 0.70; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
+| 0.60–0.80 | 04 / The Extrinsic | magnetar → standing human; crowd rushes in at 0.70 with GW ripples; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
 | 0.80–1.00 | 05 / The Universe | 40,000 particles → cold star map; camera stops | “We are made of stardust, yet we share the same blindness as the cosmos.” |
 
 All body copy is the brief’s text, verbatim. Extra text is limited to the stage

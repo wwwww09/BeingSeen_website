@@ -162,7 +162,7 @@ export function HomePage() {
             cosmos.”
           </p>
           <Link className="film__science-link" to="/science">
-            Explore the Science <span aria-hidden="true">↗</span>
+            Explore the Science <span aria-hidden="true">↘</span>
           </Link>
         </FilmText>
 

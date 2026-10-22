@@ -15,6 +15,8 @@ export interface ParticleTargets {
   role: Float32Array
   warm: Float32Array
   seed: Float32Array
+  trail: Float32Array
+  arm: Float32Array
 }
 
 const ROLE_RING = 0
@@ -54,8 +56,8 @@ function crowdNear(): [number, number, number] {
 function holePoint(role: number): [number, number, number] {
   if (role === ROLE_CORE) return spherePoint([0, 1, 0], 0.17)
   const angle = Math.random() * Math.PI * 2
-  const radius = 0.96 + Math.random() * 0.1
-  const tilt = 0.46
+  const radius = 0.86 + Math.random() * 0.44
+  const tilt = 0.1
   const u = Math.cos(angle) * radius
   const v = Math.sin(angle) * radius
   return [u, 1 + v * Math.sin(tilt), v * Math.cos(tilt)]
@@ -89,6 +91,8 @@ export function buildTargets(): ParticleTargets {
   const role = new Float32Array(TOTAL)
   const warm = new Float32Array(TOTAL)
   const seed = new Float32Array(TOTAL)
+  const trail = new Float32Array(TOTAL)
+  const arm = new Float32Array(TOTAL)
 
   const clouds = buildHumanClouds()
 
@@ -97,8 +101,12 @@ export function buildTargets(): ParticleTargets {
     role[i] = r
     warm[i] = Math.random()
     seed[i] = Math.random() * Math.PI * 2
-
     const o = i * 3
+
+    const runX = clouds.run[o]
+    const runY = clouds.run[o + 1]
+    trail[i] = Math.min(1, Math.max(0, (Math.abs(runX) - 0.13) / 0.4))
+    arm[i] = runX > 0.24 && runY > 1.15 ? 1 : 0
     writePoint(run, i, clouds.run[o], clouds.run[o + 1], clouds.run[o + 2])
     writePoint(ball, i, clouds.ball[o], clouds.ball[o + 1], clouds.ball[o + 2])
     writePoint(stand, i, clouds.stand[o], clouds.stand[o + 1], clouds.stand[o + 2])
@@ -117,6 +125,8 @@ export function buildTargets(): ParticleTargets {
     role[i] = ROLE_CROWD
     warm[i] = Math.random()
     seed[i] = Math.random() * Math.PI * 2
+    trail[i] = 0
+    arm[i] = 0
 
     const far = crowdFar()
     for (const target of [run, ball, stand, hole, magnetar]) {
@@ -128,5 +138,5 @@ export function buildTargets(): ParticleTargets {
     writePoint(star, i, s[0], s[1], s[2])
   }
 
-  return { run, ball, stand, hole, magnetar, crowd, star, role, warm, seed }
+  return { run, ball, stand, hole, magnetar, crowd, star, role, warm, seed, trail, arm }
 }
