@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import type { MotionValue } from 'framer-motion'
 import { useWebGL } from '../lib/useWebGL'
 import { Scene } from '../scene/Scene'
-import type { TextSide } from '../scene/LensCore'
+import type { LensKey } from '../lib/lensPath'
 
 /**
  * One fixed, full-viewport WebGL canvas behind the whole document.
@@ -14,10 +14,10 @@ import type { TextSide } from '../scene/LensCore'
  */
 export function Stage({
   progress,
-  textSide,
+  lensKeys,
 }: {
   progress: MotionValue<number>
-  textSide: TextSide
+  lensKeys: LensKey[]
 }) {
   const webgl = useWebGL()
 
@@ -33,7 +33,7 @@ export function Stage({
         camera={{ fov: 42, near: 0.1, far: 80, position: [0, 0, 10] }}
       >
         <Suspense fallback={null}>
-          <Scene progress={progress} textSide={textSide} />
+          <Scene progress={progress} lensKeys={lensKeys} />
         </Suspense>
       </Canvas>
     </div>

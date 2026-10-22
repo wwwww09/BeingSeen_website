@@ -1,9 +1,15 @@
 /**
- * Skeleton content.
+ * The scroll chapters, mapped one-to-one onto the five parts of the brief:
  *
- * These are deliberately thin placeholders: the point of this pass is the shell
- * (fixed WebGL stage + scroll drive + motion), not the science writing. The real
- * chapters will replace this file once the shell is approved.
+ *   hero        Home
+ *   01          Lensing & Supernovae
+ *   02          Lensing & Fast Radio Bursts
+ *   03          Gravitational Wave Lensing
+ *   04          Being Seen
+ *
+ * The four question titles and the key paragraphs below are the brief's copy.
+ * The supporting prose around them is new, and the numbers and charts will be
+ * generated from the raw catalogues in the next pass.
  */
 export interface Chapter {
   id: string
@@ -11,39 +17,42 @@ export interface Chapter {
   kicker: string
   title: string
   body: string
+  /** Optional build-status note shown under the paragraph. */
+  note?: string
 }
 
 export const chapters: Chapter[] = [
   {
-    id: 'bend',
+    id: 'supernovae',
     index: '01',
-    kicker: 'The bend',
-    title: 'Gravity has no light of its own.',
+    kicker: 'Supernovae',
+    title: 'Can Lensing Make Distant Supernovae Visible?',
     body:
-      'It has geometry. When a beam of light passes close enough to a massive thing, the straight line it was travelling stops being straight. This chapter will show what that bend does to what we can see.',
+      'Without gravitational lensing, none of the five known lensed supernovae in this sample could be detected by ZTF. With lensing, two became visible.',
   },
   {
-    id: 'delay',
+    id: 'fast-radio-bursts',
     index: '02',
-    kicker: 'The delay',
-    title: 'Two paths. One source.',
+    kicker: 'Fast radio bursts',
+    title: 'Can Lensing \u2018Copy\u2019 FRB Signals?',
     body:
-      'A bent beam can arrive by more than one road. The longer road is not brighter and it is not a different object; it is the same light, late. The gap between the arrivals is a measurable thing.',
+      'When a fast radio burst passes near a massive galaxy, its path is bent. Some light takes a longer route, arriving later. We searched for such time-delayed pairs in the CHIME/FRB Catalog.',
   },
   {
-    id: 'mass',
+    id: 'gravitational-waves',
     index: '03',
-    kicker: 'The mass',
-    title: 'A lens edits the signal.',
+    kicker: 'Gravitational waves',
+    title: 'Can GW Lensing Correct Black Hole Masses?',
     body:
-      'Whatever a lens adds to a signal, it also adds to the number we infer from that signal. For a black-hole merger, that number is a mass. Take the lens away and the number changes.',
+      'Two events in GWTC-5.0 fall into the pair-instability mass gap — a range where stellar evolution theory says black holes should not exist. If their signals were magnified by lensing, their true masses would fall back into the normal range.',
   },
   {
-    id: 'witness',
+    id: 'being-seen',
     index: '04',
-    kicker: 'The witness',
-    title: 'The last chapter is a place.',
+    kicker: 'Being Seen',
+    title: 'Being Seen',
     body:
-      'Not a chart. A field of unlit points, and a box for something you might want to leave there. That part comes after the shell, when the story has something to hand over.',
+      'Every dim star here represents an object in the universe that has not yet been fully seen. You can also leave an anonymous story — about a moment in your life when you felt unseen. Your story will not be tied to any identity; it will simply become the light of that star.',
+    note: 'The star field and the story form arrive in the next pass.',
   },
 ]

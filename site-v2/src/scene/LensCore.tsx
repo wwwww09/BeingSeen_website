@@ -1,177 +1,165 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import type { MotionValue } from 'framer-motion'
 import * as THREE from 'three'
-import { getDotTexture } from './dotTexture'
+import { getDiskTexture } from './diskTexture'
+import { LENS_X, sampleLensPath, type LensKey } from '../lib/lensPath'
 
 const EMBER = '#ff5c35'
 const IVORY = '#efe9dd'
-const COLD = '#8fb7ff'
-
-const ORBIT_COUNT = 900
-
-/** Which half of the screen the text currently occupies. */
-export type TextSide = 'left' | 'right'
 
 /**
- * The visual anchor: a dark body, a hot rim, and two thin rings — a lens seen
- * edge-on. It drifts slowly and grows slightly as the page is read.
+ * A black hole, read as a black hole:
+ *
+ *   - an event horizon with no diffuse shading and no specular highlight
+ *   - a thin photon ring around the shadow
+ *   - a tilted, glowing accretion disk whose far side is occluded by the body
+ *
+ * The whole assembly glides continuously between the two halves of the screen
+ * along the scroll-derived path in lib/lensPath; there is no side switch.
  */
 export function LensCore({
   progress,
   reduced,
-  textSide,
+  lensKeys,
 }: {
   progress: MotionValue<number>
   reduced: boolean
-  textSide: TextSide
+  lensKeys: LensKey[]
 }) {
   const group = useRef<THREE.Group>(null)
-  const rings = useRef<THREE.Group>(null)
-  const orbits = useRef<THREE.Group>(null)
+  const diskSpin = useRef<THREE.Group>(null)
+  const haloSpin = useRef<THREE.Group>(null)
 
-  // On a wide screen the body sits opposite the column of text; on a phone it
-  // shrinks and lifts above the title so the type keeps a dark field behind it.
   const width = useThree((state) => state.size.width)
   const compact = width < 900
-  const lift = compact ? 1.35 : 0
-  const baseScale = compact ? 0.74 : 1
-  const restingX = textSide === 'left' ? 1.55 : -1.55
-
-  const { positions, colors } = useMemo(() => {
-    const positions = new Float32Array(ORBIT_COUNT * 3)
-    const colors = new Float32Array(ORBIT_COUNT * 3)
-    const color = new THREE.Color()
-
-    const palette = [EMBER, IVORY, COLD, IVORY, EMBER]
-
-    for (let i = 0; i < ORBIT_COUNT; i++) {
-      const radius = 2.2 + Math.pow(Math.random(), 1.7) * 3.4
-      const angle = Math.random() * Math.PI * 2
-      const thickness = (Math.random() - 0.5) * (0.18 + Math.random() * 0.35)
-
-      positions[i * 3] = Math.cos(angle) * radius
-      positions[i * 3 + 1] = thickness
-      positions[i * 3 + 2] = Math.sin(angle) * radius
-
-      color
-        .set(palette[Math.floor(Math.random() * palette.length)])
-        .multiplyScalar(0.4 + Math.random() * 0.45)
-
-      colors[i * 3] = color.r
-      colors[i * 3 + 1] = color.g
-      colors[i * 3 + 2] = color.b
-    }
-
-    return { positions, colors }
-  }, [])
+  const lift = compact ? 2.4 : 0
+  const baseScale = compact ? 0.56 : 0.86
+  const initialX = compact ? 0 : (lensKeys[0]?.x ?? LENS_X)
 
   useFrame((_, delta) => {
     const d = Math.min(delta, 0.1)
     const p = THREE.MathUtils.clamp(progress.get(), 0, 1)
 
     if (group.current) {
-      if (!reduced) group.current.rotation.y += d * 0.05
-      const targetScale = baseScale * (1 + p * 0.16)
-      const scale = THREE.MathUtils.damp(group.current.scale.x, targetScale, 3, d)
-      group.current.scale.setScalar(scale)
+      const targetScale = baseScale * (1 + p * 0.14)
+      group.current.scale.setScalar(
+        THREE.MathUtils.damp(group.current.scale.x, targetScale, 2.4, d),
+      )
 
-      const targetX = compact ? 0 : restingX
+      const targetX = compact ? 0 : sampleLensPath(lensKeys, p)
       group.current.position.x = THREE.MathUtils.damp(
         group.current.position.x,
         targetX,
-        2.4,
+        1.9,
         d,
       )
     }
 
-    if (!reduced && rings.current) {
-      rings.current.rotation.z += d * 0.018
-      rings.current.rotation.x = Math.PI / 2.2 + p * 0.14
+    if (!reduced && diskSpin.current) {
+      diskSpin.current.rotation.z += d * 0.035
     }
 
-    if (!reduced && orbits.current) {
-      orbits.current.rotation.y += d * 0.03
+    if (!reduced && haloSpin.current) {
+      haloSpin.current.rotation.z -= d * 0.012
     }
   })
 
   return (
-    <group ref={group} position={[compact ? 0 : restingX, lift, 0]}>
-      {/* The body: almost black, with a thin hot shell just outside it. */}
+    <group ref={group} position={[initialX, lift, 0]}>
+      {/* Event horizon. Basic material on purpose: no light means no highlight. */}
       <mesh>
-        <sphereGeometry args={[1.06, 48, 48]} />
-        <meshStandardMaterial color="#0a0b0f" roughness={0.32} metalness={0.78} />
+        <sphereGeometry args={[1.02, 64, 64]} />
+        <meshBasicMaterial color="#010103" toneMapped={false} />
       </mesh>
-      <mesh scale={1.035}>
-        <sphereGeometry args={[1.06, 32, 32]} />
+
+      {/* A faint hot halo just outside the shadow. */}
+      <mesh scale={1.06}>
+        <sphereGeometry args={[1.02, 32, 32]} />
         <meshBasicMaterial
           color={EMBER}
           transparent
-          opacity={0.06}
+          opacity={0.055}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-      <mesh scale={1.45}>
-        <sphereGeometry args={[1.06, 24, 24]} />
+      <mesh scale={1.5}>
+        <sphereGeometry args={[1.02, 24, 24]} />
         <meshBasicMaterial
           color={EMBER}
           transparent
-          opacity={0.025}
+          opacity={0.018}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
 
-      <group ref={rings}>
-        <mesh rotation={[Math.PI / 2.2, 0.12, 0]}>
-          <torusGeometry args={[1.86, 0.008, 8, 240]} />
+      {/* Photon ring: a thin, nearly white circle around the shadow. */}
+      <mesh>
+        <torusGeometry args={[1.24, 0.009, 8, 256]} />
+        <meshBasicMaterial color={IVORY} toneMapped={false} transparent opacity={0.95} />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[1.29, 0.036, 8, 256]} />
+        <meshBasicMaterial
+          color={EMBER}
+          transparent
+          opacity={0.16}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Accretion disk: a tilted glowing annulus. The body occludes its far side. */}
+      <group ref={diskSpin} rotation={[Math.PI / 2 + 0.4, 0.06, 0.08]}>
+        <mesh>
+          <ringGeometry args={[1.05, 4.4, 160, 1]} />
           <meshBasicMaterial
-            color={EMBER}
+            map={getDiskTexture()}
             transparent
-            opacity={0.9}
-            toneMapped={false}
-          />
-        </mesh>
-        <mesh rotation={[Math.PI / 2.7, -0.32, 0.38]}>
-          <torusGeometry args={[2.38, 0.004, 8, 240]} />
-          <meshBasicMaterial
-            color={IVORY}
-            transparent
-            opacity={0.26}
+            opacity={0.88}
+            side={THREE.DoubleSide}
             depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-        <mesh rotation={[Math.PI / 2.15, 0.5, 1.15]}>
-          <torusGeometry args={[2.06, 0.013, 8, 180, Math.PI * 1.22]} />
-          <meshBasicMaterial
-            color={EMBER}
-            transparent
-            opacity={0.55}
-            depthWrite={false}
+            blending={THREE.AdditiveBlending}
             toneMapped={false}
           />
         </mesh>
       </group>
 
-      <group ref={orbits}>
-        <points>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-            <bufferAttribute attach="attributes-color" args={[colors, 3]} />
-          </bufferGeometry>
-          <pointsMaterial
-            size={0.036}
-            sizeAttenuation
-            vertexColors
-            map={getDotTexture()}
+      {/*
+        A circular mask at the photon-ring radius. The disk is optically thin and
+        passes in front of the shadow; without this the dark region reads as a
+        helmet rather than a sphere. The mask is drawn after the disk with depth
+        testing off, so the shadow stays a clean circle from every angle.
+      */}
+      <mesh renderOrder={10}>
+        <sphereGeometry args={[1.14, 64, 64]} />
+        <meshBasicMaterial
+          color="#010103"
+          transparent
+          opacity={1}
+          depthTest={false}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* A second, wider and fainter sheet for volume. */}
+      <group ref={haloSpin} rotation={[Math.PI / 2 - 0.52, -0.18, -0.22]}>
+        <mesh>
+          <ringGeometry args={[1.2, 3.9, 128, 1]} />
+          <meshBasicMaterial
+            map={getDiskTexture()}
             transparent
-            opacity={0.82}
+            opacity={0.12}
+            side={THREE.DoubleSide}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
+            toneMapped={false}
           />
-        </points>
+        </mesh>
       </group>
     </group>
   )

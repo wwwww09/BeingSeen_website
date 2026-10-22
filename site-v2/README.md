@@ -10,19 +10,41 @@ The shell is a full-screen WebGL stage with a scroll-driven story on top of it:
 - **Framer Motion** — scroll progress, viewport reveals, reduced-motion handling
 - **Supabase JS** — installed now, wired up in the guestbook pass
 
-## Status — skeleton 0.1
+## Status — black-hole stage, chapters mapped to the brief (0.2)
 
-This pass establishes the shell only:
+The shell now has a subject and a continuous choreography:
 
-- fixed full-viewport R3F canvas (starfield + lens body + orbit particles)
-- `useScroll` → camera dolly, lens scale, hairline progress
-- Framer Motion chapter reveals and hero fade
+- a fixed full-viewport black hole: event horizon, photon ring, tilted
+  accretion disk, and a starfield
+- the lens follows a **continuous path** built from the measured centre of each
+  section — it glides across the screen between chapters, with no side switch
+- `useScroll` → camera dolly; a slow free camera orbit keeps the frame alive
+- Framer Motion chapter reveals, hero fade, hairline progress
 - responsive, frameless editorial layout (no cards, no panels)
 - graceful fallback when WebGL is unavailable
 - `prefers-reduced-motion` honoured by both CSS and the scene
 
-The science copy, charts, and guestbook are deliberately **not** written yet.
-The four chapters in `src/content.ts` are placeholders.
+The four chapters now carry the brief's question titles and key paragraphs.
+Charts, data files, and the guestbook interaction are the next pass.
+
+## Chapter mapping
+
+| Scroll | Brief |
+|---|---|
+| hero | Home |
+| 01 Supernovae | Lensing & Supernovae |
+| 02 Fast radio bursts | Lensing & Fast Radio Bursts |
+| 03 Gravitational waves | Gravitational Wave Lensing |
+| 04 Being Seen | Being Seen |
+
+## Science note for the next pass
+
+The brief's FRB conclusion (two clean candidates) does not survive checking
+against the CHIME catalogue: the two flagged pairs differ in DM by 75.8 and
+739.5 pc cm⁻³, not 0.0 and 5.2. The chapter will keep the brief's question and
+structure but present the reproducible null result. The SNe claim will use the
+countable 0/5 → 2/5 comparison rather than an "order of magnitude" multiplier,
+which cannot be computed from zero. The GW chart will use `m_obs = m_true·√μ`.
 
 ## Run
 
@@ -51,13 +73,16 @@ If `node` / `pnpm` are not on `PATH`:
 NODE_BIN=/path/to/node PNPM_BIN=/path/to/pnpm.mjs ./run.sh install
 ```
 
-### Skeleton verification (this pass)
+### Verification (this pass)
 
 - install resolved 120 packages with no peer warnings
 - `tsc --noEmit` clean
-- `vite build` clean: initial chunk **118.9 kB gzip**, lazy 3D chunk **243.5 kB gzip**
+- `vite build` clean: initial chunk **119.5 kB gzip**, lazy 3D chunk **243.6 kB gzip**
 - headless Chrome: 1 canvas on the hero, no console errors, no horizontal
   overflow at 390 px, all four chapters reveal on scroll
+- two frames captured mid-glide show the lens between the two halves of the
+  screen, confirming the path is continuous
+- WebGL-disabled and reduced-motion checks pass
 - production `vite preview` re-checked through the same pass
 
 Versions: React 19.3.1 · React Three Fiber 9.8.2 · three 0.186.1 ·
@@ -92,7 +117,7 @@ site-v2/
     scene/
       Scene.tsx          fog, lights, composition
       Starfield.tsx      distant star shell
-      LensCore.tsx       body, rings, orbital particles
+      LensCore.tsx       event horizon, photon ring, accretion disk
       dotTexture.ts      soft round point sprite, generated at runtime
       CameraRig.tsx      scroll-driven camera
     lib/
