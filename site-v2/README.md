@@ -51,7 +51,7 @@ What is deliberately still a frame:
 `/figure-preview` is an unlisted route for judging the human figure before the
 five-act homepage is built on top of it.
 
-- A **real, skinned 3D human surface** sampled into about 120,000 star points.
+- A **real, skinned 3D human surface** sampled into about 160,000 star points.
   The source mesh is hidden; only the point cloud is rendered. This is not a
   capsule approximation and not a flat silhouette.
 - The body is the CC0 **Quaternius Superhero Male** base (`public/models/human.glb`,
@@ -64,6 +64,9 @@ five-act homepage is built on top of it.
   at the camera (one knee toward the viewer, arms counter-swinging), then a
   seated slump as the camera pulls back. The star points use a lavender / ivory
   / ember palette with bloom.
+- The chest no longer uses the hollow black-hole placeholder: a small warm star
+  cluster fills it. A later pass can reintroduce the black hole as an accretion
+  effect rather than an empty ring.
 - The shot: run at the screen (0–0.45), camera pulls back (0.45–0.72), the
   figure sits (0.55–1), and the black hole grows in the chest (0.72–1).
 - Controls: sequence slider, Run / Sit, Play sequence, Stop. Query helpers:
@@ -183,7 +186,7 @@ site-v2/
       ProgressRail.tsx   right-edge scroll indicator
     figure/
       pose.ts             frontal run + seated slump target joints
-      HumanFigure.tsx     skinned human surface -> ~120k star points
+      HumanFigure.tsx     skinned human surface -> ~160k star points
       FigureScene.tsx     camera pullback, dust, bloom
     public/models/
       human.glb           CC0 Quaternius human, geometry + skin only

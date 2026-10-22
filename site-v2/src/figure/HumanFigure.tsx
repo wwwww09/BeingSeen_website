@@ -14,8 +14,8 @@ import {
 } from './pose'
 
 const MODEL_URL = '/models/human.glb'
-const TARGET_POINTS = 120_000
-const STAR_COLORS = ['#6f8dff', '#8fa7ff', '#c9d6ff', '#efe9df', '#d8c4ff', '#ffc9e0', '#ffcf9a']
+const SURFACE_POINTS = 120_000
+const STAR_COLORS = ['#6f8dff', '#8fa7ff', '#c9d6ff', '#efe9df', '#d8c4ff', '#ffc9e0', '#ffd7a3']
 
 const BONE_NAMES = [
   'pelvis',
@@ -47,6 +47,7 @@ type BoneName = (typeof BONE_NAMES)[number]
 interface MeshSurface {
   mesh: THREE.SkinnedMesh
   position: THREE.BufferAttribute
+  normal: THREE.BufferAttribute | null
   skinIndex: THREE.BufferAttribute
   skinWeight: THREE.BufferAttribute
   index: THREE.BufferAttribute | null
@@ -55,11 +56,19 @@ interface MeshSurface {
   area: number
 }
 
-function tokenColor(): THREE.Color {
+interface PointBuffers {
+  position: Float32Array
+  skinIndex: Float32Array
+  skinWeight: Float32Array
+  color: Float32Array
+  size: Float32Array
+  phase: Float32Array
+  cursor: number
+}
+
+function starColor(brightness: number): THREE.Color {
   const color = new THREE.Color(STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)])
-  // A few brighter points so the bloom catches highlights.
-  const boost = Math.random() < 0.08 ? 1.25 : 0.45 + Math.random() * 0.35
-  return color.multiplyScalar(boost)
+  return color.multiplyScalar(brightness)
 }
 
 function buildSurfaceData(scene: THREE.Object3D): MeshSurface[] {
@@ -73,6 +82,7 @@ function buildSurfaceData(scene: THREE.Object3D): MeshSurface[] {
   meshes.forEach((mesh) => {
     const geometry = mesh.geometry as THREE.BufferGeometry
     const position = geometry.getAttribute('position') as THREE.BufferAttribute
+    const normal = geometry.getAttribute('normal') as THREE.BufferAttribute | null
     const skinIndex = geometry.getAttribute('skinIndex') as THREE.BufferAttribute
     const skinWeight = geometry.getAttribute('skinWeight') as THREE.BufferAttribute
     if (!position || !skinIndex || !skinWeight) return
@@ -100,36 +110,87 @@ function buildSurfaceData(scene: THREE.Object3D): MeshSurface[] {
       cumulative[t] = total
     }
 
-    if (total > 0) surfaces.push({ mesh, position, skinIndex, skinWeight, index, triangles, cumulative, area: total })
+    if (total > 0) {
+      surfaces.push({ mesh, position, normal, skinIndex, skinWeight, index, triangles, cumulative, area: total })
+    }
   })
 
   return surfaces
+}
+
+function writePoint(
+  buffers: PointBuffers,
+  point: THREE.Vector3,
+  skinIndex: THREE.BufferAttribute,
+  skinWeight: THREE.BufferAttribute,
+  dominant: number,
+  color: THREE.Color,
+  size: number,
+  phase: number,
+) {
+  const i = buffers.cursor
+  if (i * 3 >= buffers.position.length) return
+  const p = i * 3
+  const s = i * 4
+  buffers.position[p] = point.x
+  buffers.position[p + 1] = point.y
+  buffers.position[p + 2] = point.z
+
+  let sum = 0
+  const w = [0, 0, 0, 0]
+  for (let k = 0; k < 4; k++) {
+    const value = skinWeight.getComponent(dominant, k)
+    w[k] = value
+    sum += value
+  }
+  if (sum < 0.0001) {
+    w[0] = 1
+    sum = 1
+  }
+  for (let k = 0; k < 4; k++) {
+    buffers.skinIndex[s + k] = skinIndex.getComponent(dominant, k)
+    buffers.skinWeight[s + k] = w[k] / sum
+  }
+
+  buffers.color[p] = color.r
+  buffers.color[p + 1] = color.g
+  buffers.color[p + 2] = color.b
+  buffers.size[i] = size
+  buffers.phase[i] = phase
+  buffers.cursor++
 }
 
 function buildPointGeometry(scene: THREE.Object3D): THREE.BufferGeometry {
   const surfaces = buildSurfaceData(scene)
   const totalArea = surfaces.reduce((sum, surface) => sum + surface.area, 0)
   const counts = surfaces.map((surface) =>
-    Math.max(1_500, Math.round((TARGET_POINTS * surface.area) / Math.max(totalArea, 0.0001))),
+    Math.max(1_500, Math.round((SURFACE_POINTS * surface.area) / Math.max(totalArea, 0.0001))),
   )
-  const total = counts.reduce((sum, count) => sum + count, 0)
+  const maxPoints = Math.ceil(SURFACE_POINTS * 1.65) + 4000
 
-  const positions = new Float32Array(total * 3)
-  const skins = new Float32Array(total * 4)
-  const weights = new Float32Array(total * 4)
-  const colors = new Float32Array(total * 3)
-  const sizes = new Float32Array(total)
-  const phases = new Float32Array(total)
+  const buffers: PointBuffers = {
+    position: new Float32Array(maxPoints * 3),
+    skinIndex: new Float32Array(maxPoints * 4),
+    skinWeight: new Float32Array(maxPoints * 4),
+    color: new Float32Array(maxPoints * 3),
+    size: new Float32Array(maxPoints),
+    phase: new Float32Array(maxPoints),
+    cursor: 0,
+  }
 
-  let cursor = 0
   const a = new THREE.Vector3()
   const b = new THREE.Vector3()
   const c = new THREE.Vector3()
+  const na = new THREE.Vector3()
+  const nb = new THREE.Vector3()
+  const nc = new THREE.Vector3()
   const point = new THREE.Vector3()
+  const normal = new THREE.Vector3()
+  const scatter = new THREE.Vector3()
 
   surfaces.forEach((surface, surfaceIndex) => {
     const count = counts[surfaceIndex]
-    const { position, skinIndex, skinWeight, index, triangles, cumulative, area, mesh } = surface
+    const { position, normal: normalAttr, skinIndex, skinWeight, index, triangles, cumulative, area, mesh } = surface
 
     for (let i = 0; i < count; i++) {
       const target = Math.random() * area
@@ -165,52 +226,134 @@ function buildPointGeometry(scene: THREE.Object3D): THREE.BufferGeometry {
       )
       point.applyMatrix4(mesh.bindMatrix)
 
+      if (normalAttr) {
+        na.fromBufferAttribute(normalAttr, ia)
+        nb.fromBufferAttribute(normalAttr, ib)
+        nc.fromBufferAttribute(normalAttr, ic)
+        normal.set(
+          na.x * w0 + nb.x * w1 + nc.x * w2,
+          na.y * w0 + nb.y * w1 + nc.y * w2,
+          na.z * w0 + nb.z * w1 + nc.z * w2,
+        )
+        if (normal.lengthSq() > 0.000001) normal.normalize()
+        else normal.set(0, 1, 0)
+      } else {
+        normal.set(0, 1, 0)
+      }
+
       const dominant = w0 >= w1 && w0 >= w2 ? ia : w1 >= w2 ? ib : ic
-      let sum = 0
-      const w = [0, 0, 0, 0]
-      for (let k = 0; k < 4; k++) {
-        const weight = skinWeight.getComponent(dominant, k)
-        w[k] = weight
-        sum += weight
-      }
-      if (sum < 0.0001) {
-        w[0] = 1
-        sum = 1
+      const phase = Math.random() * Math.PI * 2
+      const bright = Math.random() < 0.05
+      writePoint(
+        buffers,
+        point,
+        skinIndex,
+        skinWeight,
+        dominant,
+        starColor(bright ? 0.9 : 0.36 + Math.random() * 0.24),
+        bright ? 0.02 + Math.random() * 0.014 : 0.007 + Math.random() * 0.007,
+        phase,
+      )
+
+      // A few little clusters make the surface read as gathered starlight
+      // rather than an even mist.
+      if (Math.random() < 0.07) {
+        const clusterCount = 2 + Math.floor(Math.random() * 3)
+        for (let k = 0; k < clusterCount; k++) {
+          const clusterPoint = point.clone().add(
+            new THREE.Vector3(
+              (Math.random() - 0.5) * 0.02,
+              (Math.random() - 0.5) * 0.02,
+              (Math.random() - 0.5) * 0.02,
+            ),
+          )
+          writePoint(
+            buffers,
+            clusterPoint,
+            skinIndex,
+            skinWeight,
+            dominant,
+            starColor(0.48 + Math.random() * 0.26),
+            0.011 + Math.random() * 0.012,
+            Math.random() * Math.PI * 2,
+          )
+        }
       }
 
-      const p = cursor * 3
-      const s = cursor * 4
-      positions[p] = point.x
-      positions[p + 1] = point.y
-      positions[p + 2] = point.z
-      for (let k = 0; k < 4; k++) {
-        skins[s + k] = skinIndex.getComponent(dominant, k)
-        weights[s + k] = w[k] / sum
+      // A sparse inner layer gives the body a soft volume instead of a shell.
+      if (Math.random() < 0.14) {
+        scatter.copy(normal).multiplyScalar(-(0.008 + Math.random() * 0.03))
+        const inner = point.clone().add(scatter)
+        writePoint(
+          buffers,
+          inner,
+          skinIndex,
+          skinWeight,
+          dominant,
+          starColor(0.24 + Math.random() * 0.2),
+          0.005 + Math.random() * 0.005,
+          Math.random() * Math.PI * 2,
+        )
       }
 
-      const color = tokenColor()
-      colors[p] = color.r
-      colors[p + 1] = color.g
-      colors[p + 2] = color.b
-
-      const halo = Math.random() < 0.06
-      sizes[cursor] = halo ? 0.018 + Math.random() * 0.012 : 0.005 + Math.random() * 0.005
-      phases[cursor] = Math.random() * Math.PI * 2
-      cursor++
+      // A few stars drift just off the surface, like the body is gathering light.
+      if (Math.random() < 0.06) {
+        scatter
+          .copy(normal)
+          .multiplyScalar(0.012 + Math.random() * 0.035)
+          .add(
+            new THREE.Vector3(
+              (Math.random() - 0.5) * 0.025,
+              (Math.random() - 0.5) * 0.025,
+              (Math.random() - 0.5) * 0.025,
+            ),
+          )
+        const halo = point.clone().add(scatter)
+        writePoint(
+          buffers,
+          halo,
+          skinIndex,
+          skinWeight,
+          dominant,
+          starColor(0.32 + Math.random() * 0.26),
+          0.016 + Math.random() * 0.016,
+          Math.random() * Math.PI * 2,
+        )
+      }
     }
   })
 
+  const count = buffers.cursor
   const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  geometry.setAttribute('skinIndex', new THREE.BufferAttribute(skins, 4))
-  geometry.setAttribute('skinWeight', new THREE.BufferAttribute(weights, 4))
-  geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3))
-  geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
-  geometry.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1))
+  geometry.setAttribute('position', new THREE.BufferAttribute(buffers.position.slice(0, count * 3), 3))
+  geometry.setAttribute('skinIndex', new THREE.BufferAttribute(buffers.skinIndex.slice(0, count * 4), 4))
+  geometry.setAttribute('skinWeight', new THREE.BufferAttribute(buffers.skinWeight.slice(0, count * 4), 4))
+  geometry.setAttribute('aColor', new THREE.BufferAttribute(buffers.color.slice(0, count * 3), 3))
+  geometry.setAttribute('aSize', new THREE.BufferAttribute(buffers.size.slice(0, count), 1))
+  geometry.setAttribute('aPhase', new THREE.BufferAttribute(buffers.phase.slice(0, count), 1))
   geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 1, 0), 3)
 
   return geometry
 }
+
+const starFragment = /* glsl */ `
+  varying vec3 vColor;
+  varying float vAlpha;
+
+  void main() {
+    vec2 p = gl_PointCoord - 0.5;
+    float r = length(p);
+    if (r > 0.5) discard;
+
+    float core = smoothstep(0.14, 0.0, r);
+    float halo = smoothstep(0.5, 0.08, r) * 0.18;
+    float spikeX = exp(-abs(p.x) * 42.0) * exp(-abs(p.y) * 7.0);
+    float spikeY = exp(-abs(p.y) * 42.0) * exp(-abs(p.x) * 7.0);
+    float alpha = core + (spikeX + spikeY) * 0.42 + halo;
+
+    gl_FragColor = vec4(vColor, alpha * vAlpha);
+  }
+`
 
 const vertexShader = /* glsl */ `
   uniform sampler2D boneTexture;
@@ -249,28 +392,95 @@ const vertexShader = /* glsl */ `
     skinned += boneMatZ * vec4(position, 1.0) * skinWeight.z;
     skinned += boneMatW * vec4(position, 1.0) * skinWeight.w;
 
+    // A very small drift keeps the cloud alive without losing the body.
+    skinned.xyz += vec3(
+      sin(uTime * 0.8 + aPhase),
+      cos(uTime * 0.6 + aPhase * 1.3),
+      sin(uTime * 0.7 + aPhase * 0.8)
+    ) * 0.004;
+
     vec4 mvPosition = modelViewMatrix * skinned;
     gl_Position = projectionMatrix * mvPosition;
     gl_PointSize = aSize * (760.0 / max(1.0, -mvPosition.z)) * uPixelRatio;
 
+    float twinkle = 0.5 + 0.5 * sin(uTime * 2.0 + aPhase * 3.0);
     vColor = aColor;
-    vAlpha = 0.7 + 0.3 * sin(uTime * 1.5 + aPhase);
+    vAlpha = 0.3 + 0.56 * twinkle;
   }
 `
 
-const fragmentShader = /* glsl */ `
+const heartVertexShader = /* glsl */ `
+  uniform float uTime;
+  uniform float uPixelRatio;
+
+  attribute vec3 aColor;
+  attribute float aSize;
+  attribute float aPhase;
+
   varying vec3 vColor;
   varying float vAlpha;
 
   void main() {
-    vec2 p = gl_PointCoord - 0.5;
-    float r = length(p);
-    if (r > 0.5) discard;
-    float alpha = smoothstep(0.5, 0.05, r);
-    alpha *= alpha;
-    gl_FragColor = vec4(vColor, alpha * vAlpha);
+    vec3 p = position;
+    float a = uTime * 0.45 + aPhase;
+    p.x += sin(a) * 0.004;
+    p.y += cos(a * 1.2) * 0.004;
+
+    vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+    gl_PointSize = aSize * (760.0 / max(1.0, -mvPosition.z)) * uPixelRatio;
+
+    float twinkle = 0.5 + 0.5 * sin(uTime * 2.4 + aPhase * 4.0);
+    vColor = aColor;
+    vAlpha = 0.35 + 0.6 * twinkle;
   }
 `
+
+function buildHeart() {
+  const count = 600
+  const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 3)
+  const sizes = new Float32Array(count)
+  const phases = new Float32Array(count)
+
+  for (let i = 0; i < count; i++) {
+    const radius = 0.07 * Math.cbrt(Math.random())
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(2 * Math.random() - 1)
+    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta)
+    positions[i * 3 + 1] = radius * Math.cos(phi)
+    positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta)
+
+    const color = new THREE.Color(Math.random() < 0.35 ? '#ffd7a3' : '#efe9df').multiplyScalar(
+      0.24 + Math.random() * 0.25,
+    )
+    colors[i * 3] = color.r
+    colors[i * 3 + 1] = color.g
+    colors[i * 3 + 2] = color.b
+    sizes[i] = 0.006 + Math.random() * 0.011
+    phases[i] = Math.random() * Math.PI * 2
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3))
+  geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
+  geometry.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1))
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uPixelRatio: { value: 1 },
+    },
+    vertexShader: heartVertexShader,
+    fragmentShader: starFragment,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
+
+  return new THREE.Points(geometry, material)
+}
 
 function toVector3(v: Vec3): THREE.Vector3 {
   return new THREE.Vector3(v[0], v[1], v[2])
@@ -287,17 +497,14 @@ function between(a: Vec3, b: Vec3, t: number): THREE.Vector3 {
 /**
  * A real, skinned 3D human surface sampled into star points.
  *
- * The Superhero mesh is CC0 and is only used for its geometry and skin
- * weights. The visible object is a Points cloud; the original mesh is hidden.
- * The GPU samples the skeleton's bone texture, so the point cloud deforms with
- * the real human rig rather than with a capsule approximation.
- *
- * The pose is authored by aiming the real bones at target joints: a frontal
- * run toward the camera, then a seated slump as the camera pulls back.
+ * The Superhero mesh (CC0) is only used for geometry and skin weights; the
+ * visible object is a points cloud. The GPU samples the skeleton's bone
+ * texture, so the stars deform with the real human rig. A sparse inner layer
+ * and a drifting halo keep it from reading as a thin shell, and a small warm
+ * star cluster replaces the old hollow black-hole placeholder at the chest.
  */
 export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
   const group = useRef<THREE.Group>(null)
-  const blackHole = useRef<THREE.Group>(null)
   const bones = useRef<Partial<Record<BoneName, THREE.Object3D>>>({})
   const restQuaternions = useRef(new Map<THREE.Object3D, THREE.Quaternion>())
   const skeleton = useRef<THREE.Skeleton | null>(null)
@@ -318,7 +525,7 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
           uPixelRatio: { value: 1 },
         },
         vertexShader,
-        fragmentShader,
+        fragmentShader: starFragment,
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
@@ -326,6 +533,7 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
     [],
   )
   const points = useMemo(() => new THREE.Points(geometry, material), [geometry, material])
+  const heart = useMemo(() => buildHeart(), [])
 
   useEffect(() => {
     let skinned: THREE.SkinnedMesh | null = null
@@ -391,7 +599,6 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
     const rest = restQuaternions.current
     if (!b.pelvis || !b.spine_01 || !b.spine_02 || !b.spine_03 || !b.neck_01 || !b.Head) return
 
-    // Reset the authored bones to the bind pose before re-aiming.
     rest.forEach((quaternion, bone) => {
       bone.quaternion.copy(quaternion)
     })
@@ -424,15 +631,11 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
       bone.updateMatrixWorld(true)
     }
 
-    // Spine: three segments between hips and chest, then the neck. The pelvis
-    // keeps its rest orientation; aiming it as well twists the whole torso.
     aim(b.spine_01, b.spine_02, between(pose.hips, pose.chest, 0.35))
     aim(b.spine_02, b.spine_03, between(pose.hips, pose.chest, 0.68))
     aim(b.spine_03, b.neck_01, toVector3(pose.neck))
     aim(b.neck_01, b.Head, toVector3(pose.head))
 
-    // Keep the head upright and facing the camera relative to the figure,
-    // independent of the neck aim's roll.
     if (b.Head && headRestInGroup.current) {
       const groupWorld = figure.getWorldQuaternion(new THREE.Quaternion())
       const tilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -sit * 0.22)
@@ -444,7 +647,6 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
       }
     }
 
-    // Arms.
     aim(b.clavicle_l, b.upperarm_l, toVector3(pose.shoulderL))
     aim(b.upperarm_l, b.lowerarm_l, toVector3(pose.elbowL))
     aim(b.lowerarm_l, b.hand_l, toVector3(pose.handL))
@@ -452,7 +654,6 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
     aim(b.upperarm_r, b.lowerarm_r, toVector3(pose.elbowR))
     aim(b.lowerarm_r, b.hand_r, toVector3(pose.handR))
 
-    // Legs.
     aim(b.thigh_l, b.calf_l, toVector3(pose.kneeL))
     aim(b.calf_l, b.foot_l, toVector3(pose.footL))
     aim(b.foot_l, b.ball_l, new THREE.Vector3(pose.footL[0], pose.footL[1] - 0.01, pose.footL[2] + 0.12))
@@ -467,27 +668,19 @@ export function HumanFigure({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uTime.value = state.clock.elapsedTime
     material.uniforms.uPixelRatio.value = gl.getPixelRatio()
 
-    if (blackHole.current) {
-      const scale = smoothstep((p - 0.72) / 0.24) * 0.11
-      blackHole.current.position.set(pose.chest[0], pose.chest[1] - 0.01, pose.chest[2] + 0.1)
-      blackHole.current.scale.setScalar(Math.max(0.0001, scale))
-      blackHole.current.visible = scale > 0.004
-    }
+    // Warm star cluster at the chest, instead of a hollow sphere.
+    heart.position.set(pose.chest[0], pose.chest[1] - 0.01, pose.chest[2] + 0.07)
+    heart.rotation.y = state.clock.elapsedTime * 0.25
+    heart.rotation.z = Math.sin(state.clock.elapsedTime * 0.4) * 0.15
+    const heartMaterial = heart.material as THREE.ShaderMaterial
+    heartMaterial.uniforms.uTime.value = state.clock.elapsedTime
+    heartMaterial.uniforms.uPixelRatio.value = gl.getPixelRatio()
   })
 
   return (
     <group ref={group}>
       <primitive object={scene} />
-      <group ref={blackHole} visible={false}>
-        <mesh>
-          <sphereGeometry args={[1, 32, 32]} />
-          <meshBasicMaterial color="#010103" toneMapped={false} />
-        </mesh>
-        <mesh>
-          <torusGeometry args={[1.01, 0.0035, 6, 128]} />
-          <meshBasicMaterial color="#3c5578" toneMapped={false} transparent opacity={0.22} />
-        </mesh>
-      </group>
+      <primitive object={heart} />
     </group>
   )
 }

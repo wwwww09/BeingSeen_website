@@ -66,11 +66,12 @@ export function FigurePreviewPage() {
         <p className="eyebrow">Figure prototype · unlisted</p>
         <h1 className="figure-preview__title">Does this read as a person?</h1>
         <p className="figure-preview__note">
-          A real 3D human surface — skinned, then sampled into about 120,000
+          A real 3D human surface — skinned, then sampled into about 160,000
           star points. The mesh itself is hidden. He runs at the screen, the
           camera pulls back, and he sits. The body is a CC0 Quaternius base;
-          only its geometry and skin are used, which is the slightly eerie
-          part. This is the gate before the five acts.
+          only its geometry and skin are used. The chest is filled with a warm
+          star cluster rather than a hollow hole. This is the gate before the
+          five acts.
         </p>
       </header>
 

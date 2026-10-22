@@ -96,8 +96,8 @@ export function FigureCanvas({ progress }: { progress: MotionValue<number> }) {
 
       <EffectComposer multisampling={0}>
         <Bloom
-          intensity={1.25}
-          luminanceThreshold={0.22}
+          intensity={0.8}
+          luminanceThreshold={0.3}
           luminanceSmoothing={0.3}
           mipmapBlur
           radius={0.6}
