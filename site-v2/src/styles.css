@@ -1750,3 +1750,133 @@ a {
     );
   }
 }
+
+.human-test {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #04060b;
+  color: var(--text);
+}
+
+.human-test__canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.human-test__head {
+  position: fixed;
+  top: 9vh;
+  left: 7vw;
+  z-index: 2;
+  width: min(31rem, 42vw);
+  pointer-events: none;
+}
+
+.human-test__title {
+  margin: 10px 0 18px;
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 4.6vw, 4.4rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.human-test__note {
+  max-width: 30rem;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.human-test__note code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--text);
+}
+
+.human-test__controls {
+  position: fixed;
+  bottom: 7vh;
+  left: 7vw;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.human-test__button {
+  padding: 9px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.human-test__button:hover,
+.human-test__button.is-active {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.human-test__state {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.human-test__back {
+  position: fixed;
+  top: 28px;
+  right: 28px;
+  z-index: 3;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-decoration: none;
+}
+
+.human-test__back:hover {
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .human-test__head {
+    top: 9vh;
+    right: 22px;
+    left: 22px;
+    width: auto;
+  }
+
+  .human-test__title {
+    max-width: 20rem;
+    font-size: clamp(2rem, 9vw, 3.1rem);
+  }
+
+  .human-test__note {
+    max-width: none;
+    font-size: 12px;
+  }
+
+  .human-test__controls {
+    right: 22px;
+    bottom: 5vh;
+    left: 22px;
+  }
+
+  .human-test__back {
+    top: 20px;
+    right: 22px;
+  }
+}
