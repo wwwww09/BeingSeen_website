@@ -316,7 +316,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
 
       if (i < HUMAN_COUNT) {
         if (p < 0.2) {
-          ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
+          ax = targets.stand[o]; ay = targets.stand[o + 1]; az = targets.stand[o + 2]
           bx = targets.ball[o]; by = targets.ball[o + 1]; bz = targets.ball[o + 2]
           t = e1
         } else if (p < 0.4) {
@@ -353,10 +353,10 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       let x = lerp(ax, bx, t)
       const y = lerp(ay, by, t)
       let z = lerp(az, bz, t)
-      if (i < HUMAN_COUNT && p >= 0.1 && p < 0.4) {
+      if (i < HUMAN_COUNT && p >= 0.2 && p < 0.4) {
         const radius = Math.hypot(x, z)
         const angle = Math.atan2(z, x)
-        const spiral = Math.sin(THREE.MathUtils.clamp((p - 0.1) / 0.3, 0, 1) * Math.PI)
+        const spiral = Math.sin(THREE.MathUtils.clamp((p - 0.2) / 0.2, 0, 1) * Math.PI)
         const swirl = spiral * 1.2 * (0.6 + targets.seed[i])
         x = Math.cos(angle + swirl) * radius
         z = Math.sin(angle + swirl) * radius
@@ -395,15 +395,9 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
-    const tear = (1 - smoothstep(THREE.MathUtils.clamp((p - 0.12) / 0.06, 0, 1))) * 0.65
-    const jitter =
-      smoothstep(THREE.MathUtils.clamp((p - 0.06) / 0.06, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.19) / 0.04, 0, 1))) *
-      0.04
-    const implode =
-      smoothstep(THREE.MathUtils.clamp((p - 0.17) / 0.03, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.21) / 0.02, 0, 1))) *
-      0.85
+    const tear = 0
+    const jitter = 0
+    const implode = 0
     const ripple =
       smoothstep(THREE.MathUtils.clamp((p - 0.62) / 0.06, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.78) / 0.05, 0, 1))) *
