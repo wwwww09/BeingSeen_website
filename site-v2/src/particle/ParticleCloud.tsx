@@ -27,6 +27,9 @@ const vertexShader = /* glsl */ `
   attribute float aSeed;
   attribute float aTrail;
   attribute float aArm;
+  attribute float aLeg;
+  attribute float aTorso;
+  attribute float aEdge;
 
   varying vec3 vColor;
   varying float vAlpha;
@@ -87,10 +90,22 @@ float snoise(vec3 v) {
     // Stage 1: edge particles trail away like sand; the reaching arm dissolves.
     float trail = aTrail * uTear;
     p.z -= trail * 1.35;
-    p.x += trail * 0.5 * (0.5 + 0.5 * sin(uTime * 11.0 + aSeed * 4.0));
-    p.y -= trail * 0.16;
+    p.x -= trail * 0.28;
+    p.z += trail * 0.2 * (0.5 + 0.5 * sin(uTime * 11.0 + aSeed * 4.0));
+    p.y -= trail * 0.06;
     float arm = aArm * uTear;
-    p += vec3(arm * 0.55, arm * 0.2, arm * 0.35) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
+    p += vec3(arm * 0.12, arm * 0.05, arm * 0.18) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
+
+    // subtle walk toward the camera: leg steps + a small torso sway
+    float stepPhase = sin(uTime * 3.2 + aSeed * 1.6);
+    p.y += stepPhase * 0.014 * aLeg * uHuman;
+    p.z += cos(uTime * 3.2 + aSeed * 1.6) * 0.010 * aLeg * uHuman;
+    p.x += sin(uTime * 1.6 + aSeed * 0.7) * 0.007 * aTorso * uHuman;
+
+    // outer-edge stardust peels away a little faster than the core
+    float edge = aEdge * uTear;
+    p.x -= edge * 0.2;
+    p.z += edge * 0.16 * (0.5 + 0.5 * sin(uTime * 7.0 + aSeed * 5.0));
 
     // Stage 1: high-frequency struggle jitter.
     vec3 jn = vec3(
@@ -173,7 +188,7 @@ float snoise(vec3 v) {
       alpha = uCrowd * 0.55 + uStar * 0.75;
     } else {
       alpha =
-        uHuman * mix(0.46, 0.015, uCrowd) +
+        uHuman * mix(0.46, 0.06, uCrowd) +
         uMag * 0.9 +
         uStar * 0.72 +
         uHole * mix(0.34, 0.0, isCore) +
@@ -181,8 +196,8 @@ float snoise(vec3 v) {
         uHole * photon * 0.5;
     }
     alpha += uFlash * (isBeam * 0.9 + 0.12);
-    float edgeCut = clamp(trail * 0.85 + arm * 0.95, 0.0, 1.0);
-    float visibility = 1.0 - smoothstep(0.0, 1.0, edgeCut);
+    float edgeCut = clamp(trail * 0.8 + arm * 0.9 + edge * 0.9, 0.0, 1.0);
+    float visibility = 1.0 - smoothstep(0.12, 1.0, edgeCut);
     vAlpha = alpha * (0.84 + 0.16 * sin(uTime * 2.2 + aSeed * 1.7)) * visibility;
   }
 `
@@ -270,6 +285,20 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     g.setAttribute('aSeed', new THREE.BufferAttribute(targets.seed, 1))
     g.setAttribute('aTrail', new THREE.BufferAttribute(targets.trail, 1))
     g.setAttribute('aArm', new THREE.BufferAttribute(targets.arm, 1))
+    const leg = new Float32Array(TOTAL)
+    const torso = new Float32Array(TOTAL)
+    const edge = new Float32Array(TOTAL)
+    for (let i = 0; i < HUMAN_COUNT; i++) {
+      const o = i * 3
+      const x = targets.stand[o]
+      const y = targets.stand[o + 1]
+      leg[i] = y < 0.82 ? 1 : 0
+      torso[i] = y >= 0.82 && y < 1.42 ? 1 : 0
+      edge[i] = Math.min(1, Math.max(0, (Math.abs(x) - 0.09) / 0.34))
+    }
+    g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 1))
+    g.setAttribute('aTorso', new THREE.BufferAttribute(torso, 1))
+    g.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1))
     return g
   }, [position, targets])
 
@@ -307,7 +336,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.2)))
     const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.4) / 0.2)))
     const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.6) / 0.08)))
-    const e5 = smoothstep(Math.min(1, Math.max(0, (p - 0.8) / 0.2)))
+    const e5 = smoothstep(Math.min(1, Math.max(0, (p - 0.95) / 0.05)))
 
     for (let i = 0; i < TOTAL; i++) {
       const o = i * 3
@@ -377,7 +406,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     const humanW =
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.16) / 0.08, 0, 1))) +
       smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.05, 0, 1)) *
-        (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
+        (1 - smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1)))
     const holeW =
       smoothstep(THREE.MathUtils.clamp((p - 0.2) / 0.04, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.4) / 0.05, 0, 1)))
@@ -386,8 +415,8 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.04, 0, 1)))
     const crowdW =
       smoothstep(THREE.MathUtils.clamp((p - 0.7) / 0.06, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
-    const starW = smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.06, 0, 1))
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1)))
+    const starW = smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1))
     const flash = Math.exp(-Math.pow((p - 0.5) / 0.019, 2))
     const warm =
       smoothstep(THREE.MathUtils.clamp((p - 0.58) / 0.08, 0, 1)) *
@@ -400,7 +429,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
-    const tear = 0
+    const tear = 0.22 * smoothstep(THREE.MathUtils.clamp(p / 0.08, 0, 1))
     const jitter = 0
     const implode = 0
     const ripple =
