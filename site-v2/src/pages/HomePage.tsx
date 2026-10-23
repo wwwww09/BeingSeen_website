@@ -31,7 +31,7 @@ function FilmText({
   const opacity = useTransform(
     progress,
     [start, start + 0.014, end - 0.02, end],
-    [start === 0 ? 1 : 0, 1, 1, hold ? 1 : 0],
+    [0, 1, 1, hold ? 1 : 0],
   )
   const y = useTransform(progress, [start, end], [18, -18])
 
