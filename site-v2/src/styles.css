@@ -31,13 +31,13 @@
 }
 
 html {
-  background: var(--bg);
+  background: #000;
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
@@ -1353,16 +1353,14 @@ a {
 .film {
   position: relative;
   min-height: 100vh;
-  background: #04060b;
+  background: transparent;
 }
 
 .film__canvas {
   position: fixed;
   inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 60% 55% at 66% 45%, rgba(18, 30, 52, 0.7) 0%, transparent 66%),
-    #04060b;
+  z-index: -1;
+  background: #000000;
 }
 
 .film__canvas canvas {
@@ -1805,4 +1803,80 @@ a {
 .film__cta:focus-visible {
   border-color: rgba(236, 233, 226, 0.9);
   background: rgba(236, 233, 226, 0.04);
+}
+
+/* Intro hook — transparent 100vh over the fixed black Canvas */
+.intro {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8vh 6vw;
+  background: transparent;
+  color: #e5e5e5;
+  text-align: center;
+}
+
+.intro__badge {
+  margin: 0 0 2rem;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #d8b98a;
+}
+
+.intro__title {
+  margin: 0 0 2.2rem;
+  font-family: var(--display);
+  font-size: clamp(4rem, 11vw, 9.5rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: #e5e5e5;
+}
+
+.intro__body {
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: var(--sans);
+  font-size: clamp(0.86rem, 1.1vw, 1rem);
+  line-height: 1.8;
+  color: rgba(229, 229, 229, 0.8);
+}
+
+.intro__body p {
+  margin: 0 0 1.1em;
+}
+
+.intro__body p:last-child {
+  margin-bottom: 0;
+  color: #e5e5e5;
+}
+
+.intro__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 6vh;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.24em;
+  color: rgba(229, 229, 229, 0.7);
+  animation: introBounce 2.4s ease-in-out infinite;
+}
+
+.intro__scroll span {
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+@keyframes introBounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 8px); }
 }
