@@ -98,9 +98,9 @@ float snoise(vec3 v) {
 
     // subtle walk toward the camera: leg steps + a small torso sway
     float stepPhase = sin(uTime * 3.2 + aSeed * 1.6);
-    p.y += stepPhase * 0.014 * aLeg * uHuman;
-    p.z += cos(uTime * 3.2 + aSeed * 1.6) * 0.010 * aLeg * uHuman;
-    p.x += sin(uTime * 1.6 + aSeed * 0.7) * 0.007 * aTorso * uHuman;
+    p.y += stepPhase * 0.04 * aLeg * uHuman;
+    p.z += cos(uTime * 3.2 + aSeed * 1.6) * 0.024 * aLeg * uHuman;
+    p.x += sin(uTime * 1.6 + aSeed * 0.7) * 0.015 * aTorso * uHuman;
 
     // outer-edge stardust peels away a little faster than the core
     float edge = aEdge * uTear;
@@ -429,7 +429,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
-    const tear = 0.22 * smoothstep(THREE.MathUtils.clamp(p / 0.08, 0, 1))
+    const tear = 0.38 * smoothstep(THREE.MathUtils.clamp(p / 0.08, 0, 1))
     const jitter = 0
     const implode = 0
     const ripple =
