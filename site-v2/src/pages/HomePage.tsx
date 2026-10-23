@@ -194,7 +194,7 @@ export function HomePage() {
       <Nav progress={scrollYProgress} />
 
       <main id="main" className="film__overlay">
-        <FilmText progress={scrollYProgress} range={[0, 0.2]}>
+        <FilmText progress={scrollYProgress} range={[0, 0.18]}>
           <p className="film__chapter">
             01 <span>The Intrinsic</span>
           </p>
@@ -208,7 +208,7 @@ export function HomePage() {
           <p className="film__chapter">
             01 <span>The Intrinsic</span>
           </p>
-          <p className="film__body">
+          <p className="film__quote">
             Here, stellar black holes emit no light either. They exist, but they
             are completely dark.
           </p>
@@ -245,9 +245,6 @@ export function HomePage() {
         </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.93, 1]} hold center>
-          <p className="film__chapter">
-            04 <span>The Universe</span>
-          </p>
           <p className="film__quote">
             We are made of stardust, yet we share the same blindness as the
             cosmos.
