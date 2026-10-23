@@ -166,6 +166,7 @@ float snoise(vec3 v) {
     vec3 starGold = vec3(0.88, 0.83, 0.7);
     vec3 starColor = starPick < 0.45 ? starBlue : starPick < 0.8 ? starWhite : starGold;
     starColor = mix(starColor, vec3(0.97, 0.99, 1.0), aStarLayer * 0.45);
+    starColor *= 1.1;
 
     vec3 color =
       humanColor * uHuman +
@@ -185,7 +186,7 @@ float snoise(vec3 v) {
       alpha =
         uHuman * mix(0.55, 0.12, uCrowd) +
         uMag * 0.8 +
-        uStar * (0.34 + aStarLayer * 0.3) +
+        uStar * (0.5 + aStarLayer * 0.32) +
         uHole * mix(0.12, 0.0, isCore) +
         uHole * 0.08 * isBeam +
         uHole * photon * 0.12;
