@@ -49,7 +49,7 @@ function Scatter({ feed }: { feed: LensFeed }) {
     const known = feed.supernovae.map((s) => [s.ra, s.dec, s.z] as LensRow)
     const positions = new Float32Array((all.length + known.length) * 3)
     const colors = new Float32Array((all.length + known.length) * 3)
-    const palette = [new THREE.Color('#7fa8d9'), new THREE.Color('#bfd5f2'), new THREE.Color('#e8d3a8')]
+    const palette = [new THREE.Color('#8db7ff'), new THREE.Color('#d6e6ff'), new THREE.Color('#f2d6a2')]
     all.forEach((r, i) => {
       const [x, y, z] = toCartesian(r[0], r[1], r[2])
       positions.set([x, y, z], i * 3)
@@ -72,7 +72,7 @@ function Scatter({ feed }: { feed: LensFeed }) {
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.055}
+        size={0.07}
         vertexColors
         transparent
         opacity={0.92}
@@ -110,8 +110,8 @@ export function LensScatter3D() {
         <Canvas camera={{ position: [0, 5, 16], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
           <color attach="background" args={['#05060a']} />
           <Scatter feed={feed} />
-          <gridHelper args={[22, 22, '#18212c', '#0b1017']} position={[0, -6, 0]} />
-          <axesHelper args={[3.4]} />
+          <gridHelper args={[22, 22, '#2c3747', '#131a23']} position={[0, -6, 0]} />
+          <axesHelper args={[4.2]} />
           <OrbitControls
             enablePan={false}
             minDistance={8}
@@ -120,6 +120,11 @@ export function LensScatter3D() {
             autoRotateSpeed={0.22}
           />
         </Canvas>
+      </div>
+      <div className="lens-scatter__axes" aria-hidden="true">
+        <span>RA</span>
+        <span>Dec</span>
+        <span>Redshift</span>
       </div>
       <div className="lens-scatter__legend">
         <span><i className="lens-scatter__dot" /> {live ? feed.count.toLocaleString() : 'sample'} lens systems</span>

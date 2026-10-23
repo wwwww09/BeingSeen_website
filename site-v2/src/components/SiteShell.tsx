@@ -21,6 +21,7 @@ const Stage = lazy(() =>
 export function SiteShell() {
   const trackRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
+  const hideStage = location.pathname === '/science/supernovae'
   const [lensKeys, setLensKeys] = useState<LensKey[]>([
     { p: 0, x: LENS_X },
     { p: 1, x: LENS_X },
@@ -98,13 +99,15 @@ export function SiteShell() {
 
         <Nav progress={scrollYProgress} />
 
-        <Suspense
-          fallback={<div className="stage stage--fallback" aria-hidden="true" />}
-        >
-          <Stage progress={scrollYProgress} lensKeys={lensKeys} />
-        </Suspense>
+        {!hideStage ? (
+          <Suspense
+            fallback={<div className="stage stage--fallback" aria-hidden="true" />}
+          >
+            <Stage progress={scrollYProgress} lensKeys={lensKeys} />
+          </Suspense>
+        ) : null}
 
-        <div className="vignette" aria-hidden="true" />
+        {!hideStage ? <div className="vignette" aria-hidden="true" /> : null}
         <ProgressRail progress={scrollYProgress} />
 
         <main id="main" ref={trackRef} className="track">
