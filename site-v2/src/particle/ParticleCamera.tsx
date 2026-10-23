@@ -22,9 +22,9 @@ export function ParticleCamera({
     const p = introP < 1 ? 0 : clamp01(progress.get())
     const t = state.clock.elapsedTime
     const intro = smooth(p / 0.2)
-    const orbit = smooth((p - 0.35) / 0.15) * 0.28
+    const orbit = smooth((p - 0.2) / 0.2) * 0.28
     const pull = smooth((p - 0.5) / 0.1)
-    const zoomOut = smooth((p - 0.65) / 0.15)
+    const zoomOut = smooth((p - 0.6) / 0.2)
     const stage2 = smooth((p - 0.2) / 0.08) * (1 - smooth((p - 0.4) / 0.06))
     const stage5 = smooth((p - 0.8) / 0.2)
     const flash = Math.exp(-Math.pow((p - 0.5) / 0.008, 2))

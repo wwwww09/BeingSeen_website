@@ -353,10 +353,10 @@ export function ParticleCloud({
       material.uniforms.uPixelRatio.value = Math.min(2, state.gl.getPixelRatio())
       return
     }
-    const e1 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.15)))
-    const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.35) / 0.15)))
-    const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.5) / 0.15)))
-    const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.65) / 0.15)))
+    const e1 = smoothstep(Math.min(1, p / 0.2))
+    const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.2)))
+    const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.4) / 0.2)))
+    const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.6) / 0.08)))
     const e5 = smoothstep(Math.min(1, Math.max(0, (p - 0.8) / 0.2)))
 
     for (let i = 0; i < TOTAL; i++) {
@@ -371,18 +371,14 @@ export function ParticleCloud({
 
       if (i < HUMAN_COUNT) {
         if (p < 0.2) {
-          ax = targets.star[o]; ay = targets.star[o + 1]; az = targets.star[o + 2]
-          bx = ax; by = ay; bz = az
-          t = 0
-        } else if (p < 0.35) {
           ax = targets.stand[o]; ay = targets.stand[o + 1]; az = targets.stand[o + 2]
           bx = targets.ball[o]; by = targets.ball[o + 1]; bz = targets.ball[o + 2]
           t = e1
-        } else if (p < 0.5) {
+        } else if (p < 0.4) {
           ax = targets.ball[o]; ay = targets.ball[o + 1]; az = targets.ball[o + 2]
           bx = targets.hole[o]; by = targets.hole[o + 1]; bz = targets.hole[o + 2]
           t = e2
-        } else if (p < 0.65) {
+        } else if (p < 0.6) {
           ax = targets.hole[o]; ay = targets.hole[o + 1]; az = targets.hole[o + 2]
           bx = targets.magnetar[o]; by = targets.magnetar[o + 1]; bz = targets.magnetar[o + 2]
           t = e3
@@ -395,11 +391,7 @@ export function ParticleCloud({
           bx = targets.star[o]; by = targets.star[o + 1]; bz = targets.star[o + 2]
           t = e5
         }
-      } else if (p < 0.2) {
-        ax = targets.star[o]; ay = targets.star[o + 1]; az = targets.star[o + 2]
-        bx = ax; by = ay; bz = az
-        t = 0
-      } else if (p < 0.65) {
+      } else if (p < 0.6) {
         ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
         bx = ax; by = ay; bz = az
         t = 0
@@ -416,10 +408,10 @@ export function ParticleCloud({
       let x = lerp(ax, bx, t)
       const y = lerp(ay, by, t)
       let z = lerp(az, bz, t)
-      if (i < HUMAN_COUNT && p >= 0.35 && p < 0.5) {
+      if (i < HUMAN_COUNT && p >= 0.2 && p < 0.4) {
         const radius = Math.hypot(x, z)
         const angle = Math.atan2(z, x)
-        const spiral = Math.sin(THREE.MathUtils.clamp((p - 0.35) / 0.15, 0, 1) * Math.PI)
+        const spiral = Math.sin(THREE.MathUtils.clamp((p - 0.2) / 0.2, 0, 1) * Math.PI)
         const swirl = spiral * 1.2 * (0.6 + targets.seed[i])
         x = Math.cos(angle + swirl) * radius
         z = Math.sin(angle + swirl) * radius
@@ -433,21 +425,22 @@ export function ParticleCloud({
     attribute.needsUpdate = true
 
     const humanW =
-      smoothstep(THREE.MathUtils.clamp((p - 0.18) / 0.04, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.48) / 0.04, 0, 1)))
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.16) / 0.08, 0, 1))) +
+      smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.05, 0, 1)) *
+        (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
     const holeW =
-      smoothstep(THREE.MathUtils.clamp((p - 0.35) / 0.03, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.48) / 0.03, 0, 1)))
+      smoothstep(THREE.MathUtils.clamp((p - 0.2) / 0.04, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.4) / 0.05, 0, 1)))
     const magW =
-      smoothstep(THREE.MathUtils.clamp((p - 0.5) / 0.03, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.63) / 0.03, 0, 1)))
+      smoothstep(THREE.MathUtils.clamp((p - 0.38) / 0.04, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.04, 0, 1)))
     const crowdW =
-      smoothstep(THREE.MathUtils.clamp((p - 0.65) / 0.03, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.78) / 0.03, 0, 1)))
-    const starW = p < 0.2 ? 1 : smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.03, 0, 1))
+      smoothstep(THREE.MathUtils.clamp((p - 0.7) / 0.06, 0, 1)) *
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
+    const starW = smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1))
     const flash = Math.exp(-Math.pow((p - 0.5) / 0.008, 2))
     const warm =
-      smoothstep(THREE.MathUtils.clamp((p - 0.65) / 0.08, 0, 1)) *
+      smoothstep(THREE.MathUtils.clamp((p - 0.58) / 0.08, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.82) / 0.05, 0, 1)))
 
     const humanFade = THREE.MathUtils.smoothstep(p, 0, 0.03)

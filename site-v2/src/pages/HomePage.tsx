@@ -46,8 +46,8 @@ function FilmText({
 }
 
 function TextOverlay({ progress }: { progress: MotionValue<number> }) {
-  const opacity = useTransform(progress, [0.2, 0.23, 0.47, 0.5], [0, 1, 1, 0])
-  const y = useTransform(progress, [0.2, 0.23, 0.47, 0.5], [16, 0, 0, -12])
+  const opacity = useTransform(progress, [0, 0.02, 0.36, 0.4], [0, 1, 1, 0])
+  const y = useTransform(progress, [0, 0.02, 0.36, 0.4], [16, 0, 0, -12])
   return (
     <motion.div className="film__stage1" style={{ opacity, y }}>
       <p className="film__chapter">
@@ -80,7 +80,7 @@ function FilmRail({ progress }: { progress: MotionValue<number> }) {
   const scaleY = useTransform(progress, [0, 1], [0, 1])
   const [active, setActive] = useState(0)
   useMotionValueEvent(progress, 'change', (v) => {
-    setActive(v < 0.2 ? 0 : v < 0.5 ? 1 : v < 0.65 ? 2 : v < 0.8 ? 3 : 4)
+    setActive(v < 0.2 ? 0 : v < 0.4 ? 1 : v < 0.6 ? 2 : v < 0.8 ? 3 : 4)
   })
   return (
     <div className="film__rail" aria-hidden="true">
@@ -215,7 +215,7 @@ export function HomePage() {
       <main id="main" className="film__overlay">
         <TextOverlay progress={scrollYProgress} />
 
-        <FilmText progress={scrollYProgress} range={[0.5, 0.65]}>
+        <FilmText progress={scrollYProgress} range={[0.4, 0.6]}>
           <p className="film__chapter">
             02 <span>The Temporal</span>
           </p>
@@ -225,7 +225,7 @@ export function HomePage() {
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.65, 0.8]}>
+        <FilmText progress={scrollYProgress} range={[0.6, 0.8]}>
           <p className="film__chapter">
             03 <span>The Extrinsic</span>
           </p>
