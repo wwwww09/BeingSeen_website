@@ -45,18 +45,6 @@ function FilmText({
   )
 }
 
-function ScienceCta({ progress }: { progress: MotionValue<number> }) {
-  const opacity = useTransform(progress, [0.9, 0.95], [0, 1])
-  const y = useTransform(progress, [0.9, 0.95], [10, 0])
-  return (
-    <motion.div className="film__cta-wrap" style={{ opacity, y }}>
-      <Link className="film__cta" to="/science">
-        EXPLORE THE SCIENCE <span aria-hidden="true">↘</span>
-      </Link>
-    </motion.div>
-  )
-}
-
 function FilmRail({ progress }: { progress: MotionValue<number> }) {
   const scaleY = useTransform(progress, [0, 1], [0, 1])
   const [active, setActive] = useState(0)
@@ -202,6 +190,9 @@ export function HomePage() {
             Sometimes, the deepest parts of us remain unseen, no matter how hard
             we try to show them.
           </p>
+          <Link className="film__cta" to="/science">
+            EXPLORE THE SCIENCE <span aria-hidden="true">↘</span>
+          </Link>
         </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.2, 0.4]}>
@@ -212,6 +203,9 @@ export function HomePage() {
             Here, stellar black holes emit no light either. They exist, but they
             are completely dark.
           </p>
+          <Link className="film__cta" to="/science">
+            EXPLORE THE SCIENCE <span aria-hidden="true">↘</span>
+          </Link>
         </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.4, 0.6]}>
@@ -222,6 +216,9 @@ export function HomePage() {
             Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes
             blink, we miss them forever.
           </p>
+          <Link className="film__cta" to="/science">
+            EXPLORE THE SCIENCE <span aria-hidden="true">↘</span>
+          </Link>
         </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.6, 0.8]}>
@@ -232,6 +229,9 @@ export function HomePage() {
             Just like us, we are only visible for a brief moment. But the world
             wasn't looking at exactly the right time.
           </p>
+          <Link className="film__cta" to="/science">
+            EXPLORE THE SCIENCE <span aria-hidden="true">↘</span>
+          </Link>
         </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.8, 0.93]}>
@@ -249,9 +249,11 @@ export function HomePage() {
             We are made of stardust, yet we share the same blindness as the
             cosmos.
           </p>
+          <Link className="film__cta film__cta--warm" to="/being-seen">
+            SHARE YOUR STORY <span aria-hidden="true">↗</span>
+          </Link>
         </FilmText>
 
-        <ScienceCta progress={scrollYProgress} />
 
         <FilmRail progress={scrollYProgress} />
       </main>

@@ -1966,3 +1966,23 @@ a {
 .film__rail-acts span.is-active {
   color: #ffffff;
 }
+
+.film__text .film__cta {
+  margin-top: 1.6rem;
+  align-self: flex-start;
+}
+
+.film__text--center .film__cta {
+  align-self: center;
+}
+
+.film__cta--warm {
+  border-color: rgba(216, 185, 138, 0.55);
+  color: #d8b98a;
+}
+
+.film__cta--warm:hover,
+.film__cta--warm:focus-visible {
+  border-color: rgba(216, 185, 138, 0.95);
+  background: rgba(216, 185, 138, 0.05);
+}
