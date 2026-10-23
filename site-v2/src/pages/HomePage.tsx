@@ -140,11 +140,16 @@ export function HomePage() {
     <>
       <div className="intro" ref={introRef}>
         <section className="intro__phase intro__phase--title">
-          <p className="intro__badge">A JOURNEY THROUGH THE UNSEEN</p>
           <h2 className="intro__title">Being Seen</h2>
-          <p className="intro__scroll">
-            SCROLL TO BEGIN <span aria-hidden="true">↓</span>
-          </p>
+          <p className="intro__subtitle">A journey through the unseen</p>
+          <motion.div
+            className="intro__scroll"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <span className="intro__scroll-label">SCROLL TO BEGIN</span>
+            <span className="intro__arrow" aria-hidden="true" />
+          </motion.div>
         </section>
 
         <motion.section
