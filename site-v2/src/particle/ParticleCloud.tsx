@@ -30,6 +30,7 @@ const vertexShader = /* glsl */ `
   attribute float aLeg;
   attribute float aTorso;
   attribute float aEdge;
+  attribute float aSide;
 
   varying vec3 vColor;
   varying float vAlpha;
@@ -96,11 +97,16 @@ float snoise(vec3 v) {
     float arm = aArm * uTear;
     p += vec3(arm * 0.12, arm * 0.05, arm * 0.18) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
 
-    // subtle walk toward the camera: leg steps + a small torso sway
-    float stepPhase = sin(uTime * 3.2 + aSeed * 1.6);
-    p.y += stepPhase * 0.04 * aLeg * uHuman;
-    p.z += cos(uTime * 3.2 + aSeed * 1.6) * 0.024 * aLeg * uHuman;
-    p.x += sin(uTime * 1.6 + aSeed * 0.7) * 0.015 * aTorso * uHuman;
+    // left/right alternating leg step, driven only by the vertex shader.
+    // aSide is 0 for x < 0 (left leg) and 1 for x > 0 (right leg).
+    float legPhase = uTime * 4.0 + aSide * 3.14159265;
+    float legMask = aLeg * uHuman;
+    p.y += sin(legPhase) * 0.055 * legMask;
+    p.z += cos(legPhase) * 0.024 * legMask;
+
+    // torso: minimal forward/back oscillation + tiny breathing; head stays put
+    p.z += sin(uTime * 4.0) * 0.006 * aTorso * uHuman;
+    p.y += sin(uTime * 1.5) * 0.004 * aTorso * uHuman;
 
     // outer-edge stardust peels away a little faster than the core
     float edge = aEdge * uTear;
@@ -288,6 +294,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     const leg = new Float32Array(TOTAL)
     const torso = new Float32Array(TOTAL)
     const edge = new Float32Array(TOTAL)
+    const side = new Float32Array(TOTAL)
     for (let i = 0; i < HUMAN_COUNT; i++) {
       const o = i * 3
       const x = targets.stand[o]
@@ -295,10 +302,12 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       leg[i] = y < 0.82 ? 1 : 0
       torso[i] = y >= 0.82 && y < 1.42 ? 1 : 0
       edge[i] = Math.min(1, Math.max(0, (Math.abs(x) - 0.09) / 0.34))
+      side[i] = x < 0 ? 0 : 1
     }
     g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 1))
     g.setAttribute('aTorso', new THREE.BufferAttribute(torso, 1))
     g.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1))
+    g.setAttribute('aSide', new THREE.BufferAttribute(side, 1))
     return g
   }, [position, targets])
 
