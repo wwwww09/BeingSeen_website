@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   motion,
@@ -9,10 +9,7 @@ import {
 } from 'framer-motion'
 import { Nav } from '../components/Nav'
 import { useWebGL } from '../lib/useWebGL'
-
-const ParticleScene = lazy(() =>
-  import('../particle/ParticleScene').then((module) => ({ default: module.ParticleScene })),
-)
+import { ParticleScene } from '../particle/ParticleScene'
 
 function FilmText({
   progress,
@@ -97,11 +94,7 @@ export function HomePage() {
       <h1 className="film__sr-title">Being unseen — a film in five parts</h1>
 
       <div className={`film__canvas${webgl !== true ? ' film__canvas--fallback' : ''}`}>
-        {webgl === true ? (
-          <Suspense fallback={null}>
-            <ParticleScene progress={smooth} />
-          </Suspense>
-        ) : null}
+        {webgl === true ? <ParticleScene progress={smooth} /> : null}
       </div>
 
       <div className="film__scrim" aria-hidden="true" />
