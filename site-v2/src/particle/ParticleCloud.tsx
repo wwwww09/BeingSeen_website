@@ -166,7 +166,7 @@ float snoise(vec3 v) {
     vec3 starGold = vec3(0.88, 0.83, 0.7);
     vec3 starColor = starPick < 0.45 ? starBlue : starPick < 0.8 ? starWhite : starGold;
     starColor = mix(starColor, vec3(0.97, 0.99, 1.0), aStarLayer * 0.45);
-    starColor *= 1.2;
+    starColor *= 1.28;
 
     vec3 color =
       humanColor * uHuman +
@@ -186,7 +186,7 @@ float snoise(vec3 v) {
       alpha =
         uHuman * mix(0.55, 0.12, uCrowd) +
         uMag * 0.8 +
-        uStar * (0.8 + aStarLayer * 0.2) +
+        uStar * (0.8 + aStarLayer * 0.2) * (0.86 + 0.14 * sin(uTime * 1.6 + aSeed * 2.0)) +
         uHole * mix(0.12, 0.0, isCore) +
         uHole * 0.08 * isBeam +
         uHole * photon * 0.12;
@@ -338,7 +338,7 @@ export function ParticleCloud({
       material.uniforms.uHole.value = 0
       material.uniforms.uMag.value = 0
       material.uniforms.uCrowd.value = 0
-      material.uniforms.uStar.value = 0.82
+      material.uniforms.uStar.value = 1
       material.uniforms.uFlash.value = 0
       material.uniforms.uWarm.value = 0
       material.uniforms.uTear.value = 0
