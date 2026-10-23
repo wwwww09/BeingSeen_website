@@ -28,8 +28,6 @@ const vertexShader = /* glsl */ `
   attribute float aTrail;
   attribute float aArm;
   attribute float aLeg;
-  attribute float aTorso;
-  attribute float aEdge;
   attribute float aSide;
 
   varying vec3 vColor;
@@ -97,21 +95,10 @@ float snoise(vec3 v) {
     float arm = aArm * uTear;
     p += vec3(arm * 0.12, arm * 0.05, arm * 0.18) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
 
-    // left/right alternating leg step, driven only by the vertex shader.
+    // left/right alternating leg step: tiny Y offset only.
     // aSide is 0 for x < 0 (left leg) and 1 for x > 0 (right leg).
-    float legPhase = uTime * 4.0 + aSide * 3.14159265;
-    float legMask = aLeg * uHuman;
-    p.y += sin(legPhase) * 0.055 * legMask;
-    p.z += cos(legPhase) * 0.024 * legMask;
-
-    // torso: minimal forward/back oscillation + tiny breathing; head stays put
-    p.z += sin(uTime * 4.0) * 0.006 * aTorso * uHuman;
-    p.y += sin(uTime * 1.5) * 0.004 * aTorso * uHuman;
-
-    // outer-edge stardust peels away a little faster than the core
-    float edge = aEdge * uTear;
-    p.x -= edge * 0.2;
-    p.z += edge * 0.16 * (0.5 + 0.5 * sin(uTime * 7.0 + aSeed * 5.0));
+    float legPhase = uTime * 3.6 + aSide * 3.14159265;
+    p.y += sin(legPhase) * 0.018 * aLeg * uHuman;
 
     // Stage 1: high-frequency struggle jitter.
     vec3 jn = vec3(
@@ -159,7 +146,7 @@ float snoise(vec3 v) {
     float isCore = step(0.5, aRole) * (1.0 - step(1.5, aRole));
     float isBeam = step(1.5, aRole) * (1.0 - step(2.5, aRole));
 
-    float size = 0.0115;
+    float size = 0.0075;
     size += uMag * 0.006;
     size += uFlash * (isBeam * 0.012 + 0.0015);
     size -= isCrowd * 0.0018;
@@ -202,7 +189,7 @@ float snoise(vec3 v) {
         uHole * photon * 0.5;
     }
     alpha += uFlash * (isBeam * 0.9 + 0.12);
-    float edgeCut = clamp(trail * 0.8 + arm * 0.9 + edge * 0.9, 0.0, 1.0);
+    float edgeCut = clamp(trail * 0.8 + arm * 0.9, 0.0, 1.0);
     float visibility = 1.0 - smoothstep(0.12, 1.0, edgeCut);
     vAlpha = alpha * (0.84 + 0.16 * sin(uTime * 2.2 + aSeed * 1.7)) * visibility;
   }
@@ -292,21 +279,15 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     g.setAttribute('aTrail', new THREE.BufferAttribute(targets.trail, 1))
     g.setAttribute('aArm', new THREE.BufferAttribute(targets.arm, 1))
     const leg = new Float32Array(TOTAL)
-    const torso = new Float32Array(TOTAL)
-    const edge = new Float32Array(TOTAL)
     const side = new Float32Array(TOTAL)
     for (let i = 0; i < HUMAN_COUNT; i++) {
       const o = i * 3
       const x = targets.stand[o]
       const y = targets.stand[o + 1]
       leg[i] = y < 0.82 ? 1 : 0
-      torso[i] = y >= 0.82 && y < 1.42 ? 1 : 0
-      edge[i] = Math.min(1, Math.max(0, (Math.abs(x) - 0.09) / 0.34))
       side[i] = x < 0 ? 0 : 1
     }
     g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 1))
-    g.setAttribute('aTorso', new THREE.BufferAttribute(torso, 1))
-    g.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1))
     g.setAttribute('aSide', new THREE.BufferAttribute(side, 1))
     return g
   }, [position, targets])
@@ -438,7 +419,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
-    const tear = 0.38 * smoothstep(THREE.MathUtils.clamp(p / 0.08, 0, 1))
+    const tear = 0
     const jitter = 0
     const implode = 0
     const ripple =
