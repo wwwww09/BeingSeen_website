@@ -86,9 +86,9 @@ float snoise(vec3 v) {
 
     // Stage 1: edge particles trail away like sand; the reaching arm dissolves.
     float trail = aTrail * uTear;
-    p.x -= trail * 0.28;
-    p.z += trail * 0.2 * (0.5 + 0.5 * sin(uTime * 11.0 + aSeed * 4.0));
-    p.y -= trail * 0.06;
+    p.z -= trail * 1.35;
+    p.x += trail * 0.5 * (0.5 + 0.5 * sin(uTime * 11.0 + aSeed * 4.0));
+    p.y -= trail * 0.16;
     float arm = aArm * uTear;
     p += vec3(arm * 0.55, arm * 0.2, arm * 0.35) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
 
@@ -316,7 +316,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
 
       if (i < HUMAN_COUNT) {
         if (p < 0.2) {
-          ax = targets.run[o]; ay = targets.run[o + 1]; az = targets.run[o + 2]
+          ax = targets.stand[o]; ay = targets.stand[o + 1]; az = targets.stand[o + 2]
           bx = targets.ball[o]; by = targets.ball[o + 1]; bz = targets.ball[o + 2]
           t = e1
         } else if (p < 0.4) {
@@ -395,7 +395,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
-    const tear = (1 - smoothstep(THREE.MathUtils.clamp((p - 0.14) / 0.06, 0, 1))) * 0.55
+    const tear = 0
     const jitter = 0
     const implode = 0
     const ripple =

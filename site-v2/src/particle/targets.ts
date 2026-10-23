@@ -1,5 +1,4 @@
 import { buildHumanClouds, HUMAN_POINTS } from './humanCloud'
-import { buildStage1Run } from './stage1Run'
 
 export const HUMAN_COUNT = HUMAN_POINTS
 export const CROWD_COUNT = 24_000
@@ -96,7 +95,6 @@ export function buildTargets(): ParticleTargets {
   const arm = new Float32Array(TOTAL)
 
   const clouds = buildHumanClouds()
-  const stage1 = buildStage1Run()
 
   for (let i = 0; i < HUMAN_COUNT; i++) {
     const r = Math.random() < 0.3 ? ROLE_CORE : Math.random() < 0.8 ? ROLE_RING : ROLE_BEAM
@@ -105,9 +103,11 @@ export function buildTargets(): ParticleTargets {
     seed[i] = Math.random() * Math.PI * 2
     const o = i * 3
 
-    trail[i] = stage1.trail[i]
-    arm[i] = stage1.arm[i]
-    writePoint(run, i, stage1.positions[o], stage1.positions[o + 1], stage1.positions[o + 2])
+    const runX = clouds.run[o]
+    const runY = clouds.run[o + 1]
+    trail[i] = Math.min(1, Math.max(0, (Math.abs(runX) - 0.13) / 0.4))
+    arm[i] = runX > 0.24 && runY > 1.15 ? 1 : 0
+    writePoint(run, i, clouds.run[o], clouds.run[o + 1], clouds.run[o + 2])
     writePoint(ball, i, clouds.ball[o], clouds.ball[o + 1], clouds.ball[o + 2])
     writePoint(stand, i, clouds.stand[o], clouds.stand[o + 1], clouds.stand[o + 2])
 
