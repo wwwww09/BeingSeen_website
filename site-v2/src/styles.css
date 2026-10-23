@@ -1853,7 +1853,7 @@ a {
 .intro__subtitle {
   margin: 2rem 0 0;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+  font-size: clamp(1.5rem, 2.2vw, 2.2rem);
   font-style: italic;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -1879,8 +1879,46 @@ a {
   color: #e5e5e5;
 }
 
-.intro__phase--philosophy .intro__body {
-  margin-top: 0;
+.intro__phase--philosophy {
+  height: 300vh;
+  min-height: 300vh;
+  display: block;
+  padding: 0;
+}
+
+.philosophy__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8vh 6vw;
+}
+
+.philosophy__line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(900px, 84vw);
+  margin: 0 auto;
+  padding: 0 2rem;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.5rem, 2.5vw, 2.4rem);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: #e5e5e5;
+}
+
+.philosophy__final {
+  display: block;
+  margin-top: 1.4em;
+  color: #ffffff;
 }
 
 .intro__scroll {
