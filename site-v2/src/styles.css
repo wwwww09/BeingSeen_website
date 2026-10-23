@@ -1828,6 +1828,7 @@ a {
 
 .intro__phase--title {
   justify-content: center;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
 }
 
 .intro__badge {
@@ -1840,21 +1841,22 @@ a {
 }
 
 .intro__title {
-  margin: 0 0 1.6rem;
-  font-family: 'Playfair Display', var(--display);
-  font-size: clamp(5rem, 15vw, 20rem);
-  font-weight: 300;
-  line-height: 0.9;
-  letter-spacing: -0.03em;
+  margin: 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
   color: #ffffff;
 }
 
 .intro__subtitle {
-  margin: 0;
-  font-family: var(--sans);
-  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  margin: 2rem 0 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+  font-style: italic;
   font-weight: 400;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   color: #a3a3a3;
   text-align: center;
 }
