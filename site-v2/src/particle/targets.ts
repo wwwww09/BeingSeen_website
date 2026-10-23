@@ -1,7 +1,7 @@
 import { buildHumanClouds, HUMAN_POINTS } from './humanCloud'
 
 export const HUMAN_COUNT = HUMAN_POINTS
-export const CROWD_COUNT = 464_000
+export const CROWD_COUNT = 164_000
 export const TOTAL = HUMAN_COUNT + CROWD_COUNT
 
 export interface ParticleTargets {
@@ -94,13 +94,14 @@ function starInSphere(
 }
 
 function starPoint(): [number, number, number, number] {
-  if (Math.random() < 0.16) {
-    // Foreground shell: close to the camera, larger and brighter.
-    const [x, y, z] = starInSphere(0, 1, 7, 2, 11)
+  // Hollow shells centred on the Stage-5 camera, never through the middle.
+  if (Math.random() < 0.14) {
+    // Foreground shell: still outside the central void, larger and brighter.
+    const [x, y, z] = starInSphere(0, 1, 10, 14, 26)
     return [x, y, z, 1]
   }
-  // Background volume: surrounds the camera on every side.
-  const [x, y, z] = starInSphere(0, 1, 0, 10, 55)
+  // Background shell: far, sparse and deep on every axis.
+  const [x, y, z] = starInSphere(0, 1, 10, 26, 65)
   return [x, y, z, 0]
 }
 
