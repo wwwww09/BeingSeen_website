@@ -74,22 +74,34 @@ function magnetarPoint(role: number): [number, number, number] {
   return [Math.cos(angle) * radius, 1 + sign * (0.45 + t * 2.4), Math.sin(angle) * radius]
 }
 
-function starPoint(): [number, number, number, number] {
-  const foreground = Math.random() < 0.16
-  if (foreground) {
-    return [
-      (Math.random() - 0.5) * 16,
-      -3 + Math.random() * 9,
-      2 + Math.random() * 8,
-      1,
-    ]
-  }
+function starInSphere(
+  cx: number,
+  cy: number,
+  cz: number,
+  rMin: number,
+  rMax: number,
+): [number, number, number] {
+  // Uniform volume distribution; no Cartesian box, so no visible edges.
+  const r = rMin + Math.cbrt(Math.random()) * (rMax - rMin)
+  const theta = Math.random() * Math.PI * 2
+  const phi = Math.acos(2 * Math.random() - 1)
+  const sinPhi = Math.sin(phi)
   return [
-    (Math.random() - 0.5) * 34,
-    -4 + Math.random() * 12,
-    -50 + Math.random() * 45,
-    0,
+    cx + r * sinPhi * Math.cos(theta),
+    cy + r * Math.cos(phi),
+    cz + r * sinPhi * Math.sin(theta),
   ]
+}
+
+function starPoint(): [number, number, number, number] {
+  if (Math.random() < 0.16) {
+    // Foreground shell: close to the camera, larger and brighter.
+    const [x, y, z] = starInSphere(0, 1, 7, 2, 11)
+    return [x, y, z, 1]
+  }
+  // Background volume: surrounds the camera on every side.
+  const [x, y, z] = starInSphere(0, 1, 0, 10, 55)
+  return [x, y, z, 0]
 }
 
 export function buildTargets(): ParticleTargets {

@@ -44,7 +44,7 @@ use the previous shell until their rebuild.
 | 0.20–0.40 | 02 / The Collapse | implosion → absolute black core + extremely flat rotating accretion/photon disk; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
 | 0.40–0.60 | 03 / The Flash | ring → blue magnetar + two polar beams; flash; camera shake, pull back | “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes blink, we miss them forever.” |
 | 0.60–0.80 | 04 / The Extrinsic | magnetar → standing human; crowd rushes in at 0.70 with GW ripples; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
-| 0.80–1.00 + 100vh tail | 05 / The Universe | 480k particles across -50..+10 Z with forward Z velocity: dense bright background plus larger brighter foreground stars; slow Stage-5 pan for parallax; pinned 100vh hold | “We are made of stardust, yet we share the same blindness as the cosmos.” |
+| 0.80–1.00 + 100vh tail | 05 / The Universe | 480k particles in a spherical volume around the camera: no Cartesian box edges; dense bright background plus larger brighter foreground stars; slow Stage-5 pan for parallax; pinned 100vh hold | “We are made of stardust, yet we share the same blindness as the cosmos.” |
 
 All body copy is the brief’s text, verbatim. Extra text is limited to the stage
 labels, the scroll cue, the rail label and the final science link. The film is
