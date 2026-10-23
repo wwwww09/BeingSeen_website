@@ -1,7 +1,7 @@
 import { buildHumanClouds, HUMAN_POINTS } from './humanCloud'
 
 export const HUMAN_COUNT = HUMAN_POINTS
-export const CROWD_COUNT = 144_000
+export const CROWD_COUNT = 464_000
 export const TOTAL = HUMAN_COUNT + CROWD_COUNT
 
 export interface ParticleTargets {
@@ -78,16 +78,16 @@ function starPoint(): [number, number, number, number] {
   const foreground = Math.random() < 0.16
   if (foreground) {
     return [
-      (Math.random() - 0.5) * 13,
-      -2.5 + Math.random() * 7.5,
-      1.5 + Math.random() * 4.5,
+      (Math.random() - 0.5) * 16,
+      -3 + Math.random() * 9,
+      2 + Math.random() * 8,
       1,
     ]
   }
   return [
-    (Math.random() - 0.5) * 24,
-    -3 + Math.random() * 9,
-    -10 + Math.random() * 8,
+    (Math.random() - 0.5) * 34,
+    -4 + Math.random() * 12,
+    -50 + Math.random() * 45,
     0,
   ]
 }

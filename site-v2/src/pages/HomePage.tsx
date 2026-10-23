@@ -42,6 +42,37 @@ function FilmText({
   )
 }
 
+function TextOverlay({ progress }: { progress: MotionValue<number> }) {
+  const opacity = useTransform(progress, [0.02, 0.05, 0.15, 0.18], [0, 1, 1, 0])
+  const y = useTransform(progress, [0.02, 0.05, 0.15, 0.18], [16, 0, 0, -12])
+  return (
+    <motion.div className="film__stage1" style={{ opacity, y }}>
+      <p className="film__chapter">
+        01 <span>The Intrinsic</span>
+      </p>
+      <p className="film__quote">
+        “Sometimes, the deepest parts of us remain unseen, no matter how hard we
+        try to show them.”
+      </p>
+      <p className="film__stage1-sub">
+        Here, stellar black holes emit no light either.
+      </p>
+    </motion.div>
+  )
+}
+
+function ScienceCta({ progress }: { progress: MotionValue<number> }) {
+  const opacity = useTransform(progress, [0.9, 0.95], [0, 1])
+  const y = useTransform(progress, [0.9, 0.95], [10, 0])
+  return (
+    <motion.div className="film__cta-wrap" style={{ opacity, y }}>
+      <Link className="film__cta" to="/science">
+        EXPLORE THE SCIENCE <span aria-hidden="true">↘</span>
+      </Link>
+    </motion.div>
+  )
+}
+
 function FilmRail({ progress }: { progress: MotionValue<number> }) {
   const scaleY = useTransform(progress, [0, 1], [0, 1])
   return (
@@ -103,18 +134,7 @@ export function HomePage() {
       <Nav progress={scrollYProgress} />
 
       <main id="main" className="film__overlay">
-        <FilmText progress={scrollYProgress} range={[0, 0.2]}>
-          <p className="film__chapter">
-            01 <span>The Intrinsic</span>
-          </p>
-          <p className="film__quote">
-            “Sometimes, the deepest parts of us remain unseen, no matter how hard
-            we try to show them.”
-          </p>
-          <p className="film__scroll">
-            Scroll <span aria-hidden="true" />
-          </p>
-        </FilmText>
+        <TextOverlay progress={scrollYProgress} />
 
         <FilmText progress={scrollYProgress} range={[0.2, 0.4]}>
           <p className="film__chapter">
@@ -154,10 +174,9 @@ export function HomePage() {
             “We are made of stardust, yet we share the same blindness as the
             cosmos.”
           </p>
-          <Link className="film__science-link" to="/science">
-            Explore the Science <span aria-hidden="true">↘</span>
-          </Link>
         </FilmText>
+
+        <ScienceCta progress={scrollYProgress} />
 
         <FilmRail progress={scrollYProgress} />
       </main>

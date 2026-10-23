@@ -134,7 +134,7 @@ float snoise(vec3 v) {
     p.x += sin(uTime * 0.9 + 0.4) * 0.03 * head * uHuman;
 
     // Stage 5: stars fly towards the camera and wrap through a deep Z range.
-    float starFly = mod(p.z + uTime * 0.9 + 10.0, 16.0) - 10.0;
+    float starFly = mod(p.z + uTime * 1.6 + 50.0, 100.0) - 50.0;
     p.z = mix(p.z, starFly, uStar);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
