@@ -45,25 +45,6 @@ function FilmText({
   )
 }
 
-function TextOverlay({ progress }: { progress: MotionValue<number> }) {
-  const opacity = useTransform(progress, [0, 0.02, 0.36, 0.4], [0, 1, 1, 0])
-  const y = useTransform(progress, [0, 0.02, 0.36, 0.4], [16, 0, 0, -12])
-  return (
-    <motion.div className="film__stage1" style={{ opacity, y }}>
-      <p className="film__chapter">
-        01 <span>The Intrinsic</span>
-      </p>
-      <p className="film__quote">
-        “Sometimes, the deepest parts of us remain unseen, no matter how hard we
-        try to show them.”
-      </p>
-      <p className="film__stage1-sub">
-        Here, stellar black holes emit no light either.
-      </p>
-    </motion.div>
-  )
-}
-
 function ScienceCta({ progress }: { progress: MotionValue<number> }) {
   const opacity = useTransform(progress, [0.9, 0.95], [0, 1])
   const y = useTransform(progress, [0.9, 0.95], [10, 0])
@@ -213,35 +194,63 @@ export function HomePage() {
       <Nav progress={scrollYProgress} />
 
       <main id="main" className="film__overlay">
-        <TextOverlay progress={scrollYProgress} />
+        <FilmText progress={scrollYProgress} range={[0, 0.2]}>
+          <p className="film__chapter">
+            01 <span>The Intrinsic</span>
+          </p>
+          <p className="film__quote">
+            Sometimes, the deepest parts of us remain unseen, no matter how hard
+            we try to show them.
+          </p>
+        </FilmText>
+
+        <FilmText progress={scrollYProgress} range={[0.2, 0.4]}>
+          <p className="film__chapter">
+            01 <span>The Intrinsic</span>
+          </p>
+          <p className="film__body">
+            Here, stellar black holes emit no light either. They exist, but they
+            are completely dark.
+          </p>
+        </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.4, 0.6]}>
           <p className="film__chapter">
             02 <span>The Temporal</span>
           </p>
           <p className="film__quote">
-            “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes
-            blink, we miss them forever.”
+            Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes
+            blink, we miss them forever.
           </p>
         </FilmText>
 
         <FilmText progress={scrollYProgress} range={[0.6, 0.8]}>
           <p className="film__chapter">
-            03 <span>The Extrinsic</span>
+            02 <span>The Temporal</span>
           </p>
           <p className="film__quote">
-            “Sometimes, we are shining, but the distance or the noise of the
-            environment makes us fade into the background.”
+            Just like us, we are only visible for a brief moment. But the world
+            wasn't looking at exactly the right time.
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.8, 1]} hold center>
+        <FilmText progress={scrollYProgress} range={[0.8, 0.93]}>
+          <p className="film__chapter">
+            03 <span>The Extrinsic</span>
+          </p>
+          <p className="film__quote">
+            Sometimes, we are shining, but the distance or the noise of the
+            environment makes us fade into the background.
+          </p>
+        </FilmText>
+
+        <FilmText progress={scrollYProgress} range={[0.93, 1]} hold center>
           <p className="film__chapter">
             04 <span>The Universe</span>
           </p>
           <p className="film__quote">
-            “We are made of stardust, yet we share the same blindness as the
-            cosmos.”
+            We are made of stardust, yet we share the same blindness as the
+            cosmos.
           </p>
         </FilmText>
 
