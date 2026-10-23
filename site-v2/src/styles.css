@@ -1775,7 +1775,8 @@ a {
 
 .film__cta-wrap {
   position: fixed;
-  left: 10%;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 7vh;
   z-index: 3;
   pointer-events: none;
@@ -1943,4 +1944,25 @@ a {
   border-right: 1px solid rgba(255, 255, 255, 0.65);
   border-bottom: 1px solid rgba(255, 255, 255, 0.65);
   transform: rotate(45deg);
+}
+
+.film__text--center {
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: min(52rem, 80vw);
+  align-items: center;
+  text-align: center;
+}
+
+.film__chapter,
+.film__quote,
+.film__body,
+.film__stage1-sub,
+.film__cta {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+}
+
+.film__rail-acts span.is-active {
+  color: #ffffff;
 }

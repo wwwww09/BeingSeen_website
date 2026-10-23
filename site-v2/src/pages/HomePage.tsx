@@ -1,10 +1,11 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   motion,
   useScroll,
   useSpring,
   useTransform,
+  useMotionValueEvent,
   type MotionValue,
 } from 'framer-motion'
 import { Nav } from '../components/Nav'
@@ -17,12 +18,14 @@ function FilmText({
   children,
   cta = false,
   hold = false,
+  center = false,
 }: {
   progress: MotionValue<number>
   range: [number, number]
   children: ReactNode
   cta?: boolean
   hold?: boolean
+  center?: boolean
 }) {
   const [start, end] = range
   const opacity = useTransform(
@@ -34,7 +37,7 @@ function FilmText({
 
   return (
     <motion.div
-      className={`film__text${cta ? ' film__text--cta' : ''}`}
+      className={`film__text${cta ? ' film__text--cta' : ''}${center ? ' film__text--center' : ''}`}
       style={{ opacity, y }}
     >
       {children}
@@ -43,8 +46,8 @@ function FilmText({
 }
 
 function TextOverlay({ progress }: { progress: MotionValue<number> }) {
-  const opacity = useTransform(progress, [0.02, 0.05, 0.15, 0.18], [0, 1, 1, 0])
-  const y = useTransform(progress, [0.02, 0.05, 0.15, 0.18], [16, 0, 0, -12])
+  const opacity = useTransform(progress, [0.2, 0.23, 0.47, 0.5], [0, 1, 1, 0])
+  const y = useTransform(progress, [0.2, 0.23, 0.47, 0.5], [16, 0, 0, -12])
   return (
     <motion.div className="film__stage1" style={{ opacity, y }}>
       <p className="film__chapter">
@@ -75,6 +78,10 @@ function ScienceCta({ progress }: { progress: MotionValue<number> }) {
 
 function FilmRail({ progress }: { progress: MotionValue<number> }) {
   const scaleY = useTransform(progress, [0, 1], [0, 1])
+  const [active, setActive] = useState(0)
+  useMotionValueEvent(progress, 'change', (v) => {
+    setActive(v < 0.2 ? 0 : v < 0.5 ? 1 : v < 0.65 ? 2 : v < 0.8 ? 3 : 4)
+  })
   return (
     <div className="film__rail" aria-hidden="true">
       <span className="film__rail-title">A film in five parts</span>
@@ -82,11 +89,11 @@ function FilmRail({ progress }: { progress: MotionValue<number> }) {
         <motion.div className="film__rail-fill" style={{ scaleY }} />
       </div>
       <div className="film__rail-acts">
-        <span>I</span>
-        <span>II</span>
-        <span>III</span>
-        <span>IV</span>
-        <span>V</span>
+        <span className={active === 0 ? 'is-active' : ''}>I</span>
+        <span className={active === 1 ? 'is-active' : ''}>II</span>
+        <span className={active === 2 ? 'is-active' : ''}>III</span>
+        <span className={active === 3 ? 'is-active' : ''}>IV</span>
+        <span className={active === 4 ? 'is-active' : ''}>V</span>
       </div>
     </div>
   )
@@ -199,17 +206,7 @@ export function HomePage() {
       <main id="main" className="film__overlay">
         <TextOverlay progress={scrollYProgress} />
 
-        <FilmText progress={scrollYProgress} range={[0.2, 0.4]}>
-          <p className="film__chapter">
-            01 <span>The Intrinsic</span>
-          </p>
-          <p className="film__body">
-            Here, stellar black holes emit no light either. They exist, but they
-            are completely dark.
-          </p>
-        </FilmText>
-
-        <FilmText progress={scrollYProgress} range={[0.4, 0.6]}>
+        <FilmText progress={scrollYProgress} range={[0.5, 0.65]}>
           <p className="film__chapter">
             02 <span>The Temporal</span>
           </p>
@@ -219,7 +216,7 @@ export function HomePage() {
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.6, 0.8]}>
+        <FilmText progress={scrollYProgress} range={[0.65, 0.8]}>
           <p className="film__chapter">
             03 <span>The Extrinsic</span>
           </p>
@@ -229,7 +226,7 @@ export function HomePage() {
           </p>
         </FilmText>
 
-        <FilmText progress={scrollYProgress} range={[0.8, 1]} hold>
+        <FilmText progress={scrollYProgress} range={[0.8, 1]} hold center>
           <p className="film__chapter">
             04 <span>The Universe</span>
           </p>
