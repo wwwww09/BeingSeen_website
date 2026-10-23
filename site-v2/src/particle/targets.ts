@@ -1,7 +1,7 @@
 import { buildHumanClouds, HUMAN_POINTS } from './humanCloud'
 
 export const HUMAN_COUNT = HUMAN_POINTS
-export const CROWD_COUNT = 164_000
+export const CROWD_COUNT = 384_000
 export const TOTAL = HUMAN_COUNT + CROWD_COUNT
 
 export interface ParticleTargets {

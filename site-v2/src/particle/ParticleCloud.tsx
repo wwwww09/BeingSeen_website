@@ -319,7 +319,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.2)))
     const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.4) / 0.2)))
     const e4 = smoothstep(Math.min(1, Math.max(0, (p - 0.6) / 0.08)))
-    const e5 = smoothstep(Math.min(1, Math.max(0, (p - 0.95) / 0.05)))
+    const e5 = smoothstep(Math.min(1, Math.max(0, (p - 0.8) / 0.2)))
 
     for (let i = 0; i < TOTAL; i++) {
       const o = i * 3
@@ -389,7 +389,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     const humanW =
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.16) / 0.08, 0, 1))) +
       smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.05, 0, 1)) *
-        (1 - smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1)))
+        (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
     const holeW =
       smoothstep(THREE.MathUtils.clamp((p - 0.2) / 0.04, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.4) / 0.05, 0, 1)))
@@ -398,8 +398,8 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.56) / 0.04, 0, 1)))
     const crowdW =
       smoothstep(THREE.MathUtils.clamp((p - 0.7) / 0.06, 0, 1)) *
-      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1)))
-    const starW = smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1))
+      (1 - smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1)))
+    const starW = smoothstep(THREE.MathUtils.clamp((p - 0.8) / 0.05, 0, 1))
     const flash = Math.exp(-Math.pow((p - 0.5) / 0.008, 2))
     const warm =
       smoothstep(THREE.MathUtils.clamp((p - 0.58) / 0.08, 0, 1)) *

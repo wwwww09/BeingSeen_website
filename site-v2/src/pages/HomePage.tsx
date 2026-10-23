@@ -142,6 +142,8 @@ export function HomePage() {
   return (
     <>
       <div className="intro" ref={introRef}>
+        <div className="intro__stars" aria-hidden="true" />
+
         <section className="intro__phase intro__phase--title">
           <h2 className="intro__title">Being Seen</h2>
           <p className="intro__subtitle">A journey through the unseen</p>
@@ -202,7 +204,7 @@ export function HomePage() {
 
         <FilmText progress={scrollYProgress} range={[0.2, 0.4]}>
           <p className="film__chapter">
-            02 <span>The Collapse</span>
+            01 <span>The Intrinsic</span>
           </p>
           <p className="film__body">
             Here, stellar black holes emit no light either. They exist, but they
@@ -212,7 +214,7 @@ export function HomePage() {
 
         <FilmText progress={scrollYProgress} range={[0.4, 0.6]}>
           <p className="film__chapter">
-            03 <span>The Flash</span>
+            02 <span>The Temporal</span>
           </p>
           <p className="film__quote">
             “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes
@@ -222,7 +224,7 @@ export function HomePage() {
 
         <FilmText progress={scrollYProgress} range={[0.6, 0.8]}>
           <p className="film__chapter">
-            04 <span>The Extrinsic</span>
+            03 <span>The Extrinsic</span>
           </p>
           <p className="film__quote">
             “Sometimes, we are shining, but the distance or the noise of the
@@ -232,7 +234,7 @@ export function HomePage() {
 
         <FilmText progress={scrollYProgress} range={[0.8, 1]} hold>
           <p className="film__chapter">
-            05 <span>The Universe</span>
+            04 <span>The Universe</span>
           </p>
           <p className="film__quote">
             “We are made of stardust, yet we share the same blindness as the
