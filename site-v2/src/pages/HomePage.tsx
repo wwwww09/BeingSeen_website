@@ -117,9 +117,10 @@ export function HomePage() {
     target: philosophyRef,
     offset: ['start start', 'end end'],
   })
-  const p1Opacity = useTransform(philosophyProgress, [0, 0.07, 0.26, 0.33], [0, 1, 1, 0])
-  const p2Opacity = useTransform(philosophyProgress, [0.33, 0.4, 0.59, 0.66], [0, 1, 1, 0])
-  const p3Opacity = useTransform(philosophyProgress, [0.66, 0.73, 0.95, 1], [0, 1, 1, 1])
+  const p1Opacity = useTransform(philosophyProgress, [0, 0.04, 0.2, 0.25], [0, 1, 1, 0])
+  const p2Opacity = useTransform(philosophyProgress, [0.25, 0.29, 0.45, 0.5], [0, 1, 1, 0])
+  const p3Opacity = useTransform(philosophyProgress, [0.5, 0.54, 0.7, 0.75], [0, 1, 1, 0])
+  const p4Opacity = useTransform(philosophyProgress, [0.75, 0.79, 0.94, 0.99], [0, 1, 1, 0])
   const cosmosColor = useTransform(
     introProgress,
     [0, 0.42, 0.8],
@@ -167,22 +168,30 @@ export function HomePage() {
         >
           <div className="philosophy__sticky">
             <motion.p className="philosophy__line" style={{ opacity: p1Opacity }}>
-              Some stars are invisible. Not because they don't exist, but because
-              they are in the wrong place, at the wrong time, or emit the wrong
-              kind of light.
+              Some stars are invisible.
+              <br />
+              <br />
+              Because they are in the wrong place, at the wrong time, or hide in
+              a frequency we cannot detect.
             </motion.p>
             <motion.p className="philosophy__line" style={{ opacity: p2Opacity }}>
               We spend our lives looking up, trying to understand the universe.
-              But what if the universe is also trying to be seen? What does it
-              mean for a cosmic event — or a person — to be truly witnessed?
+              <br />
+              <br />
+              Yet, it faces the exact same question we do:
+              <br />
+              <br />
+              What does it mean to truly exist, if no one is there to witness it?
             </motion.p>
             <motion.p className="philosophy__line" style={{ opacity: p3Opacity }}>
-              To answer this, we must look at how the universe hides its own
-              light. It turns out, the reasons a cosmic event goes unseen are the
-              exact same reasons we, as humans, sometimes feel invisible.
-              <span className="philosophy__final">
-                Invisibility takes three forms:
-              </span>
+              To answer this, we must look at how the universe hides its light.
+              <br />
+              <br />
+              It turns out, the reasons a star goes unseen are the very reasons we
+              sometimes feel invisible.
+            </motion.p>
+            <motion.p className="philosophy__line" style={{ opacity: p4Opacity }}>
+              Invisibility takes three forms...
             </motion.p>
           </div>
         </section>
