@@ -145,11 +145,17 @@ float snoise(vec3 v) {
     size -= uStar * 0.0012;
     gl_PointSize = size * (620.0 / max(0.1, -mv.z)) * uPixelRatio * (0.92 + 0.1 * sin(uTime * 2.7 + aSeed * 9.0) * uHuman);
 
-    vec3 humanColor = mix(vec3(0.42, 0.45, 0.5), vec3(0.68, 0.57, 0.44), uWarm);
-    vec3 holeColor = vec3(1.0, 0.55, 0.28);
-    vec3 magColor = mix(vec3(0.5, 0.68, 1.0), vec3(1.0), uFlash * 0.85);
+    vec3 humanColor = mix(vec3(0.78, 0.74, 0.67), vec3(0.94, 0.87, 0.76), aWarm * 0.55 + uWarm * 0.45);
+    float holeRadius = length(vec2(p.x, p.z));
+    float diskHeat = smoothstep(1.08, 0.94, holeRadius);
+    vec3 holeColor = mix(vec3(0.78, 0.2, 0.03), vec3(1.0, 0.86, 0.28), diskHeat);
+    vec3 magColor = mix(vec3(0.28, 0.8, 1.0), vec3(0.84, 0.98, 1.0), uFlash);
     vec3 crowdColor = mix(vec3(0.52, 0.62, 1.0), vec3(1.0, 0.76, 0.48), aWarm);
-    vec3 starColor = mix(vec3(0.5, 0.68, 1.0), vec3(0.84, 0.93, 1.0), aWarm * 0.55);
+    float starPick = fract(aSeed * 0.15915494309 + aWarm * 0.37);
+    vec3 starBlue = vec3(0.55, 0.74, 1.0);
+    vec3 starGold = vec3(1.0, 0.86, 0.62);
+    vec3 starWhite = vec3(0.93, 0.96, 1.0);
+    vec3 starColor = starPick < 0.34 ? starBlue : starPick < 0.67 ? starGold : starWhite;
 
     vec3 color =
       humanColor * uHuman +
@@ -157,7 +163,6 @@ float snoise(vec3 v) {
       magColor * uMag +
       crowdColor * uCrowd +
       starColor * uStar;
-    float holeRadius = length(vec2(p.x, p.z));
     float photon = exp(-pow((holeRadius - 0.99) / 0.05, 2.0));
     color += uHole * photon * vec3(1.0, 0.82, 0.58) * 0.9;
     color *= 0.9 + 0.1 * sin(uTime * 1.7 + aSeed);

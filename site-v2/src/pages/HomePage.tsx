@@ -170,6 +170,7 @@ export function HomePage() {
       </main>
 
       <div ref={trackRef} className="film__track" aria-hidden="true" />
+      <div className="film__tail" aria-hidden="true" />
     </div>
   )
 }

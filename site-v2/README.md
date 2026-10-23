@@ -44,7 +44,7 @@ use the previous shell until their rebuild.
 | 0.20–0.40 | 02 / The Collapse | implosion → absolute black core + extremely flat rotating accretion/photon disk; camera orbits | “Here, stellar black holes emit no light either. They exist, but they are completely dark.” |
 | 0.40–0.60 | 03 / The Flash | ring → blue magnetar + two polar beams; flash; camera shake, pull back | “Fast Radio Bursts (FRBs) last only milliseconds. If our telescopes blink, we miss them forever.” |
 | 0.60–0.80 | 04 / The Extrinsic | magnetar → standing human; crowd rushes in at 0.70 with GW ripples; human drowned; camera zooms out | “Sometimes, we are shining, but the distance or the noise of the environment makes us fade into the background.” |
-| 0.80–1.00 | 05 / The Universe | 40,000 particles → cold star map; camera stops | “We are made of stardust, yet we share the same blindness as the cosmos.” |
+| 0.80–1.00 + 100vh tail | 05 / The Universe | 40,000 particles → star map with pale-blue / gold / white stars; pinned 100vh hold after the timeline; camera stops | “We are made of stardust, yet we share the same blindness as the cosmos.” |
 
 All body copy is the brief’s text, verbatim. Extra text is limited to the stage
 labels, the scroll cue, the rail label and the final science link. The film is
@@ -73,10 +73,10 @@ scroll-driven, never autoplaying.
   so the human can genuinely be drowned.
 - The shader computes colour/opacity/size from five stage weights plus
   `uFlash`, `uWarm`, `uTime` and `uPixelRatio`; the photon ring is a local
-  shader boost near radius 0.99. Stage 1 adds a small time-varying
-  simplex float, a shimmering point size/alpha, a spiral that starts at 0.10
-  and a smoothstep alpha fade on the trailing edge so it dissolves into the
-  background instead of cutting out. `AdditiveBlending`, `depthWrite:false`,
+  shader boost near radius 0.99. Stage 1 uses pale-gold stardust; the accretion disk grades from deep orange
+  at the outer edge to bright yellow at the inner edge; the magnetar flash is
+  electric cyan/blue-white; Stage 5 mixes pale-blue, faint-gold and pure-white
+  stars. `AdditiveBlending`, `depthWrite:false`,
   `depthTest:false` on the single object; the text sits above it at z-index 2
   with `pointer-events:none`.
 - `src/particle/ParticleCamera.tsx` owns the five moves: zoom out, orbit,
