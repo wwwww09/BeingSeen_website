@@ -267,7 +267,13 @@ float snoise(vec3 v) {
  * position array; scroll interpolates the live position attribute between
  * those arrays. There are no meshes, no models and no second 3D object.
  */
-export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
+export function ParticleCloud({
+  progress,
+  intro,
+}: {
+  progress: MotionValue<number>
+  intro?: MotionValue<number>
+}) {
   const compact = useThree((state) => state.size.width < 900)
   const points = useRef<THREE.Points>(null)
   const targets = useMemo(() => buildTargets(), [])
@@ -315,6 +321,36 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
 
   useFrame((state) => {
     const p = THREE.MathUtils.clamp(progress.get(), 0, 1)
+    const introP = intro ? THREE.MathUtils.clamp(intro.get(), 0, 1) : 1
+
+    if (introP < 1) {
+      // Intro: reuse the same star geometry as Stage 5, slightly dimmer.
+      const starTarget = targets.star
+      for (let i = 0; i < TOTAL; i++) {
+        const o = i * 3
+        position[o] = starTarget[o]
+        position[o + 1] = starTarget[o + 1]
+        position[o + 2] = starTarget[o + 2]
+      }
+      const attr = geometry.getAttribute('position') as THREE.BufferAttribute
+      attr.needsUpdate = true
+      material.uniforms.uHuman.value = 0
+      material.uniforms.uHole.value = 0
+      material.uniforms.uMag.value = 0
+      material.uniforms.uCrowd.value = 0
+      material.uniforms.uStar.value = 0.82
+      material.uniforms.uFlash.value = 0
+      material.uniforms.uWarm.value = 0
+      material.uniforms.uTear.value = 0
+      material.uniforms.uJitter.value = 0
+      material.uniforms.uImplode.value = 0
+      material.uniforms.uRipple.value = 0
+      material.uniforms.uDiskSpeed.value = 1
+      material.uniforms.uNoise.value = 0.006
+      material.uniforms.uTime.value = state.clock.elapsedTime
+      material.uniforms.uPixelRatio.value = Math.min(2, state.gl.getPixelRatio())
+      return
+    }
     const e1 = smoothstep(Math.min(1, p / 0.2))
     const e2 = smoothstep(Math.min(1, Math.max(0, (p - 0.2) / 0.2)))
     const e3 = smoothstep(Math.min(1, Math.max(0, (p - 0.4) / 0.2)))

@@ -7,12 +7,19 @@ const smooth = (value: number) => {
   return t * t * (3 - 2 * t)
 }
 
-export function ParticleCamera({ progress }: { progress: MotionValue<number> }) {
+export function ParticleCamera({
+  progress,
+  intro: introProgress,
+}: {
+  progress: MotionValue<number>
+  intro?: MotionValue<number>
+}) {
   const { camera, size } = useThree()
   const compact = size.width < 900
 
   useFrame((state) => {
-    const p = clamp01(progress.get())
+    const introP = introProgress ? clamp01(introProgress.get()) : 1
+    const p = introP < 1 ? 0 : clamp01(progress.get())
     const t = state.clock.elapsedTime
     const intro = smooth(p / 0.2)
     const orbit = smooth((p - 0.2) / 0.2) * 0.28

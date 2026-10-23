@@ -113,7 +113,6 @@ export function HomePage() {
   const p1Opacity = useTransform(philosophyProgress, [0, 0.07, 0.26, 0.33], [0, 1, 1, 0])
   const p2Opacity = useTransform(philosophyProgress, [0.33, 0.4, 0.59, 0.66], [0, 1, 1, 0])
   const p3Opacity = useTransform(philosophyProgress, [0.66, 0.73, 0.95, 1], [0, 1, 1, 1])
-  const sceneOpacity = useTransform(introProgress, [0.82, 0.99], [0, 1])
   const cosmosColor = useTransform(
     introProgress,
     [0, 0.42, 0.8],
@@ -142,8 +141,6 @@ export function HomePage() {
   return (
     <>
       <div className="intro" ref={introRef}>
-        <div className="intro__stars" aria-hidden="true" />
-
         <section className="intro__phase intro__phase--title">
           <h2 className="intro__title">Being Seen</h2>
           <p className="intro__subtitle">A journey through the unseen</p>
@@ -189,9 +186,9 @@ export function HomePage() {
 
       <motion.div
         className={`film__canvas${webgl !== true ? ' film__canvas--fallback' : ''}`}
-        style={{ opacity: sceneOpacity, backgroundColor: cosmosColor }}
+        style={{ opacity: 1, backgroundColor: cosmosColor }}
       >
-        {webgl === true ? <ParticleScene progress={smooth} /> : null}
+        {webgl === true ? <ParticleScene progress={smooth} intro={introProgress} /> : null}
       </motion.div>
 
       <div className="film__scrim" aria-hidden="true" />
