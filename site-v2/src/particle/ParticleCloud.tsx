@@ -25,6 +25,7 @@ const vertexShader = /* glsl */ `
   attribute float aRole;
   attribute float aWarm;
   attribute float aSeed;
+  attribute float aStarLayer;
   attribute float aTrail;
   attribute float aArm;
 
@@ -144,6 +145,7 @@ float snoise(vec3 v) {
     size += uFlash * (isBeam * 0.012 + 0.0015);
     size -= isCrowd * 0.0018;
     size -= uStar * 0.0012;
+    size += uStar * aStarLayer * 0.012;
     gl_PointSize = size * (620.0 / max(0.1, -mv.z)) * uPixelRatio * (0.92 + 0.1 * sin(uTime * 2.7 + aSeed * 9.0) * uHuman);
 
     vec3 pureWhite = vec3(0.94, 0.96, 1.0);
@@ -160,6 +162,7 @@ float snoise(vec3 v) {
     vec3 starWhite = vec3(0.9, 0.94, 1.0);
     vec3 starGold = vec3(0.88, 0.83, 0.7);
     vec3 starColor = starPick < 0.45 ? starBlue : starPick < 0.8 ? starWhite : starGold;
+    starColor = mix(starColor, vec3(0.97, 0.99, 1.0), aStarLayer * 0.45);
 
     vec3 color =
       humanColor * uHuman +
@@ -174,7 +177,7 @@ float snoise(vec3 v) {
 
     float alpha;
     if (isCrowd > 0.5) {
-      alpha = uCrowd * 0.38 + uStar * 0.42;
+      alpha = uCrowd * 0.38 + uStar * (0.42 + aStarLayer * 0.3);
     } else {
       alpha =
         uHuman * mix(0.28, 0.05, uCrowd) +
@@ -272,6 +275,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     g.setAttribute('aRole', new THREE.BufferAttribute(targets.role, 1))
     g.setAttribute('aWarm', new THREE.BufferAttribute(targets.warm, 1))
     g.setAttribute('aSeed', new THREE.BufferAttribute(targets.seed, 1))
+    g.setAttribute('aStarLayer', new THREE.BufferAttribute(targets.starLayer, 1))
     g.setAttribute('aTrail', new THREE.BufferAttribute(targets.trail, 1))
     g.setAttribute('aArm', new THREE.BufferAttribute(targets.arm, 1))
     return g

@@ -12,6 +12,7 @@ export interface ParticleTargets {
   magnetar: Float32Array
   crowd: Float32Array
   star: Float32Array
+  starLayer: Float32Array
   role: Float32Array
   warm: Float32Array
   seed: Float32Array
@@ -73,11 +74,21 @@ function magnetarPoint(role: number): [number, number, number] {
   return [Math.cos(angle) * radius, 1 + sign * (0.45 + t * 2.4), Math.sin(angle) * radius]
 }
 
-function starPoint(): [number, number, number] {
+function starPoint(): [number, number, number, number] {
+  const foreground = Math.random() < 0.16
+  if (foreground) {
+    return [
+      (Math.random() - 0.5) * 13,
+      -2.5 + Math.random() * 7.5,
+      1.5 + Math.random() * 4.5,
+      1,
+    ]
+  }
   return [
-    (Math.random() - 0.5) * 20,
-    -2.6 + Math.random() * 8.2,
-    (Math.random() - 0.5) * 0.7,
+    (Math.random() - 0.5) * 24,
+    -3 + Math.random() * 9,
+    -10 + Math.random() * 8,
+    0,
   ]
 }
 
@@ -89,6 +100,7 @@ export function buildTargets(): ParticleTargets {
   const magnetar = new Float32Array(TOTAL * 3)
   const crowd = new Float32Array(TOTAL * 3)
   const star = new Float32Array(TOTAL * 3)
+  const starLayer = new Float32Array(TOTAL)
   const role = new Float32Array(TOTAL)
   const warm = new Float32Array(TOTAL)
   const seed = new Float32Array(TOTAL)
@@ -120,6 +132,7 @@ export function buildTargets(): ParticleTargets {
     writePoint(crowd, i, clouds.stand[o], clouds.stand[o + 1], clouds.stand[o + 2])
     const s = starPoint()
     writePoint(star, i, s[0], s[1], s[2])
+    starLayer[i] = s[3]
   }
 
   for (let i = HUMAN_COUNT; i < TOTAL; i++) {
@@ -137,7 +150,8 @@ export function buildTargets(): ParticleTargets {
     writePoint(crowd, i, n[0], n[1], n[2])
     const s = starPoint()
     writePoint(star, i, s[0], s[1], s[2])
+    starLayer[i] = s[3]
   }
 
-  return { run, ball, stand, hole, magnetar, crowd, star, role, warm, seed, trail, arm }
+  return { run, ball, stand, hole, magnetar, crowd, star, starLayer, role, warm, seed, trail, arm }
 }
