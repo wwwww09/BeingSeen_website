@@ -339,7 +339,8 @@ export function ParticleCloud({
       material.uniforms.uHole.value = 0
       material.uniforms.uMag.value = 0
       material.uniforms.uCrowd.value = 0
-      material.uniforms.uStar.value = 1
+      const starFade = 1 - THREE.MathUtils.smoothstep(introP, 0.9, 0.96)
+      material.uniforms.uStar.value = starFade
       material.uniforms.uFlash.value = 0
       material.uniforms.uWarm.value = 0
       material.uniforms.uTear.value = 0
@@ -442,7 +443,8 @@ export function ParticleCloud({
       smoothstep(THREE.MathUtils.clamp((p - 0.58) / 0.08, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.82) / 0.05, 0, 1)))
 
-    material.uniforms.uHuman.value = humanW
+    const humanFade = THREE.MathUtils.smoothstep(p, 0, 0.03)
+    material.uniforms.uHuman.value = humanW * humanFade
     material.uniforms.uHole.value = holeW
     material.uniforms.uMag.value = magW
     material.uniforms.uCrowd.value = crowdW
