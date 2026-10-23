@@ -1,7 +1,7 @@
 import { buildHumanClouds, HUMAN_POINTS } from './humanCloud'
 
 export const HUMAN_COUNT = HUMAN_POINTS
-export const CROWD_COUNT = 24_000
+export const CROWD_COUNT = 104_000
 export const TOTAL = HUMAN_COUNT + CROWD_COUNT
 
 export interface ParticleTargets {
@@ -53,14 +53,15 @@ function crowdNear(): [number, number, number] {
   return [Math.cos(angle) * radius, -1.8 + Math.random() * 6.6, Math.sin(angle) * radius * 0.7]
 }
 
-function holePoint(role: number): [number, number, number] {
-  if (role === ROLE_CORE) return spherePoint([0, 1, 0], 0.17)
+function holePoint(_role: number): [number, number, number] {
+  // Ultra-flat faint accretion ring only: the centre stays absolute void.
   const angle = Math.random() * Math.PI * 2
-  const radius = 0.86 + Math.random() * 0.44
-  const tilt = 0.1
-  const u = Math.cos(angle) * radius
-  const v = Math.sin(angle) * radius
-  return [u, 1 + v * Math.sin(tilt), v * Math.cos(tilt)]
+  const radius = 0.93 + Math.random() * 0.1
+  return [
+    Math.cos(angle) * radius,
+    1 + (Math.random() - 0.5) * 0.02,
+    Math.sin(angle) * radius,
+  ]
 }
 
 function magnetarPoint(role: number): [number, number, number] {

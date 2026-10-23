@@ -27,8 +27,6 @@ const vertexShader = /* glsl */ `
   attribute float aSeed;
   attribute float aTrail;
   attribute float aArm;
-  attribute float aLeg;
-  attribute float aSide;
 
   varying vec3 vColor;
   varying float vAlpha;
@@ -95,11 +93,6 @@ float snoise(vec3 v) {
     float arm = aArm * uTear;
     p += vec3(arm * 0.12, arm * 0.05, arm * 0.18) * (0.4 + 0.6 * sin(uTime * 19.0 + aSeed * 7.0));
 
-    // left/right alternating leg step: tiny Y offset only.
-    // aSide is 0 for x < 0 (left leg) and 1 for x > 0 (right leg).
-    float legPhase = uTime * 3.6 + aSide * 3.14159265;
-    p.y += sin(legPhase) * 0.018 * aLeg * uHuman;
-
     // Stage 1: high-frequency struggle jitter.
     vec3 jn = vec3(
       snoise(p * 8.0 + vec3(0.0, 0.0, uTime * 9.0)),
@@ -146,24 +139,27 @@ float snoise(vec3 v) {
     float isCore = step(0.5, aRole) * (1.0 - step(1.5, aRole));
     float isBeam = step(1.5, aRole) * (1.0 - step(2.5, aRole));
 
-    float size = 0.0075;
+    float size = 0.0052;
     size += uMag * 0.006;
     size += uFlash * (isBeam * 0.012 + 0.0015);
     size -= isCrowd * 0.0018;
     size -= uStar * 0.0012;
     gl_PointSize = size * (620.0 / max(0.1, -mv.z)) * uPixelRatio * (0.92 + 0.1 * sin(uTime * 2.7 + aSeed * 9.0) * uHuman);
 
-    vec3 humanColor = mix(vec3(0.78, 0.74, 0.67), vec3(0.94, 0.87, 0.76), aWarm * 0.55 + uWarm * 0.45);
+    vec3 pureWhite = vec3(0.94, 0.96, 1.0);
+    vec3 paleBlue = vec3(0.72, 0.82, 0.96);
+    vec3 champagne = vec3(0.98, 0.90, 0.78);
+    vec3 humanColor = mix(mix(pureWhite, paleBlue, 0.35), champagne, 0.15 + aWarm * 0.1);
     float holeRadius = length(vec2(p.x, p.z));
     float diskHeat = smoothstep(1.08, 0.94, holeRadius);
-    vec3 holeColor = mix(vec3(0.78, 0.2, 0.03), vec3(1.0, 0.86, 0.28), diskHeat);
+    vec3 holeColor = mix(vec3(0.58, 0.24, 0.06), vec3(1.0, 0.64, 0.2), diskHeat);
     vec3 magColor = mix(vec3(0.28, 0.8, 1.0), vec3(0.84, 0.98, 1.0), uFlash);
     vec3 crowdColor = mix(vec3(0.52, 0.62, 1.0), vec3(1.0, 0.76, 0.48), aWarm);
     float starPick = fract(aSeed * 0.15915494309 + aWarm * 0.37);
-    vec3 starBlue = vec3(0.55, 0.74, 1.0);
-    vec3 starGold = vec3(1.0, 0.86, 0.62);
-    vec3 starWhite = vec3(0.93, 0.96, 1.0);
-    vec3 starColor = starPick < 0.34 ? starBlue : starPick < 0.67 ? starGold : starWhite;
+    vec3 starBlue = vec3(0.6, 0.76, 1.0);
+    vec3 starWhite = vec3(0.9, 0.94, 1.0);
+    vec3 starGold = vec3(0.88, 0.83, 0.7);
+    vec3 starColor = starPick < 0.45 ? starBlue : starPick < 0.8 ? starWhite : starGold;
 
     vec3 color =
       humanColor * uHuman +
@@ -172,23 +168,23 @@ float snoise(vec3 v) {
       crowdColor * uCrowd +
       starColor * uStar;
     float photon = exp(-pow((holeRadius - 0.99) / 0.05, 2.0));
-    color += uHole * photon * vec3(1.0, 0.82, 0.58) * 0.9;
+    color += uHole * photon * vec3(0.95, 0.66, 0.3) * 0.42;
     color *= 0.9 + 0.1 * sin(uTime * 1.7 + aSeed);
     vColor = color;
 
     float alpha;
     if (isCrowd > 0.5) {
-      alpha = uCrowd * 0.55 + uStar * 0.75;
+      alpha = uCrowd * 0.38 + uStar * 0.42;
     } else {
       alpha =
-        uHuman * mix(0.46, 0.06, uCrowd) +
-        uMag * 0.9 +
-        uStar * 0.72 +
-        uHole * mix(0.34, 0.0, isCore) +
-        uHole * 0.16 * isBeam +
-        uHole * photon * 0.5;
+        uHuman * mix(0.28, 0.05, uCrowd) +
+        uMag * 0.8 +
+        uStar * 0.42 +
+        uHole * mix(0.12, 0.0, isCore) +
+        uHole * 0.08 * isBeam +
+        uHole * photon * 0.12;
     }
-    alpha += uFlash * (isBeam * 0.9 + 0.12);
+    alpha += uFlash * (isBeam * 0.85 + 0.08);
     float edgeCut = clamp(trail * 0.8 + arm * 0.9, 0.0, 1.0);
     float visibility = 1.0 - smoothstep(0.12, 1.0, edgeCut);
     vAlpha = alpha * (0.84 + 0.16 * sin(uTime * 2.2 + aSeed * 1.7)) * visibility;
@@ -278,17 +274,6 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     g.setAttribute('aSeed', new THREE.BufferAttribute(targets.seed, 1))
     g.setAttribute('aTrail', new THREE.BufferAttribute(targets.trail, 1))
     g.setAttribute('aArm', new THREE.BufferAttribute(targets.arm, 1))
-    const leg = new Float32Array(TOTAL)
-    const side = new Float32Array(TOTAL)
-    for (let i = 0; i < HUMAN_COUNT; i++) {
-      const o = i * 3
-      const x = targets.stand[o]
-      const y = targets.stand[o + 1]
-      leg[i] = y < 0.82 ? 1 : 0
-      side[i] = x < 0 ? 0 : 1
-    }
-    g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 1))
-    g.setAttribute('aSide', new THREE.BufferAttribute(side, 1))
     return g
   }, [position, targets])
 
@@ -407,7 +392,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
       smoothstep(THREE.MathUtils.clamp((p - 0.7) / 0.06, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1)))
     const starW = smoothstep(THREE.MathUtils.clamp((p - 0.95) / 0.03, 0, 1))
-    const flash = Math.exp(-Math.pow((p - 0.5) / 0.019, 2))
+    const flash = Math.exp(-Math.pow((p - 0.5) / 0.008, 2))
     const warm =
       smoothstep(THREE.MathUtils.clamp((p - 0.58) / 0.08, 0, 1)) *
       (1 - smoothstep(THREE.MathUtils.clamp((p - 0.82) / 0.05, 0, 1)))
