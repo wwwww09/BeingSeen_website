@@ -1809,6 +1809,12 @@ a {
 .intro {
   position: relative;
   z-index: 2;
+  background: transparent;
+  color: #e5e5e5;
+}
+
+.intro__phase {
+  position: relative;
   height: 100vh;
   min-height: 100vh;
   display: flex;
@@ -1817,8 +1823,11 @@ a {
   justify-content: center;
   padding: 8vh 6vw;
   background: transparent;
-  color: #e5e5e5;
   text-align: center;
+}
+
+.intro__phase--title {
+  justify-content: center;
 }
 
 .intro__badge {
@@ -1833,7 +1842,7 @@ a {
 .intro__title {
   margin: 0 0 2.2rem;
   font-family: var(--display);
-  font-size: clamp(4rem, 11vw, 9.5rem);
+  font-size: clamp(6rem, 15vw, 20rem);
   font-weight: 400;
   line-height: 0.92;
   letter-spacing: -0.03em;
@@ -1856,6 +1865,10 @@ a {
 .intro__body p:last-child {
   margin-bottom: 0;
   color: #e5e5e5;
+}
+
+.intro__phase--philosophy .intro__body {
+  margin-top: 0;
 }
 
 .intro__scroll {

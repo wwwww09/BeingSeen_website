@@ -98,14 +98,24 @@ function FilmRail({ progress }: { progress: MotionValue<number> }) {
  * scroll. The film is read as five acts, not as five separate scenes.
  */
 export function HomePage() {
-  const heroRef = useRef<HTMLElement>(null)
+  const introRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const webgl = useWebGL()
-  const { scrollYProgress: heroProgress } = useScroll({
-    target: heroRef,
+  const { scrollYProgress: introProgress } = useScroll({
+    target: introRef,
     offset: ['start start', 'end start'],
   })
-  const sceneOpacity = useTransform(heroProgress, [0.55, 0.96], [0, 1])
+  const sceneOpacity = useTransform(introProgress, [0.82, 0.99], [0, 1])
+  const philosophyOpacity = useTransform(
+    introProgress,
+    [0.48, 0.58, 0.86, 0.96],
+    [0, 1, 1, 0],
+  )
+  const cosmosColor = useTransform(
+    introProgress,
+    [0, 0.42, 0.8],
+    ['#000000', '#05060a', '#0a0a10'],
+  )
   const { scrollYProgress } = useScroll({
     target: trackRef,
     offset: ['start start', 'end end'],
@@ -128,38 +138,46 @@ export function HomePage() {
 
   return (
     <>
-      <section className="intro" ref={heroRef}>
-        <p className="intro__badge">A JOURNEY THROUGH THE UNSEEN</p>
-        <h2 className="intro__title">Being Seen</h2>
-        <div className="intro__body">
-          <p>
-            Some stars are invisible. Not because they don't exist, but because
-            they are in the wrong place, at the wrong time, or emit the wrong
-            kind of light.
+      <div className="intro" ref={introRef}>
+        <section className="intro__phase intro__phase--title">
+          <p className="intro__badge">A JOURNEY THROUGH THE UNSEEN</p>
+          <h2 className="intro__title">Being Seen</h2>
+          <p className="intro__scroll">
+            SCROLL TO BEGIN <span aria-hidden="true">↓</span>
           </p>
-          <p>
-            We spend our lives looking up, trying to understand the universe.
-            But what if the universe is also trying to be seen? What does it
-            mean for a cosmic event — or a person — to be truly witnessed?
-          </p>
-          <p>To answer this, we must look at how the universe hides its own light.</p>
-          <p>
-            It turns out, the reasons a cosmic event goes unseen are the exact
-            same reasons we, as humans, sometimes feel invisible.
-          </p>
-          <p>Invisibility takes three forms:</p>
-        </div>
-        <p className="intro__scroll">
-          SCROLL TO BEGIN <span aria-hidden="true">↓</span>
-        </p>
-      </section>
+        </section>
+
+        <motion.section
+          className="intro__phase intro__phase--philosophy"
+          style={{ opacity: philosophyOpacity }}
+        >
+          <div className="intro__body">
+            <p>
+              Some stars are invisible. Not because they don't exist, but because
+              they are in the wrong place, at the wrong time, or emit the wrong
+              kind of light.
+            </p>
+            <p>
+              We spend our lives looking up, trying to understand the universe.
+              But what if the universe is also trying to be seen? What does it
+              mean for a cosmic event — or a person — to be truly witnessed?
+            </p>
+            <p>To answer this, we must look at how the universe hides its own light.</p>
+            <p>
+              It turns out, the reasons a cosmic event goes unseen are the exact
+              same reasons we, as humans, sometimes feel invisible.
+            </p>
+            <p>Invisibility takes three forms:</p>
+          </div>
+        </motion.section>
+      </div>
 
       <div className="film">
       <h1 className="film__sr-title">Being unseen — a film in five parts</h1>
 
       <motion.div
         className={`film__canvas${webgl !== true ? ' film__canvas--fallback' : ''}`}
-        style={{ opacity: sceneOpacity }}
+        style={{ opacity: sceneOpacity, backgroundColor: cosmosColor }}
       >
         {webgl === true ? <ParticleScene progress={smooth} /> : null}
       </motion.div>
