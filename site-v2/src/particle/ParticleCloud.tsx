@@ -21,7 +21,6 @@ const vertexShader = /* glsl */ `
   uniform float uRipple;
   uniform float uDiskSpeed;
   uniform float uNoise;
-  uniform float uScrollProgress;
 
   attribute float aRole;
   attribute float aWarm;
@@ -110,26 +109,11 @@ float snoise(vec3 v) {
       snoise(p * 1.7 + vec3(31.0, 7.0, 11.0) + uTime * 0.09),
       snoise(p * 1.7 + vec3(4.0, 17.0, 29.0) + uTime * 0.09)
     );
-    float stage1 = 1.0 - smoothstep(0.06, 0.12, uScrollProgress);
-    p += bodyNoise * uNoise * (1.0 - stage1);
+    p += bodyNoise * uNoise;
 
-    // barely-holding-together stardust shimmer, disabled while Stage 1 is static
+    // barely-holding-together stardust shimmer (Stage 1 human only)
     float floatN = snoise(p * 3.2 + vec3(0.0, uTime * 0.42, 0.0));
-    p += vec3(floatN, floatN * 0.65, -floatN) * 0.008 * uHuman * (1.0 - stage1);
-
-    // Stage 1 only: lift the right arm, then dissolve its tip.
-    // aArm keeps the front leg (also x > 0.3) out of this effect.
-    float armMask = step(0.3, position.x) * step(0.2, position.y) * step(0.5, aArm);
-    float liftProgress = clamp(uScrollProgress / 0.05, 0.0, 1.0);
-    float armLift = smoothstep(0.0, 1.0, liftProgress) * stage1;
-    p.x += armMask * armLift * 0.16;
-    p.y += armMask * armLift * 0.1;
-    float tip = smoothstep(0.6, 0.82, position.x) * armMask;
-    float tipNoise = snoise(p * 8.0 + vec3(0.0, uTime * 9.0, 0.0) + aSeed);
-    p.x += tip * tipNoise * 0.035 * armLift;
-    p.y += tip * tipNoise * 0.025 * armLift;
-    p.z += tip * tipNoise * 0.04 * armLift;
-    float tipFade = tip * smoothstep(0.0, 0.05, uScrollProgress);
+    p += vec3(floatN, floatN * 0.65, -floatN) * 0.008 * uHuman;
 
     // Stage 2/3: accretion disk spins faster as the black hole breaks.
     float holeSpin = uTime * 0.22 * uHole * uDiskSpeed;
@@ -145,7 +129,7 @@ float snoise(vec3 v) {
 
     // Stage 4 head sway.
     float head = smoothstep(1.4, 1.62, p.y);
-    p.x += sin(uTime * 0.9 + 0.4) * 0.03 * head * uHuman * (1.0 - stage1);
+    p.x += sin(uTime * 0.9 + 0.4) * 0.03 * head * uHuman;
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
@@ -194,7 +178,7 @@ float snoise(vec3 v) {
     alpha += uFlash * (isBeam * 0.9 + 0.12);
     float edgeCut = clamp(trail * 0.85 + arm * 0.95, 0.0, 1.0);
     float visibility = 1.0 - smoothstep(0.0, 1.0, edgeCut);
-    vAlpha = alpha * (0.84 + 0.16 * sin(uTime * 2.2 + aSeed * 1.7)) * visibility * (1.0 - tipFade * 0.95);
+    vAlpha = alpha * (0.84 + 0.16 * sin(uTime * 2.2 + aSeed * 1.7)) * visibility;
   }
 `
 
@@ -304,7 +288,6 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
         uRipple: { value: 0 },
         uDiskSpeed: { value: 1 },
         uNoise: { value: 0.018 },
-        uScrollProgress: { value: 0 },
       },
       transparent: true,
       depthWrite: false,
@@ -412,7 +395,7 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uStar.value = starW
     material.uniforms.uFlash.value = flash
     material.uniforms.uWarm.value = warm
-    const tear = 0
+    const tear = (1 - smoothstep(THREE.MathUtils.clamp((p - 0.14) / 0.06, 0, 1))) * 0.55
     const jitter = 0
     const implode = 0
     const ripple =
@@ -427,7 +410,6 @@ export function ParticleCloud({ progress }: { progress: MotionValue<number> }) {
     material.uniforms.uRipple.value = ripple
     material.uniforms.uDiskSpeed.value = diskSpeed
     material.uniforms.uNoise.value = noise
-    material.uniforms.uScrollProgress.value = p
     material.uniforms.uTime.value = state.clock.elapsedTime
     material.uniforms.uPixelRatio.value = Math.min(2, state.gl.getPixelRatio())
   })
