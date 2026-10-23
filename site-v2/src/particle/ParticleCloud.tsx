@@ -134,8 +134,9 @@ float snoise(vec3 v) {
     p.x += sin(uTime * 0.9 + 0.4) * 0.03 * head * uHuman;
 
     // Stage 5: stars fly towards the camera and wrap through a deep Z range.
-    float starFly = mod(p.z + uTime * 1.6 + 50.0, 100.0) - 50.0;
+    float starFly = mod(p.z + uTime * 2.2 + 100.0, 120.0) - 100.0;
     p.z = mix(p.z, starFly, uStar);
+    float starDepth = smoothstep(-100.0, 0.0, starFly);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
@@ -145,7 +146,7 @@ float snoise(vec3 v) {
     float isBeam = step(1.5, aRole) * (1.0 - step(2.5, aRole));
 
     float humanSize = 0.009;
-    float starSize = 0.0055 + aStarLayer * 0.014;
+    float starSize = 0.011 + aStarLayer * 0.022;
     float size = mix(humanSize, starSize, isCrowd);
     size += uMag * 0.006;
     size += uFlash * (isBeam * 0.012 + 0.0015);
@@ -166,7 +167,7 @@ float snoise(vec3 v) {
     vec3 starGold = vec3(0.88, 0.83, 0.7);
     vec3 starColor = starPick < 0.45 ? starBlue : starPick < 0.8 ? starWhite : starGold;
     starColor = mix(starColor, vec3(0.97, 0.99, 1.0), aStarLayer * 0.45);
-    starColor *= 1.28;
+    starColor *= 1.45;
 
     vec3 color =
       humanColor * uHuman +
@@ -186,7 +187,7 @@ float snoise(vec3 v) {
       alpha =
         uHuman * mix(0.55, 0.12, uCrowd) +
         uMag * 0.8 +
-        uStar * (0.8 + aStarLayer * 0.2) * (0.86 + 0.14 * sin(uTime * 1.6 + aSeed * 2.0)) +
+        uStar * (0.95 + aStarLayer * 0.2) * (0.86 + 0.14 * sin(uTime * 1.6 + aSeed * 2.0)) +
         uHole * mix(0.12, 0.0, isCore) +
         uHole * 0.08 * isBeam +
         uHole * photon * 0.12;
