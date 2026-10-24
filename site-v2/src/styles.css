@@ -124,7 +124,7 @@ a {
   top: 0;
   right: 0;
   left: 0;
-  z-index: 10;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2281,26 +2281,59 @@ a {
   height: 100vh;
 }
 
-.sn-bg .lens-scatter__axes,
-.sn-bg .lens-scatter__legend {
-  position: absolute;
-  left: auto;
-  right: 2.2rem;
-  bottom: 5.5rem;
+.lens-scatter__hud {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  pointer-events: none;
+  padding: 0.75rem 0.9rem;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(236, 233, 226, 0.12);
+  backdrop-filter: blur(6px);
+}
+
+.lens-scatter__hud .lens-scatter__axes,
+.lens-scatter__hud .lens-scatter__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
   padding: 0;
   border: 0;
+  font-size: 0.52rem;
+  line-height: 1.4;
 }
 
-.sn-bg .lens-scatter__axes {
-  bottom: 8rem;
-  gap: 1rem;
-  font-size: 0.54rem;
-  color: rgba(220, 230, 244, 0.55);
+.lens-scatter__hud .lens-scatter__axes {
+  color: rgba(220, 230, 244, 0.5);
+  letter-spacing: 0.12em;
 }
 
-.sn-bg .lens-scatter__legend {
-  font-size: 0.54rem;
-  color: rgba(220, 230, 244, 0.55);
+.lens-scatter__hud .lens-scatter__legend {
+  color: rgba(220, 230, 244, 0.6);
+  letter-spacing: 0.04em;
+}
+
+.sn-content .sn-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sn-footer {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 3rem 0 4rem;
+  border-top: 1px solid rgba(236, 233, 226, 0.12);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8b877e;
 }
 
 .sn-content {

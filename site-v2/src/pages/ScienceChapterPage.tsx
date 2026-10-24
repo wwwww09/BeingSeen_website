@@ -86,6 +86,10 @@ export function ScienceChapterPage() {
             All chapters
           </Link>
         </div>
+
+        <footer className="sn-footer">
+          Being Seen <span aria-hidden="true">/</span> The Science <span aria-hidden="true">/</span> Supernovae
+        </footer>
         </div>
       </article>
     )

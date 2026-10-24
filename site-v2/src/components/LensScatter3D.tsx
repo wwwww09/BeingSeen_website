@@ -146,7 +146,9 @@ export function LensScatter3D() {
           <color attach="background" args={['#080a10']} />
           <LensCloud lenses={feed.lenses} maxZ={maxZ} />
           <SneMarkers sne={feed.sne} maxZ={maxZ} />
-          <axesHelper args={[5]} />
+          <gridHelper args={[24, 24, '#222222', '#222222']} position={[0, -10, 0]}>
+            <lineBasicMaterial attach="material" color="#222222" transparent opacity={0.18} />
+          </gridHelper>
           <OrbitControls
             enablePan={false}
             minDistance={12}
@@ -157,18 +159,20 @@ export function LensScatter3D() {
           />
         </Canvas>
       </div>
-      <div className="lens-scatter__axes" aria-hidden="true">
-        <span>RA → X</span>
-        <span>Dec → Y</span>
-        <span>Redshift → Z</span>
-      </div>
-      <div className="lens-scatter__legend">
-        <span>
-          <i className="lens-scatter__dot" /> {live ? feed.lenses.length.toLocaleString() : 'sample'} lens systems
-        </span>
-        <span>
-          <i className="lens-scatter__dot lens-scatter__dot--known" /> {feed.sne.length} known lensed supernovae
-        </span>
+      <div className="lens-scatter__hud">
+        <div className="lens-scatter__axes" aria-hidden="true">
+          <span>RA → X</span>
+          <span>Dec → Y</span>
+          <span>Redshift → Z</span>
+        </div>
+        <div className="lens-scatter__legend">
+          <span>
+            <i className="lens-scatter__dot" /> {live ? feed.lenses.length.toLocaleString() : 'sample'} lenses
+          </span>
+          <span>
+            <i className="lens-scatter__dot lens-scatter__dot--known" /> {feed.sne.length} lensed SNe
+          </span>
+        </div>
       </div>
     </div>
   )
