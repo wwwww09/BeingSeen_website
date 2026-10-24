@@ -3,84 +3,109 @@ import { OrbitControls } from '@react-three/drei'
 import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 
-type LensRow = [number, number, number]
+interface LensDatum {
+  ra: number
+  dec: number
+  redshift: number
+}
+
+interface SneDatum extends LensDatum {
+  name: string
+}
 
 interface LensFeed {
-  fields: [string, string, string]
-  count: number
-  rows: LensRow[]
-  supernovae: { name: string; ra: number; dec: number; z: number }[]
+  lenses: LensDatum[]
+  sne: SneDatum[]
 }
 
 const FALLBACK: LensFeed = {
-  fields: ['ra', 'dec', 'z'],
-  count: 6,
-  rows: [
-    [12.3, 18.2, 0.42],
-    [45.8, -12.4, 0.86],
-    [92.1, 41.7, 0.31],
-    [148.6, -3.2, 1.12],
-    [210.4, 28.5, 0.64],
-    [301.2, -35.1, 1.48],
+  lenses: [
+    { ra: 12.6, dec: -17.6, redshift: 0.4 },
+    { ra: 45.8, dec: -12.4, redshift: 0.86 },
+    { ra: 92.1, dec: 41.7, redshift: 0.31 },
+    { ra: 148.6, dec: -3.2, redshift: 1.12 },
+    { ra: 210.4, dec: 28.5, redshift: 0.64 },
+    { ra: 301.2, dec: -35.1, redshift: 1.48 },
   ],
-  supernovae: [{ name: 'SN Refsdal', ra: 177.5, dec: -20.8, z: 1.49 }],
+  sne: [{ name: 'SN Refsdal', ra: 177.5, dec: -20.8, redshift: 1.49 }],
 }
 
-/**
- * RA/Dec/redshift -> a 3D sphere.
- * RA is longitude, Dec is latitude; redshift becomes radius so the
- * furthest systems sit deeper in the cloud.
- */
-function toCartesian(ra: number, dec: number, z: number): [number, number, number] {
-  const phi = ((90 - dec) * Math.PI) / 180
-  const theta = (ra * Math.PI) / 180
-  const radius = 7 + z * 3.2
-  const sinPhi = Math.sin(phi)
+/** RA -> X, Dec -> Y, redshift -> Z, all normalised to a [-10, 10] cube. */
+function toXYZ(point: LensDatum, maxZ: number): [number, number, number] {
   return [
-    radius * sinPhi * Math.cos(theta),
-    radius * Math.cos(phi),
-    radius * sinPhi * Math.sin(theta),
+    (point.ra / 360) * 20 - 10,
+    (point.dec / 90) * 10,
+    (point.redshift / maxZ) * 20 - 10,
   ]
 }
 
-function Scatter({ feed }: { feed: LensFeed }) {
-  const { positions, colors } = useMemo(() => {
-    const all = [...feed.rows.map((r) => ({ ...r, known: false }))]
-    const known = feed.supernovae.map((s) => [s.ra, s.dec, s.z] as LensRow)
-    const positions = new Float32Array((all.length + known.length) * 3)
-    const colors = new Float32Array((all.length + known.length) * 3)
-    const palette = [new THREE.Color('#8db7ff'), new THREE.Color('#d6e6ff'), new THREE.Color('#f2d6a2')]
-    all.forEach((r, i) => {
-      const [x, y, z] = toCartesian(r[0], r[1], r[2])
-      positions.set([x, y, z], i * 3)
-      const c = palette[Math.min(2, Math.floor((r[2] / 2.2) * 3))]
-      colors.set([c.r, c.g, c.b], i * 3)
+function LensCloud({ lenses, maxZ }: { lenses: LensDatum[]; maxZ: number }) {
+  const positions = useMemo(() => {
+    const arr = new Float32Array(lenses.length * 3)
+    lenses.forEach((lens, i) => {
+      arr.set(toXYZ(lens, maxZ), i * 3)
     })
-    known.forEach((r, i) => {
-      const idx = all.length + i
-      const [x, y, z] = toCartesian(r[0], r[1], r[2])
-      positions.set([x, y, z], idx * 3)
-      colors.set([1, 0.86, 0.55], idx * 3)
-    })
-    return { positions, colors }
-  }, [feed])
+    return arr
+  }, [lenses, maxZ])
 
   return (
     <points frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.07}
-        vertexColors
+        color="#6f9fd8"
+        size={0.055}
         transparent
-        opacity={0.92}
+        opacity={0.48}
         sizeAttenuation
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
     </points>
+  )
+}
+
+function SneMarkers({ sne, maxZ }: { sne: SneDatum[]; maxZ: number }) {
+  const positions = useMemo(() => {
+    const arr = new Float32Array(sne.length * 3)
+    sne.forEach((sn, i) => {
+      arr.set(toXYZ(sn, maxZ), i * 3)
+    })
+    return arr
+  }, [sne, maxZ])
+
+  return (
+    <>
+      <points frustumCulled={false}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          color="#ff7a45"
+          size={0.3}
+          transparent
+          opacity={1}
+          sizeAttenuation
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+      <points frustumCulled={false}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          color="#ff5a2a"
+          size={0.75}
+          transparent
+          opacity={0.18}
+          sizeAttenuation
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+    </>
   )
 }
 
@@ -90,10 +115,10 @@ export function LensScatter3D() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/data/lens-systems.sample.json')
+    fetch('/lens_data.json')
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('no feed'))))
       .then((data: LensFeed) => {
-        if (!cancelled && Array.isArray(data.rows)) {
+        if (!cancelled && Array.isArray(data.lenses) && Array.isArray(data.sne)) {
           setFeed(data)
           setLive(true)
         }
@@ -104,31 +129,46 @@ export function LensScatter3D() {
     }
   }, [])
 
+  const maxZ = useMemo(
+    () =>
+      Math.max(
+        0.01,
+        ...feed.lenses.map((lens) => lens.redshift),
+        ...feed.sne.map((sn) => sn.redshift),
+      ),
+    [feed],
+  )
+
   return (
     <div className="lens-scatter">
       <div className="lens-scatter__canvas">
-        <Canvas camera={{ position: [0, 5, 16], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
-          <color attach="background" args={['#05060a']} />
-          <Scatter feed={feed} />
-          <gridHelper args={[22, 22, '#2c3747', '#131a23']} position={[0, -6, 0]} />
-          <axesHelper args={[4.2]} />
+        <Canvas camera={{ position: [20, 14, 22], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
+          <color attach="background" args={['#080a10']} />
+          <LensCloud lenses={feed.lenses} maxZ={maxZ} />
+          <SneMarkers sne={feed.sne} maxZ={maxZ} />
+          <gridHelper args={[24, 24, '#2c3747', '#131a23']} position={[0, -10, 0]} />
+          <axesHelper args={[5]} />
           <OrbitControls
             enablePan={false}
-            minDistance={8}
-            maxDistance={30}
+            minDistance={12}
+            maxDistance={48}
             autoRotate
-            autoRotateSpeed={0.22}
+            autoRotateSpeed={0.2}
           />
         </Canvas>
       </div>
       <div className="lens-scatter__axes" aria-hidden="true">
-        <span>RA</span>
-        <span>Dec</span>
-        <span>Redshift</span>
+        <span>RA → X</span>
+        <span>Dec → Y</span>
+        <span>Redshift → Z</span>
       </div>
       <div className="lens-scatter__legend">
-        <span><i className="lens-scatter__dot" /> {live ? feed.count.toLocaleString() : 'sample'} lens systems</span>
-        <span><i className="lens-scatter__dot lens-scatter__dot--known" /> {feed.supernovae.length} known lensed supernovae</span>
+        <span>
+          <i className="lens-scatter__dot" /> {live ? feed.lenses.length.toLocaleString() : 'sample'} lens systems
+        </span>
+        <span>
+          <i className="lens-scatter__dot lens-scatter__dot--known" /> {feed.sne.length} known lensed supernovae
+        </span>
       </div>
     </div>
   )

@@ -2164,6 +2164,8 @@ a {
 .sn-hero .page-title {
   margin-left: auto;
   margin-right: auto;
+  font-size: clamp(2.6rem, 5vw, 4.8rem);
+  line-height: 1.05;
 }
 
 .sn-hero .chapter__rule {
