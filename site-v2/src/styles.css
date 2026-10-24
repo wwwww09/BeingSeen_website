@@ -2246,3 +2246,137 @@ a {
     height: 360px;
   }
 }
+
+/* Supernovae immersive background */
+.sn-page {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: #000;
+}
+
+.sn-bg {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sn-bg .lens-scatter {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sn-bg .lens-scatter__canvas {
+  height: 100vh;
+}
+
+.sn-bg .lens-scatter__axes,
+.sn-bg .lens-scatter__legend {
+  position: absolute;
+  left: auto;
+  right: 2.2rem;
+  bottom: 5.5rem;
+  padding: 0;
+  border: 0;
+}
+
+.sn-bg .lens-scatter__axes {
+  bottom: 8rem;
+  gap: 1rem;
+  font-size: 0.54rem;
+  color: rgba(220, 230, 244, 0.55);
+}
+
+.sn-bg .lens-scatter__legend {
+  font-size: 0.54rem;
+  color: rgba(220, 230, 244, 0.55);
+}
+
+.sn-content {
+  position: relative;
+  z-index: 10;
+  max-width: 600px;
+  margin-left: 10%;
+  margin-top: -100vh;
+  padding: clamp(8rem, 16vh, 12rem) 0 clamp(6rem, 12vh, 10rem);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.sn-content::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.72) 38%,
+    rgba(0, 0, 0, 0.25) 68%,
+    transparent 100%
+  );
+}
+
+.sn-content .sn-hero,
+.sn-content .sn-section {
+  max-width: 600px;
+  margin-left: 0;
+  margin-right: 0;
+  text-align: left;
+}
+
+.sn-content .sn-hero .page-title,
+.sn-content .sn-hero .page-lede,
+.sn-content .sn-hero .chapter__rule,
+.sn-content .sn-section .section-kicker,
+.sn-content .sn-title {
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.sn-content .sn-hero .chapter__rule {
+  margin-left: 0;
+}
+
+.sn-content .sn-body {
+  max-width: 560px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.sn-content .magnitude-card--wide {
+  max-width: 560px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.sn-content .sn-next {
+  max-width: 600px;
+  margin-left: 0;
+}
+
+@media (max-width: 700px) {
+  .sn-content {
+    margin-left: 6vw;
+    max-width: 88vw;
+    padding-top: 7rem;
+  }
+
+  .sn-bg .lens-scatter__axes,
+  .sn-bg .lens-scatter__legend {
+    right: 1rem;
+    bottom: 2.5rem;
+  }
+}

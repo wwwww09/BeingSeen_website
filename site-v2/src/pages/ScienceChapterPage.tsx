@@ -19,6 +19,11 @@ export function ScienceChapterPage() {
   if (isSupernovae) {
     return (
       <article className="sn-page">
+        <div className="sn-bg" aria-hidden="true">
+          <LensScatter3D />
+        </div>
+
+        <div className="sn-content">
         <header className="sn-hero">
           <p className="eyebrow">
             The Science <span aria-hidden="true">/</span> {chapter.index}
@@ -68,7 +73,6 @@ export function ScienceChapterPage() {
             We simulated 10,000 supernovae and mapped them against 32,838 known
             gravitational lenses. Only a tiny fraction align perfectly.
           </p>
-          <LensScatter3D />
         </section>
 
         <div className="chapter-next sn-next">
@@ -81,6 +85,7 @@ export function ScienceChapterPage() {
           <Link className="back-link" to="/science">
             All chapters
           </Link>
+        </div>
         </div>
       </article>
     )

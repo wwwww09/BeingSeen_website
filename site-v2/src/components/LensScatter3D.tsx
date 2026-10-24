@@ -146,12 +146,12 @@ export function LensScatter3D() {
           <color attach="background" args={['#080a10']} />
           <LensCloud lenses={feed.lenses} maxZ={maxZ} />
           <SneMarkers sne={feed.sne} maxZ={maxZ} />
-          <gridHelper args={[24, 24, '#2c3747', '#131a23']} position={[0, -10, 0]} />
           <axesHelper args={[5]} />
           <OrbitControls
             enablePan={false}
             minDistance={12}
             maxDistance={48}
+            target={[-6, 0, 0]}
             autoRotate
             autoRotateSpeed={0.2}
           />
