@@ -2255,13 +2255,17 @@ a {
   margin: 0;
   padding: 0;
   background: #000;
+  /* own stacking context: keeps the fixed, z-index:-1 canvas above the
+     page's black fill but below every piece of content */
+  isolation: isolate;
 }
 
 .sn-bg {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
   height: 100vh;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   overflow: hidden;
 }
@@ -2341,7 +2345,7 @@ a {
   z-index: 10;
   max-width: 600px;
   margin-left: 10%;
-  margin-top: -100vh;
+  margin-top: 0;
   padding: clamp(8rem, 16vh, 12rem) 0 clamp(6rem, 12vh, 10rem);
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
@@ -2416,56 +2420,80 @@ a {
 
 /* --------------------------------------------------------------------------
    Supernovae — "The Magnification Effect"
-   No card, no frame, no blur: the type and the chart sit straight on the lens
-   cloud. Text left, chart right, and the whole block pins to the viewport
-   while the rest of the chapter scrolls past underneath it.
+   The lens cloud is a fixed full-screen backdrop; the chapter scrolls over it.
+   This stage is one full-screen row — text at 10% from the left, chart at 10%
+   from the right — that holds still while the reader scrolls past.
    -------------------------------------------------------------------------- */
 
 #magnification {
-  width: min(1180px, 88vw);
-  max-width: none;
-  display: block;
-  /* the extra height is the pin: the block holds still for ~40vh */
-  min-height: 130vh;
-  scroll-margin-top: clamp(5rem, 10vh, 7rem);
+  scroll-margin-top: 0;
 }
 
-.sn-mech__sticky {
+.sn-stage {
+  position: relative;
+  /* break out of the 600px reading column and reach both viewport edges */
+  width: 100vw;
+  margin-left: -10vw;
+  height: 160vh;
+}
+
+.sn-stage__pin {
   position: sticky;
-  top: 10vh;
-  display: grid;
-  grid-template-columns: minmax(240px, 350px) minmax(0, 1fr);
+  top: 0;
+  display: flex;
   align-items: center;
-  gap: clamp(2rem, 5vw, 5rem);
-  /* fill the pinned viewport so the two columns sit in its optical centre */
-  min-height: 80vh;
+  justify-content: space-between;
+  gap: clamp(2rem, 4vw, 4rem);
+  height: 100vh;
+  padding: 0 10%;
 }
 
-.sn-mech .sn-title {
+.sn-stage__text {
+  flex: 0 1 420px;
+  max-width: 500px;
+}
+
+.sn-stage .sn-title {
   font-size: clamp(2.2rem, 3.4vw, 3.2rem);
   color: #fff;
   text-align: left;
 }
 
-.sn-mech .sn-body {
-  max-width: 34ch;
+.sn-stage .sn-body {
   margin: 0;
-  color: rgba(255, 255, 255, 0.74);
+  max-width: 500px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.sn-stage__chart {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 780px;
+  margin-left: auto;
 }
 
 @media (max-width: 880px) {
-  #magnification {
+  .sn-stage {
     width: 100%;
-    min-height: 0;
+    margin-left: 0;
+    height: auto;
   }
 
-  .sn-mech__sticky {
+  .sn-stage__pin {
     position: static;
-    display: block;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2.6rem;
+    height: auto;
+    padding: 7rem 0 3rem;
   }
 
-  .sn-mech__chart {
-    margin-top: 2.6rem;
+  .sn-stage__text {
+    max-width: none;
+  }
+
+  .sn-stage__chart {
+    max-width: none;
   }
 }
 
@@ -2533,7 +2561,7 @@ a {
 }
 
 .mchart__name {
-  font-size: 18.5px;
+  font-size: 20px;
   fill: rgba(255, 255, 255, 0.58);
   letter-spacing: 0.005em;
   transition: fill 0.45s ease;
@@ -2544,31 +2572,31 @@ a {
 }
 
 .mchart__tick {
-  font-size: 14px;
+  font-size: 15px;
   fill: rgba(255, 255, 255, 0.5);
   font-variant-numeric: tabular-nums;
 }
 
 .mchart__value {
-  font-size: 15.5px;
+  font-size: 16.5px;
   fill: #ffcf8b;
   font-variant-numeric: tabular-nums;
 }
 
 .mchart__axis-title {
-  font-size: 15px;
+  font-size: 15.5px;
   fill: rgba(255, 255, 255, 0.62);
   letter-spacing: 0.04em;
 }
 
 .mchart__axis-hint {
-  font-size: 13px;
+  font-size: 13.5px;
   fill: rgba(255, 255, 255, 0.42);
   letter-spacing: 0.08em;
 }
 
 .mchart__limit-label {
-  font-size: 13px;
+  font-size: 13.5px;
   fill: #ff5c35;
   letter-spacing: 0.1em;
 }
@@ -2585,7 +2613,7 @@ a {
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .mchart__slider-value {
@@ -2609,7 +2637,8 @@ a {
 
 .mchart__slider::-webkit-slider-runnable-track {
   height: 1px;
-  background: rgba(236, 233, 226, 0.22);
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
 .mchart__slider::-webkit-slider-thumb {
@@ -2626,7 +2655,8 @@ a {
 
 .mchart__slider::-moz-range-track {
   height: 1px;
-  background: rgba(236, 233, 226, 0.22);
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
 .mchart__slider::-moz-range-thumb {
@@ -2639,8 +2669,19 @@ a {
 }
 
 .mchart__slider:focus-visible {
-  outline: 1px solid #ffcf8b;
-  outline-offset: 8px;
+  outline: none;
+}
+
+.mchart__slider:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 6px rgba(255, 207, 139, 0.16),
+    0 0 16px rgba(255, 207, 139, 0.65);
+}
+
+.mchart__slider:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 6px rgba(255, 207, 139, 0.16),
+    0 0 16px rgba(255, 207, 139, 0.65);
 }
 
 .mchart__scale {
@@ -2648,7 +2689,7 @@ a {
   justify-content: space-between;
   font-size: 0.66rem;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.26);
+  color: rgba(255, 255, 255, 0.36);
 }
 
 .mchart__caption {
@@ -2688,5 +2729,12 @@ a {
 
   .mchart__caption {
     max-width: none;
+  }
+}
+
+/* The 3D HUD is a fixed corner badge; on phones it lands on the chart. */
+@media (max-width: 760px) {
+  .lens-scatter__hud {
+    display: none;
   }
 }

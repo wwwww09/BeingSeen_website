@@ -67,9 +67,14 @@ export function ScienceChapterPage() {
           <p className="page-lede">{chapter.body}</p>
         </header>
 
-        <section className="sn-section sn-mech" id="magnification">
-          <div className="sn-mech__sticky">
-            <div className="sn-mech__text">
+        {/*
+          One full-screen stage: the canvas behind it is fixed, so only this
+          pinned row ever moves. Text sits at 10% from the left, the chart ends
+          10% from the right, and the pinned row holds until the stage ends.
+        */}
+        <section className="sn-stage" id="magnification">
+          <div className="sn-stage__pin">
+            <div className="sn-stage__text">
               <p className="section-kicker">The mechanism</p>
               <h2 className="sn-title">The Magnification Effect</h2>
               <p className="sn-body">
@@ -80,7 +85,7 @@ export function ScienceChapterPage() {
                 actually gives it.
               </p>
             </div>
-            <div className="sn-mech__chart">
+            <div className="sn-stage__chart">
               <MagnitudeChart />
             </div>
           </div>
