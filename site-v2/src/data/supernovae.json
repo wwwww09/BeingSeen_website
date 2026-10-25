@@ -1,0 +1,42 @@
+[
+  {
+    "name": "SN_Zwicky",
+    "redshift": 0.3544,
+    "magnification": 24.3,
+    "without_lens": 22.13,
+    "with_lens": 18.66,
+    "detectable": true
+  },
+  {
+    "name": "iPTF16geu",
+    "redshift": 0.409,
+    "magnification": 52.0,
+    "without_lens": 22.49,
+    "with_lens": 18.2,
+    "detectable": true
+  },
+  {
+    "name": "PS1-10afx",
+    "redshift": 1.3883,
+    "magnification": 30.8,
+    "without_lens": 25.73,
+    "with_lens": 22.01,
+    "detectable": false
+  },
+  {
+    "name": "SN_Refsdal",
+    "redshift": 1.49,
+    "magnification": 15.0,
+    "without_lens": 25.92,
+    "with_lens": 22.98,
+    "detectable": false
+  },
+  {
+    "name": "SN_H0pe",
+    "redshift": 1.783,
+    "magnification": 8.23,
+    "without_lens": 26.4,
+    "with_lens": 24.11,
+    "detectable": false
+  }
+]

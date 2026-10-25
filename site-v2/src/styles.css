@@ -2413,3 +2413,218 @@ a {
     bottom: 2.5rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Supernovae — "The Magnification Effect" chart
+   Five real supernovae on one magnitude axis. Transparent field, no frame:
+   only the axis hairline, the movable limit and the type carry it.
+   -------------------------------------------------------------------------- */
+
+.mchart {
+  width: min(860px, 80vw);
+  max-width: none;
+  margin: clamp(2.2rem, 5vh, 3.4rem) 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.mchart__inner {
+  width: 100%;
+}
+
+.mchart__scroller {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 233, 226, 0.22) transparent;
+}
+
+.mchart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.mchart__name,
+.mchart__tick,
+.mchart__value,
+.mchart__axis-title,
+.mchart__axis-hint,
+.mchart__limit-label,
+.mchart__caption,
+.mchart__slider-head,
+.mchart__scale {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+}
+
+.mchart__row {
+  opacity: 0.5;
+  transition: opacity 0.45s ease;
+}
+
+.mchart__row.is-seen {
+  opacity: 1;
+}
+
+.mchart__name {
+  font-size: 16.5px;
+  fill: rgba(236, 233, 226, 0.5);
+  letter-spacing: 0.005em;
+  transition: fill 0.45s ease;
+}
+
+.mchart__row.is-seen .mchart__name {
+  fill: #f5f3ee;
+}
+
+.mchart__tick {
+  font-size: 12.5px;
+  fill: rgba(236, 233, 226, 0.46);
+  font-variant-numeric: tabular-nums;
+}
+
+.mchart__value {
+  font-size: 14px;
+  fill: #ffcf8b;
+  font-variant-numeric: tabular-nums;
+}
+
+.mchart__axis-title {
+  font-size: 13.5px;
+  fill: rgba(236, 233, 226, 0.56);
+  letter-spacing: 0.04em;
+}
+
+.mchart__axis-hint {
+  font-size: 11.5px;
+  fill: rgba(236, 233, 226, 0.34);
+  letter-spacing: 0.08em;
+}
+
+.mchart__limit-label {
+  font-size: 12px;
+  fill: #ff5c35;
+  letter-spacing: 0.1em;
+}
+
+.mchart__controls {
+  margin: 1.5rem 4.6% 0 20.8%;
+}
+
+.mchart__slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(236, 233, 226, 0.42);
+}
+
+.mchart__slider-value {
+  color: #ffcf8b;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
+
+.mchart__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: calc(100% + 13px);
+  height: 26px;
+  margin: 0.2rem -6.5px 0;
+  padding: 0;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.mchart__slider::-webkit-slider-runnable-track {
+  height: 1px;
+  background: rgba(236, 233, 226, 0.22);
+}
+
+.mchart__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin-top: -6px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffcf8b;
+  box-shadow: 0 0 12px rgba(255, 207, 139, 0.55);
+}
+
+.mchart__slider::-moz-range-track {
+  height: 1px;
+  background: rgba(236, 233, 226, 0.22);
+}
+
+.mchart__slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffcf8b;
+  box-shadow: 0 0 12px rgba(255, 207, 139, 0.55);
+}
+
+.mchart__slider:focus-visible {
+  outline: 1px solid #ffcf8b;
+  outline-offset: 8px;
+}
+
+.mchart__scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  color: rgba(236, 233, 226, 0.24);
+}
+
+.mchart__caption {
+  margin: clamp(1.6rem, 3.4vh, 2.2rem) 0 0;
+  max-width: 46ch;
+  font-size: clamp(1.02rem, 1.5vw, 1.32rem);
+  line-height: 1.65;
+  color: rgba(236, 233, 226, 0.78);
+}
+
+.mchart__caption b {
+  font-weight: 400;
+  color: #ffcf8b;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+  .sn-content .mchart {
+    width: 100%;
+  }
+
+  .mchart__inner {
+    min-width: 620px;
+  }
+
+  .mchart__name {
+    font-size: 20px;
+  }
+
+  .mchart__tick {
+    font-size: 14px;
+  }
+
+  .mchart__value {
+    font-size: 16px;
+  }
+
+  .mchart__caption {
+    max-width: none;
+  }
+}
