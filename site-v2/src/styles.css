@@ -2415,34 +2415,69 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   Supernovae — "The Magnification Effect" chart
-   Five real supernovae on one magnitude axis. The chart sits on a dark glass
-   panel so the moving limit and the gold dots stay readable over the live
-   lens cloud behind them; the cloud is still there, just pushed back.
+   Supernovae — "The Magnification Effect"
+   No card, no frame, no blur: the type and the chart sit straight on the lens
+   cloud. Text left, chart right, and the whole block pins to the viewport
+   while the rest of the chapter scrolls past underneath it.
    -------------------------------------------------------------------------- */
 
 #magnification {
+  width: min(1180px, 88vw);
+  max-width: none;
+  display: block;
+  /* the extra height is the pin: the block holds still for ~40vh */
+  min-height: 130vh;
   scroll-margin-top: clamp(5rem, 10vh, 7rem);
 }
 
-.mchart {
-  width: min(924px, 82vw);
-  max-width: none;
-  margin: clamp(2.2rem, 5vh, 3.4rem) 0 0;
-  padding: clamp(1.3rem, 2.4vw, 2.1rem);
-  border: 1px solid rgba(236, 233, 226, 0.06);
-  background: rgba(0, 0, 0, 0.75);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+.sn-mech__sticky {
+  position: sticky;
+  top: 10vh;
+  display: grid;
+  grid-template-columns: minmax(240px, 350px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  /* fill the pinned viewport so the two columns sit in its optical centre */
+  min-height: 80vh;
 }
 
-/* Without backdrop-filter the panel has to do the dimming on its own. */
-@supports not (
-  (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px))
-) {
-  .mchart {
-    background: rgba(0, 0, 0, 0.92);
+.sn-mech .sn-title {
+  font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+  color: #fff;
+  text-align: left;
+}
+
+.sn-mech .sn-body {
+  max-width: 34ch;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+@media (max-width: 880px) {
+  #magnification {
+    width: 100%;
+    min-height: 0;
   }
+
+  .sn-mech__sticky {
+    position: static;
+    display: block;
+  }
+
+  .sn-mech__chart {
+    margin-top: 2.6rem;
+  }
+}
+
+.mchart {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .mchart__inner {
@@ -2463,6 +2498,17 @@ a {
   width: 100%;
   height: auto;
   overflow: visible;
+}
+
+.mchart__svg text {
+  /* a dark halo per glyph — map-label technique, no panel needed */
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.82);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 1px 16px rgba(0, 0, 0, 0.9);
 }
 
 .mchart__name,
@@ -2487,42 +2533,42 @@ a {
 }
 
 .mchart__name {
-  font-size: 16.5px;
-  fill: rgba(236, 233, 226, 0.5);
+  font-size: 18.5px;
+  fill: rgba(255, 255, 255, 0.58);
   letter-spacing: 0.005em;
   transition: fill 0.45s ease;
 }
 
 .mchart__row.is-seen .mchart__name {
-  fill: #f5f3ee;
+  fill: #fff;
 }
 
 .mchart__tick {
-  font-size: 12.5px;
-  fill: rgba(236, 233, 226, 0.46);
+  font-size: 14px;
+  fill: rgba(255, 255, 255, 0.5);
   font-variant-numeric: tabular-nums;
 }
 
 .mchart__value {
-  font-size: 14px;
+  font-size: 15.5px;
   fill: #ffcf8b;
   font-variant-numeric: tabular-nums;
 }
 
 .mchart__axis-title {
-  font-size: 13.5px;
-  fill: rgba(236, 233, 226, 0.56);
+  font-size: 15px;
+  fill: rgba(255, 255, 255, 0.62);
   letter-spacing: 0.04em;
 }
 
 .mchart__axis-hint {
-  font-size: 11.5px;
-  fill: rgba(236, 233, 226, 0.34);
+  font-size: 13px;
+  fill: rgba(255, 255, 255, 0.42);
   letter-spacing: 0.08em;
 }
 
 .mchart__limit-label {
-  font-size: 12px;
+  font-size: 13px;
   fill: #ff5c35;
   letter-spacing: 0.1em;
 }
@@ -2539,7 +2585,7 @@ a {
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(236, 233, 226, 0.42);
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .mchart__slider-value {
@@ -2602,7 +2648,7 @@ a {
   justify-content: space-between;
   font-size: 0.66rem;
   letter-spacing: 0.1em;
-  color: rgba(236, 233, 226, 0.24);
+  color: rgba(255, 255, 255, 0.26);
 }
 
 .mchart__caption {
@@ -2610,7 +2656,7 @@ a {
   max-width: 46ch;
   font-size: clamp(1.02rem, 1.5vw, 1.32rem);
   line-height: 1.65;
-  color: rgba(236, 233, 226, 0.78);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .mchart__caption b {
@@ -2622,7 +2668,6 @@ a {
 @media (max-width: 760px) {
   .sn-content .mchart {
     width: 100%;
-    padding: 1rem;
   }
 
   .mchart__inner {

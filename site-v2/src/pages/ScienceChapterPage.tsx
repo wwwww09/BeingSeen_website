@@ -67,17 +67,23 @@ export function ScienceChapterPage() {
           <p className="page-lede">{chapter.body}</p>
         </header>
 
-        <section className="sn-section" id="magnification">
-          <p className="section-kicker">The mechanism</p>
-          <h2 className="sn-title">The Magnification Effect</h2>
-          <p className="sn-body">
-            The lens does not make the explosion brighter. It makes the
-            explosion appear brighter — and that is enough to cross a
-            telescope’s detection limit. Each line below runs from the magnitude
-            a supernova would have without a lens to the magnitude the lens
-            actually gives it.
-          </p>
-          <MagnitudeChart />
+        <section className="sn-section sn-mech" id="magnification">
+          <div className="sn-mech__sticky">
+            <div className="sn-mech__text">
+              <p className="section-kicker">The mechanism</p>
+              <h2 className="sn-title">The Magnification Effect</h2>
+              <p className="sn-body">
+                The lens does not make the explosion brighter. It makes the
+                explosion appear brighter — and that is enough to cross a
+                telescope’s detection limit. Each line runs from the magnitude a
+                supernova would have without a lens to the magnitude the lens
+                actually gives it.
+              </p>
+            </div>
+            <div className="sn-mech__chart">
+              <MagnitudeChart />
+            </div>
+          </div>
         </section>
 
         <section className="sn-section">

@@ -67,7 +67,7 @@ export function MagnitudeChart() {
           <defs>
             <linearGradient id={`${uid}-fade`} x1="0" y1="0" x2="1" y2="0">
               <stop offset="0" stopColor="#ffcf8b" stopOpacity="1" />
-              <stop offset="1" stopColor="#8a8a8a" stopOpacity="0.7" />
+              <stop offset="1" stopColor="#a8a8a8" stopOpacity="0.9" />
             </linearGradient>
             <filter
               id={`${uid}-glow`}
@@ -88,7 +88,7 @@ export function MagnitudeChart() {
                 x2={xOf(tick)}
                 y1={PAD.top - 26}
                 y2={AXIS_Y}
-                stroke="rgba(236,233,226,0.06)"
+                stroke="rgba(255,255,255,0.06)"
                 strokeWidth={1}
               />
               <text
@@ -123,13 +123,23 @@ export function MagnitudeChart() {
                   {row.name}
                 </text>
 
+                {/* dark underlay keeps the rule readable over the star cloud */}
+                <line
+                  x1={xWith}
+                  y1={y}
+                  x2={xWithout}
+                  y2={y}
+                  stroke="rgba(0,0,0,0.62)"
+                  strokeWidth={4.5}
+                  strokeLinecap="round"
+                />
                 <line
                   x1={xWith}
                   y1={y}
                   x2={xWithout}
                   y2={y}
                   stroke={`url(#${uid}-fade)`}
-                  strokeWidth={1.4}
+                  strokeWidth={1.8}
                   strokeLinecap="round"
                 />
                 <circle cx={xWithout} cy={y} r={2.2} fill="#9a9a9a" opacity={0.8} />
@@ -189,7 +199,15 @@ export function MagnitudeChart() {
             x2={PLOT_RIGHT}
             y1={AXIS_Y}
             y2={AXIS_Y}
-            stroke="rgba(236,233,226,0.18)"
+            stroke="rgba(0,0,0,0.5)"
+            strokeWidth={3}
+          />
+          <line
+            x1={PLOT_LEFT}
+            x2={PLOT_RIGHT}
+            y1={AXIS_Y}
+            y2={AXIS_Y}
+            stroke="rgba(255,255,255,0.16)"
             strokeWidth={1}
           />
           <text
