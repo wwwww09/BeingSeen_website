@@ -91,7 +91,7 @@ export function SimulatedHistogram() {
               x={xOf(LIMIT) + 10}
               y={PAD.top - 18}
             >
-              ZTF limit
+              ZTF limit · m = {LIMIT}
             </text>
           </g>
 

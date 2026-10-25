@@ -40,18 +40,12 @@ export function ScienceChapterPage() {
 
   const chapter = scienceChapters[index]
   const next = scienceChapters[index + 1]
-  const isSupernovae = chapter.slug === 'supernovae'
   const headSide = chapter.index === '02' ? 'right' : 'left'
   const dataSide = headSide === 'left' ? 'right' : 'left'
 
-  if (isSupernovae) {
+  if (chapter.slug === 'supernovae') {
     return (
       <article className="sn-page">
-        <div className="sn-bg" aria-hidden="true">
-          <LensScatter3D />
-        </div>
-
-        <div className="sn-content">
         <header className="sn-hero">
           <p className="eyebrow">
             The Science <span aria-hidden="true">/</span> {chapter.index}
@@ -68,36 +62,63 @@ export function ScienceChapterPage() {
           <p className="page-lede">{chapter.body}</p>
         </header>
 
-        {/*
-          The lens cloud is fixed to the right half of the viewport (see
-          .sn-bg); everything here lives in the left column and simply scrolls
-          past it.
-        */}
+        {/* 01 — the mechanism: the existing copy and the five-supernova slider */}
         <section className="sn-section sn-mechanism" id="magnification">
-          <p className="section-kicker">The mechanism</p>
-          <h2 className="sn-title">The Magnification Effect</h2>
-          <p className="sn-body">
-            The lens does not make the explosion brighter. It makes the
-            explosion appear brighter — and that is enough to cross a
-            telescope’s detection limit. Each line runs from the magnitude a
-            supernova would have without a lens to the magnitude the lens
-            actually gives it.
-          </p>
-          <MagnitudeChart />
+          <div className="sn-copy">
+            <p className="section-kicker">The mechanism</p>
+            <h2 className="sn-title">The Magnification Effect</h2>
+            <p className="sn-body">
+              The lens does not make the explosion brighter. It makes the
+              explosion appear brighter — and that is enough to cross a
+              telescope’s detection limit. Each line runs from the magnitude a
+              supernova would have without a lens to the magnitude the lens
+              actually gives it.
+            </p>
+          </div>
+          <div className="sn-chart sn-chart--mechanism">
+            <MagnitudeChart />
+          </div>
         </section>
 
-        <section className="sn-section sn-sim">
-          <p className="section-kicker">The simulation</p>
-          <h2 className="sn-title">Finding a Needle in a Cosmic Haystack</h2>
-          <p className="sn-body">
-            We simulated 64,309 lensed systems. Most are too faint for ZTF. Only
-            a tiny fraction with extreme magnification cross the detection limit.
-          </p>
-          <SimulatedHistogram />
-          <blockquote className="sn-quote">
-            “Gravitational lensing boosts supernova detection rates by at least
-            an order of magnitude.”
-          </blockquote>
+        {/* 02 — the simulation: 64,309 systems, almost all below the limit */}
+        <section className="sn-section sn-simulation">
+          <div className="sn-copy">
+            <p className="section-kicker">The simulation</p>
+            <h2 className="sn-title">Theoretical Haystack</h2>
+            <p className="sn-body">
+              We simulated 64,309 lensed systems. Most are too faint for ZTF.
+            </p>
+          </div>
+          <div className="sn-chart sn-chart--histogram">
+            <SimulatedHistogram />
+          </div>
+        </section>
+
+        {/* 03 — the reality: the 3D map stands on its own, no fixed backdrop */}
+        <section className="sn-section sn-reality">
+          <div className="sn-copy">
+            <p className="section-kicker">The reality</p>
+            <h2 className="sn-title">Finding a Needle in a Cosmic Haystack</h2>
+            <p className="sn-body">
+              We mapped 13,941 known lenses (blue) against the 5 real sampled
+              supernovae (gold). Out of this vast cosmic map, only 5 align
+              perfectly.
+            </p>
+          </div>
+          <div className="sn-map">
+            <LensScatter3D />
+          </div>
+        </section>
+
+        {/* 04 — the conclusion */}
+        <section className="sn-section sn-conclusion">
+          <div className="sn-copy">
+            <p className="section-kicker">The conclusion</p>
+            <blockquote className="sn-quote">
+              “Gravitational lensing boosts supernova detection rates by at least
+              an order of magnitude.”
+            </blockquote>
+          </div>
         </section>
 
         <div className="chapter-next sn-next">
@@ -113,9 +134,9 @@ export function ScienceChapterPage() {
         </div>
 
         <footer className="sn-footer">
-          Being Seen <span aria-hidden="true">/</span> The Science <span aria-hidden="true">/</span> Supernovae
+          Being Seen <span aria-hidden="true">/</span> The Science{' '}
+          <span aria-hidden="true">/</span> Supernovae
         </footer>
-        </div>
       </article>
     )
   }
@@ -146,35 +167,16 @@ export function ScienceChapterPage() {
           <h2 className="science-data__title">{chapter.chartLabel}</h2>
           <p className="science-data__note">{chapter.chartNote}</p>
 
-          {isSupernovae ? (
-            <>
-              <div className="science-map">
-                <p className="section-kicker">The map</p>
-                <h2 className="science-split__title">
-                  Finding a Needle in a Cosmic Haystack
-                </h2>
-                <p className="science-split__body">
-                  We simulated 64,309 supernovae and mapped them against
-                  32,838 known gravitational lenses. Only a tiny fraction align
-                  perfectly.
-                </p>
-              </div>
-              <LensScatter3D />
-            </>
-          ) : (
-            <>
-              <div
-                className="chart-frame"
-                role="img"
-                aria-label={`${chapter.chartLabel} — chart placeholder for the next pass`}
-              >
-                <span className="chart-frame__label">Chart frame · next pass</span>
-              </div>
-              <p className="science-data__todo">
-                The chart and its numbers arrive in the next pass.
-              </p>
-            </>
-          )}
+          <div
+            className="chart-frame"
+            role="img"
+            aria-label={`${chapter.chartLabel} — chart placeholder for the next pass`}
+          >
+            <span className="chart-frame__label">Chart frame · next pass</span>
+          </div>
+          <p className="science-data__todo">
+            The chart and its numbers arrive in the next pass.
+          </p>
 
           <div className="chapter-next">
             {next ? (

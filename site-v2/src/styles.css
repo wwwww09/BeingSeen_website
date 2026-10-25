@@ -2085,373 +2085,12 @@ a {
   margin-bottom: 0.6rem;
 }
 
-.lens-scatter {
-  border: 1px solid rgba(236, 233, 226, 0.2);
-  background: rgba(16, 18, 24, 0.68);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
-}
-
-.lens-scatter__canvas {
-  height: clamp(340px, 46vh, 520px);
-}
-
-.lens-scatter__canvas canvas {
-  display: block;
-}
-
-.lens-scatter__axes {
-  display: flex;
-  gap: 1.4rem;
-  padding: 0.7rem 1rem 0;
-  font-family: var(--mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #b9c5d6;
-}
-
-.lens-scatter__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.4rem;
-  padding: 0.9rem 1rem;
-  border-top: 1px solid rgba(236, 233, 226, 0.1);
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  color: #8b877e;
-}
-
-.lens-scatter__legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.lens-scatter__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #7fa8d9;
-}
-
-.lens-scatter__dot--known {
-  background: #ffcf8b;
-}
-
 @media (max-width: 900px) {
   .science-split {
     grid-template-columns: 1fr;
     gap: 2rem;
     width: min(92vw, 640px);
     padding: 4rem 0;
-  }
-}
-
-/* Centre-aligned supernovae chapter */
-.sn-page {
-  width: min(900px, 88vw);
-  margin: 0 auto;
-  padding: clamp(8rem, 16vh, 12rem) 0 clamp(6rem, 12vh, 10rem);
-}
-
-.sn-hero {
-  max-width: 800px;
-  margin: 0 auto clamp(4rem, 9vh, 6rem);
-  text-align: center;
-}
-
-.sn-hero .page-title {
-  margin-left: auto;
-  margin-right: auto;
-  font-size: clamp(2.6rem, 5vw, 4.8rem);
-  line-height: 1.05;
-}
-
-.sn-hero .chapter__rule {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.sn-hero .page-lede {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-.sn-section {
-  max-width: 800px;
-  margin: 0 auto clamp(4rem, 9vh, 6rem);
-  text-align: center;
-}
-
-.sn-section .section-kicker {
-  margin-bottom: 0.8rem;
-  text-align: center;
-}
-
-.sn-title {
-  margin: 0 0 1.4rem;
-  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(2.2rem, 4vw, 3.6rem);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: #f3f1ec;
-  text-align: center;
-}
-
-.sn-body {
-  max-width: 680px;
-  margin: 0 auto;
-  font-family: var(--sans);
-  font-size: clamp(0.98rem, 1.15vw, 1.08rem);
-  line-height: 1.85;
-  color: rgba(236, 233, 226, 0.74);
-}
-
-.magnitude-card--wide {
-  width: 100%;
-  max-width: 760px;
-  margin: 2.8rem auto 0;
-  text-align: left;
-  background: rgba(16, 18, 24, 0.72);
-  border: 1px solid rgba(236, 233, 226, 0.18);
-}
-
-.sn-section .lens-scatter {
-  width: 100%;
-  max-width: 900px;
-  margin: 2.8rem auto 0;
-  border: 1px solid rgba(236, 233, 226, 0.18);
-}
-
-.sn-section .lens-scatter__canvas {
-  height: 500px;
-}
-
-.sn-next {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: left;
-}
-
-@media (max-width: 700px) {
-  .sn-page {
-    width: min(92vw, 560px);
-    padding-top: 7rem;
-  }
-
-  .sn-section .lens-scatter__canvas {
-    height: 360px;
-  }
-}
-
-/* Supernovae immersive background */
-.sn-page {
-  position: relative;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  background: #000;
-  /* own stacking context: keeps the fixed, z-index:-1 canvas above the
-     page's black fill but below every piece of content */
-  isolation: isolate;
-}
-
-.sn-bg {
-  /* pinned to the right half of the viewport — never scrolls */
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: auto;
-  left: auto;
-  width: 45vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.sn-bg .lens-scatter {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.sn-bg .lens-scatter__canvas {
-  height: 100vh;
-}
-
-.lens-scatter__hud {
-  position: fixed;
-  right: 2rem;
-  bottom: 2rem;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  pointer-events: none;
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.62);
-  text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.95),
-    0 1px 14px rgba(0, 0, 0, 0.9);
-}
-
-.lens-scatter__key {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-}
-
-.lens-scatter__hud .lens-scatter__axes,
-.lens-scatter__hud .lens-scatter__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  padding: 0;
-  border: 0;
-  font-size: 0.52rem;
-  line-height: 1.4;
-}
-
-.lens-scatter__hud .lens-scatter__axes {
-  color: rgba(220, 230, 244, 0.5);
-  letter-spacing: 0.12em;
-}
-
-.lens-scatter__hud .lens-scatter__legend {
-  color: rgba(220, 230, 244, 0.6);
-  letter-spacing: 0.04em;
-}
-
-.sn-content .sn-section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.sn-footer {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 3rem 0 4rem;
-  border-top: 1px solid rgba(236, 233, 226, 0.12);
-  font-family: var(--mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #8b877e;
-}
-
-.sn-content {
-  /* left half; the only thing that scrolls past the fixed canvas */
-  position: relative;
-  z-index: 10;
-  width: 45vw;
-  max-width: 45vw;
-  margin-left: 0;
-  margin-top: 0;
-  padding: clamp(7rem, 14vh, 11rem) 0 clamp(6rem, 12vh, 10rem) 10%;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-}
-
-.sn-content::before {
-  /* the split no longer needs a scrim: text sits on its own black half */
-  content: none;
-}
-
-.sn-content .sn-hero,
-.sn-content .sn-section {
-  max-width: 600px;
-  margin-left: 0;
-  margin-right: 0;
-  text-align: left;
-}
-
-.sn-content .sn-hero .page-title,
-.sn-content .sn-hero .page-lede,
-.sn-content .sn-hero .chapter__rule,
-.sn-content .sn-section .section-kicker,
-.sn-content .sn-title {
-  text-align: left;
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.sn-content .sn-hero .chapter__rule {
-  margin-left: 0;
-}
-
-.sn-content .sn-body {
-  max-width: 560px;
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.sn-content .magnitude-card--wide {
-  max-width: 560px;
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.sn-content .sn-next {
-  max-width: 600px;
-  margin-left: 0;
-}
-
-@media (max-width: 700px) {
-  .sn-content {
-    width: 100%;
-    max-width: none;
-    margin-left: 0;
-    padding: 7rem 6vw 4rem;
-  }
-
-  .sn-bg {
-    width: 100vw;
-    opacity: 0.45;
-  }
-
-  .sn-bg .lens-scatter__axes,
-  .sn-bg .lens-scatter__legend {
-    right: 1rem;
-    bottom: 2.5rem;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Supernovae — "The Magnification Effect"
-   The lens cloud is fixed to the right half of the viewport; this column on
-   the left is the only thing that scrolls. No card, no frame, no fill.
-   -------------------------------------------------------------------------- */
-
-#magnification {
-  scroll-margin-top: clamp(4rem, 8vh, 6rem);
-}
-
-/* the mechanism flows with the column instead of filling a screen */
-.sn-content .sn-mechanism {
-  display: block;
-  min-height: 0;
-}
-
-.sn-mechanism .mchart {
-  margin-top: 2.6rem;
-}
-
-@media (max-width: 900px) {
-  .sn-content .sn-mechanism {
-    min-height: 0;
   }
 }
 
@@ -2655,11 +2294,12 @@ a {
 }
 
 .mchart__caption {
-  margin: clamp(1.6rem, 3.4vh, 2.2rem) 0 0;
-  max-width: 46ch;
+  margin: clamp(1.6rem, 3.4vh, 2.2rem) auto 0;
+  max-width: 62ch;
   font-size: clamp(1.02rem, 1.5vw, 1.32rem);
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.82);
+  text-align: center;
 }
 
 .mchart__caption b {
@@ -2669,10 +2309,6 @@ a {
 }
 
 @media (max-width: 760px) {
-  .sn-content .mchart {
-    width: 100%;
-  }
-
   .mchart__inner {
     min-width: 620px;
   }
@@ -2691,13 +2327,6 @@ a {
 
   .mchart__caption {
     max-width: none;
-  }
-}
-
-/* The 3D HUD is a fixed corner badge; on phones it lands on the chart. */
-@media (max-width: 760px) {
-  .lens-scatter__hud {
-    display: none;
   }
 }
 
@@ -2766,15 +2395,16 @@ a {
 }
 
 .sn-quote {
-  margin: clamp(2.6rem, 6vh, 4.2rem) 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(1.55rem, 2.4vw, 2.3rem);
+  font-size: clamp(1.9rem, 3.6vw, 3.3rem);
   font-weight: 400;
-  line-height: 1.34;
-  letter-spacing: -0.01em;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
   color: #fff;
+  text-align: center;
   text-wrap: balance;
 }
 
@@ -2783,6 +2413,365 @@ a {
   display: block;
   width: 2.6rem;
   height: 1px;
-  margin-bottom: 1.4rem;
+  margin: 0 auto 1.6rem;
   background: #ffcf8b;
+}
+
+/* --------------------------------------------------------------------------
+   Supernovae — the 3D catalogue map
+   A standalone visualisation: the canvas sits in the page flow inside its own
+   framed panel, and the legend is anchored to the panel, not the viewport.
+   -------------------------------------------------------------------------- */
+
+.lens-scatter {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(236, 233, 226, 0.16);
+  background:
+    radial-gradient(
+      ellipse 70% 62% at 50% 42%,
+      rgba(27, 36, 52, 0.78) 0%,
+      rgba(9, 11, 16, 0.94) 70%
+    ),
+    #080a0e;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+  isolation: isolate;
+}
+
+/* a faint vignette lets the cube sit inside the frame, not on top of it */
+.lens-scatter::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: '';
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 82% 82% at 50% 50%,
+    transparent 46%,
+    rgba(4, 6, 9, 0.52) 100%
+  );
+}
+
+.lens-scatter__canvas {
+  position: relative;
+  z-index: 0;
+  height: clamp(500px, 70vh, 820px);
+}
+
+.lens-scatter__canvas canvas {
+  display: block;
+  touch-action: none;
+}
+
+.lens-scatter__hud {
+  position: absolute;
+  right: clamp(0.8rem, 1.6vw, 1.4rem);
+  bottom: clamp(0.8rem, 1.6vw, 1.4rem);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.lens-scatter__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(236, 233, 226, 0.14);
+  background: rgba(6, 8, 12, 0.74);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(236, 233, 226, 0.76);
+}
+
+.lens-scatter__key {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  white-space: nowrap;
+}
+
+.lens-scatter__dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.lens-scatter__dot--lens {
+  background: #6f9fd8;
+  box-shadow: 0 0 9px rgba(111, 159, 216, 0.85);
+}
+
+.lens-scatter__dot--sne {
+  background: #ffcf8b;
+  box-shadow: 0 0 9px rgba(255, 207, 139, 0.95);
+}
+
+.lens-scatter__hint {
+  position: absolute;
+  bottom: clamp(0.95rem, 1.8vw, 1.55rem);
+  left: clamp(1rem, 2vw, 1.6rem);
+  z-index: 3;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(236, 233, 226, 0.38);
+}
+
+/* --------------------------------------------------------------------------
+   Supernovae — vertical, centre-aligned magazine layout
+   Every section is in normal document flow. No fixed or sticky backdrops.
+   -------------------------------------------------------------------------- */
+
+.sn-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(7rem, 14vh, 11rem) 6vw clamp(4rem, 8vh, 7rem);
+  background: #000;
+}
+
+.sn-hero,
+.sn-next,
+.sn-footer {
+  width: min(100%, 880px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.sn-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: clamp(5rem, 10vh, 8rem);
+  text-align: center;
+}
+
+.sn-hero .page-title {
+  max-width: 16ch;
+  margin: 0 auto;
+  font-size: clamp(2.8rem, 6vw, 5.6rem);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.sn-hero .chapter__rule {
+  margin: clamp(1.8rem, 4vh, 2.6rem) auto;
+}
+
+.sn-hero .page-lede {
+  max-width: 40rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.sn-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 1200px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: clamp(4rem, 8vh, 7rem) 0;
+  text-align: center;
+}
+
+.sn-copy {
+  width: min(100%, 800px);
+  margin: 0 auto;
+}
+
+.sn-copy .section-kicker {
+  margin-bottom: clamp(0.8rem, 2vh, 1.2rem);
+  text-align: center;
+}
+
+.sn-title {
+  margin: 0 0 1.4rem;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(2.3rem, 4.4vw, 4rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #f3f1ec;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.sn-body {
+  max-width: 44rem;
+  margin: 0 auto;
+  font-family: var(--sans);
+  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  line-height: 1.85;
+  color: rgba(236, 233, 226, 0.74);
+  text-wrap: pretty;
+}
+
+.sn-chart {
+  width: 100%;
+  margin: clamp(2.4rem, 5vh, 3.6rem) auto 0;
+}
+
+.sn-chart--mechanism {
+  max-width: 960px;
+}
+
+.sn-chart--histogram {
+  max-width: 980px;
+}
+
+/* the chart components already carry their own top margins; the section
+   wrapper owns the vertical rhythm now */
+.sn-chart .shist {
+  margin-top: 0;
+}
+
+.sn-reality {
+  width: min(100%, 1240px);
+}
+
+.sn-map {
+  width: 100%;
+  margin: clamp(2.6rem, 5vh, 4rem) auto 0;
+}
+
+.sn-conclusion {
+  min-height: 80svh;
+}
+
+.sn-conclusion .sn-copy {
+  width: min(100%, 920px);
+}
+
+.sn-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  margin-top: clamp(3rem, 8vh, 6rem);
+  padding-top: clamp(3rem, 6vh, 4rem);
+  border-top: 1px solid rgba(236, 233, 226, 0.12);
+  text-align: center;
+}
+
+.sn-next .next-link__title {
+  max-width: 36rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.sn-footer {
+  margin-top: clamp(4rem, 8vh, 7rem);
+  padding: 2.2rem 0 0;
+  border-top: 1px solid rgba(236, 233, 226, 0.12);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #8b877e;
+}
+
+#magnification {
+  scroll-margin-top: clamp(4rem, 8vh, 6rem);
+}
+
+/* --------------------------------------------------------------------------
+   Supernovae — responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .sn-page {
+    padding-right: 5vw;
+    padding-left: 5vw;
+  }
+
+  .sn-section {
+    min-height: 0;
+    padding: clamp(4.5rem, 10vh, 7rem) 0;
+  }
+
+  .sn-conclusion {
+    min-height: 0;
+    padding-bottom: clamp(5rem, 12vh, 8rem);
+  }
+
+  .sn-title {
+    font-size: clamp(2.1rem, 7vw, 3.2rem);
+  }
+}
+
+@media (max-width: 760px) {
+  .sn-hero .page-title {
+    max-width: 100%;
+    font-size: clamp(2.5rem, 11vw, 3.6rem);
+  }
+
+  .sn-section {
+    padding: 4.5rem 0;
+  }
+
+  .sn-chart {
+    margin-top: 2.4rem;
+  }
+
+  .lens-scatter__canvas {
+    height: clamp(420px, 62vh, 560px);
+  }
+
+  .lens-scatter__legend {
+    padding: 0.6rem 0.7rem;
+    font-size: 0.52rem;
+  }
+
+  .lens-scatter__hint {
+    display: none;
+  }
+
+  .shist__svg {
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 520px) {
+  .sn-page {
+    padding-top: 6.5rem;
+  }
+
+  .sn-hero {
+    padding-bottom: 3.5rem;
+  }
+
+  .lens-scatter__canvas {
+    height: 390px;
+  }
+
+  .lens-scatter__hud {
+    right: 0.6rem;
+    bottom: 0.6rem;
+  }
+
+  .lens-scatter__legend {
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.46rem;
+  }
+
+  .lens-scatter__dot {
+    width: 6px;
+    height: 6px;
+  }
 }
