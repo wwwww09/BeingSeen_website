@@ -2416,17 +2416,33 @@ a {
 
 /* --------------------------------------------------------------------------
    Supernovae — "The Magnification Effect" chart
-   Five real supernovae on one magnitude axis. Transparent field, no frame:
-   only the axis hairline, the movable limit and the type carry it.
+   Five real supernovae on one magnitude axis. The chart sits on a dark glass
+   panel so the moving limit and the gold dots stay readable over the live
+   lens cloud behind them; the cloud is still there, just pushed back.
    -------------------------------------------------------------------------- */
 
+#magnification {
+  scroll-margin-top: clamp(5rem, 10vh, 7rem);
+}
+
 .mchart {
-  width: min(860px, 80vw);
+  width: min(924px, 82vw);
   max-width: none;
   margin: clamp(2.2rem, 5vh, 3.4rem) 0 0;
-  padding: 0;
-  border: 0;
-  background: none;
+  padding: clamp(1.3rem, 2.4vw, 2.1rem);
+  border: 1px solid rgba(236, 233, 226, 0.06);
+  background: rgba(0, 0, 0, 0.75);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Without backdrop-filter the panel has to do the dimming on its own. */
+@supports not (
+  (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px))
+) {
+  .mchart {
+    background: rgba(0, 0, 0, 0.92);
+  }
 }
 
 .mchart__inner {
@@ -2606,6 +2622,7 @@ a {
 @media (max-width: 760px) {
   .sn-content .mchart {
     width: 100%;
+    padding: 1rem;
   }
 
   .mchart__inner {

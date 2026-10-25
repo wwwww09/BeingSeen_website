@@ -1,12 +1,38 @@
+import { useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { scienceChapters } from '../content'
 import { LensScatter3D } from '../components/LensScatter3D'
 import { MagnitudeChart } from '../components/MagnitudeChart'
 
 export function ScienceChapterPage() {
   const { slug } = useParams<{ slug: string }>()
+  const { hash } = useLocation()
   const reduced = useReducedMotion() ?? false
+
+  /*
+   * "#magnification" should land on the chart even on a cold load: the router
+   * renders after the browser has already tried to resolve the hash, so the
+   * target does not exist yet and the native jump silently does nothing.
+   */
+  useEffect(() => {
+    if (!hash) return
+    const target = document.getElementById(decodeURIComponent(hash.slice(1)))
+    if (!target) return
+    /*
+     * The global `scroll-behavior: smooth` makes an early jump animate toward
+     * a layout that is still growing, which lands nowhere. Jump instantly,
+     * then correct once fonts and the canvas have settled.
+     */
+    const jump = () =>
+      target.scrollIntoView({ block: 'start', behavior: 'instant' })
+    const frame = window.requestAnimationFrame(jump)
+    const timer = window.setTimeout(jump, 300)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(timer)
+    }
+  }, [hash])
 
   const index = scienceChapters.findIndex((chapter) => chapter.slug === slug)
   if (index === -1) return <Navigate to="/science" replace />
@@ -41,7 +67,7 @@ export function ScienceChapterPage() {
           <p className="page-lede">{chapter.body}</p>
         </header>
 
-        <section className="sn-section">
+        <section className="sn-section" id="magnification">
           <p className="section-kicker">The mechanism</p>
           <h2 className="sn-title">The Magnification Effect</h2>
           <p className="sn-body">
