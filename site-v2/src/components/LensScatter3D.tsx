@@ -142,8 +142,14 @@ export function LensScatter3D() {
   return (
     <div className="lens-scatter">
       <div className="lens-scatter__canvas">
-        <Canvas camera={{ position: [20, 14, 22], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
-          <color attach="background" args={['#080a10']} />
+        {/* transparent clear: the page black shows through, so the fixed
+            canvas has no visible seam against the text column */}
+        <Canvas
+          camera={{ position: [20, 14, 22], fov: 42 }}
+          dpr={[1, 1.5]}
+          gl={{ antialias: true, alpha: true }}
+          style={{ background: 'transparent' }}
+        >
           <LensCloud lenses={feed.lenses} maxZ={maxZ} />
           <SneMarkers sne={feed.sne} maxZ={maxZ} />
           <gridHelper args={[24, 24, '#222222', '#222222']} position={[0, -10, 0]}>

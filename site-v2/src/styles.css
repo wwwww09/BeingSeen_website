@@ -2261,11 +2261,15 @@ a {
 }
 
 .sn-bg {
+  /* pinned to the right half of the viewport — never scrolls */
   position: fixed;
-  inset: 0;
-  width: 100vw;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  width: 50vw;
   height: 100vh;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
 }
@@ -2341,28 +2345,20 @@ a {
 }
 
 .sn-content {
+  /* left half; the only thing that scrolls past the fixed canvas */
   position: relative;
   z-index: 10;
-  max-width: 600px;
-  margin-left: 10%;
+  width: 50vw;
+  max-width: none;
+  margin-left: 0;
   margin-top: 0;
-  padding: clamp(8rem, 16vh, 12rem) 0 clamp(6rem, 12vh, 10rem);
+  padding: clamp(7rem, 14vh, 11rem) 3vw clamp(6rem, 12vh, 10rem) 10%;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .sn-content::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.92) 0%,
-    rgba(0, 0, 0, 0.72) 38%,
-    rgba(0, 0, 0, 0.25) 68%,
-    transparent 100%
-  );
+  /* the split no longer needs a scrim: text sits on its own black half */
+  content: none;
 }
 
 .sn-content .sn-hero,
@@ -2406,9 +2402,15 @@ a {
 
 @media (max-width: 700px) {
   .sn-content {
-    margin-left: 6vw;
-    max-width: 88vw;
-    padding-top: 7rem;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    padding: 7rem 6vw 4rem;
+  }
+
+  .sn-bg {
+    width: 100vw;
+    opacity: 0.45;
   }
 
   .sn-bg .lens-scatter__axes,
@@ -2420,80 +2422,27 @@ a {
 
 /* --------------------------------------------------------------------------
    Supernovae — "The Magnification Effect"
-   The lens cloud is a fixed full-screen backdrop; the chapter scrolls over it.
-   This stage is one full-screen row — text at 10% from the left, chart at 10%
-   from the right — that holds still while the reader scrolls past.
+   The lens cloud is fixed to the right half of the viewport; this column on
+   the left is the only thing that scrolls. No card, no frame, no fill.
    -------------------------------------------------------------------------- */
 
 #magnification {
-  scroll-margin-top: 0;
+  scroll-margin-top: clamp(4rem, 8vh, 6rem);
 }
 
-.sn-stage {
-  position: relative;
-  /* break out of the 600px reading column and reach both viewport edges */
-  width: 100vw;
-  margin-left: -10vw;
-  height: 160vh;
+/* the mechanism flows with the column instead of filling a screen */
+.sn-content .sn-mechanism {
+  display: block;
+  min-height: 0;
 }
 
-.sn-stage__pin {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(2rem, 4vw, 4rem);
-  height: 100vh;
-  padding: 0 10%;
+.sn-mechanism .mchart {
+  margin-top: 2.6rem;
 }
 
-.sn-stage__text {
-  flex: 0 1 420px;
-  max-width: 500px;
-}
-
-.sn-stage .sn-title {
-  font-size: clamp(2.2rem, 3.4vw, 3.2rem);
-  color: #fff;
-  text-align: left;
-}
-
-.sn-stage .sn-body {
-  margin: 0;
-  max-width: 500px;
-  color: rgba(255, 255, 255, 0.76);
-}
-
-.sn-stage__chart {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 780px;
-  margin-left: auto;
-}
-
-@media (max-width: 880px) {
-  .sn-stage {
-    width: 100%;
-    margin-left: 0;
-    height: auto;
-  }
-
-  .sn-stage__pin {
-    position: static;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2.6rem;
-    height: auto;
-    padding: 7rem 0 3rem;
-  }
-
-  .sn-stage__text {
-    max-width: none;
-  }
-
-  .sn-stage__chart {
-    max-width: none;
+@media (max-width: 900px) {
+  .sn-content .sn-mechanism {
+    min-height: 0;
   }
 }
 
@@ -2561,7 +2510,7 @@ a {
 }
 
 .mchart__name {
-  font-size: 20px;
+  font-size: 23px;
   fill: rgba(255, 255, 255, 0.58);
   letter-spacing: 0.005em;
   transition: fill 0.45s ease;
@@ -2572,31 +2521,31 @@ a {
 }
 
 .mchart__tick {
-  font-size: 15px;
+  font-size: 18px;
   fill: rgba(255, 255, 255, 0.5);
   font-variant-numeric: tabular-nums;
 }
 
 .mchart__value {
-  font-size: 16.5px;
+  font-size: 19px;
   fill: #ffcf8b;
   font-variant-numeric: tabular-nums;
 }
 
 .mchart__axis-title {
-  font-size: 15.5px;
+  font-size: 18px;
   fill: rgba(255, 255, 255, 0.62);
   letter-spacing: 0.04em;
 }
 
 .mchart__axis-hint {
-  font-size: 13.5px;
+  font-size: 15.5px;
   fill: rgba(255, 255, 255, 0.42);
   letter-spacing: 0.08em;
 }
 
 .mchart__limit-label {
-  font-size: 13.5px;
+  font-size: 15.5px;
   fill: #ff5c35;
   letter-spacing: 0.1em;
 }
