@@ -166,19 +166,17 @@ export function LensScatter3D() {
         </Canvas>
       </div>
       <div className="lens-scatter__hud">
-        <div className="lens-scatter__axes" aria-hidden="true">
-          <span>RA → X</span>
-          <span>Dec → Y</span>
-          <span>Redshift → Z</span>
-        </div>
-        <div className="lens-scatter__legend">
-          <span>
-            <i className="lens-scatter__dot" /> {live ? feed.lenses.length.toLocaleString() : 'sample'} lenses
-          </span>
-          <span>
-            <i className="lens-scatter__dot lens-scatter__dot--known" /> {feed.sne.length} lensed SNe
-          </span>
-        </div>
+        <span className="lens-scatter__key">
+          <i className="lens-scatter__dot" aria-hidden="true" />
+          Known Lenses ({live ? feed.lenses.length.toLocaleString() : '13,941'})
+        </span>
+        <span className="lens-scatter__key">
+          <i
+            className="lens-scatter__dot lens-scatter__dot--known"
+            aria-hidden="true"
+          />
+          Sampled Supernovae ({feed.sne.length})
+        </span>
       </div>
     </div>
   )

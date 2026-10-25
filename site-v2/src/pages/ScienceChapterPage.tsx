@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { scienceChapters } from '../content'
 import { LensScatter3D } from '../components/LensScatter3D'
 import { MagnitudeChart } from '../components/MagnitudeChart'
+import { SimulatedHistogram } from '../components/SimulatedHistogram'
 
 export function ScienceChapterPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -85,13 +86,18 @@ export function ScienceChapterPage() {
           <MagnitudeChart />
         </section>
 
-        <section className="sn-section">
-          <p className="section-kicker">The map</p>
+        <section className="sn-section sn-sim">
+          <p className="section-kicker">The simulation</p>
           <h2 className="sn-title">Finding a Needle in a Cosmic Haystack</h2>
           <p className="sn-body">
-            We simulated 64,309 supernovae and mapped them against 32,838 known
-            gravitational lenses. Only a tiny fraction align perfectly.
+            We simulated 64,309 lensed systems. Most are too faint for ZTF. Only
+            a tiny fraction with extreme magnification cross the detection limit.
           </p>
+          <SimulatedHistogram />
+          <blockquote className="sn-quote">
+            “Gravitational lensing boosts supernova detection rates by at least
+            an order of magnitude.”
+          </blockquote>
         </section>
 
         <div className="chapter-next sn-next">
