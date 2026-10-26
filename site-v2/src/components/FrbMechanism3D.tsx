@@ -1,37 +1,39 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Line, OrbitControls, Stars } from '@react-three/drei'
+import { Html, Line, Stars } from '@react-three/drei'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { getDotTexture } from '../scene/dotTexture'
+import type { ReactNode, RefObject } from 'react'
 
 /**
- * FRB lensing, as a floating WebGL scene.
+ * FRB lensing geometry, kept deliberately flat on the z = 0 plane.
  *
- * There is no panel or texture here: the Canvas clears to transparent, the
- * page's black background shows through, and a faint three-dimensional
- * starfield supplies the only background. Earth and the lensing galaxy are
- * abstract glowing spheres; the paths are screen-space lines.
+ *   Earth (observer)  x = 0
+ *   Lensing galaxy    x = 2
+ *   FRB source        x = 6
+ *
+ * A straight dashed blue path goes directly to the observer. A curved gold
+ * path bends above the galaxy with a peak at y = 1.2. The two moving pulses
+ * start together at the source and arrive at different times.
  */
 
-const EARTH_POS: [number, number, number] = [-6, 0, 0]
+const EARTH_POS: [number, number, number] = [0, 0, 0]
+const GALAXY_POS: [number, number, number] = [2, 0, 0]
 const SOURCE_POS: [number, number, number] = [6, 0, 0]
-const EARTH_END: [number, number, number] = [-5.38, 0, 0]
 
-const DIRECT_CURVE = new THREE.LineCurve3(
-  new THREE.Vector3(...SOURCE_POS),
-  new THREE.Vector3(...EARTH_END),
+const EARTH_RADIUS = 0.36
+const GALAXY_RADIUS = 0.46
+const SOURCE_RADIUS = 0.2
+
+const PATH_START = new THREE.Vector3(SOURCE_POS[0] - SOURCE_RADIUS - 0.04, 0, 0)
+const PATH_END = new THREE.Vector3(EARTH_POS[0] + EARTH_RADIUS + 0.02, 0, 0)
+const DIRECT_CURVE = new THREE.LineCurve3(PATH_START, PATH_END)
+const DELAYED_CURVE = new THREE.QuadraticBezierCurve3(
+  PATH_START,
+  new THREE.Vector3(3, 2.4, 0),
+  PATH_END,
 )
-
-const DELAYED_CURVE = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(...SOURCE_POS),
-  new THREE.Vector3(4.1, 1.8, 0),
-  new THREE.Vector3(1.6, 3.3, 0),
-  new THREE.Vector3(-1.6, 3.3, 0),
-  new THREE.Vector3(-4.1, 1.8, 0),
-  new THREE.Vector3(...EARTH_END),
-])
-
-const DELAYED_POINTS = DELAYED_CURVE.getPoints(128)
+const DELAYED_POINTS = DELAYED_CURVE.getPoints(160)
 
 const RIM_VERTEX = `
   varying vec3 vNormalView;
@@ -52,7 +54,7 @@ const RIM_FRAGMENT = `
   varying vec3 vViewDirection;
 
   void main() {
-    float rim = pow(1.0 - max(dot(vNormalView, vViewDirection), 0.0), 2.2);
+    float rim = pow(1.0 - max(dot(vNormalView, vViewDirection), 0.0), 2.4);
     gl_FragColor = vec4(uColor, rim * uIntensity);
   }
 `
@@ -60,11 +62,11 @@ const RIM_FRAGMENT = `
 function GlowShell({
   radius,
   color,
-  intensity = 1,
+  intensity,
 }: {
   radius: number
   color: string
-  intensity?: number
+  intensity: number
 }) {
   return (
     <mesh>
@@ -84,54 +86,85 @@ function GlowShell({
   )
 }
 
-function ResponsiveCamera() {
-  const camera = useThree((state) => state.camera)
-  const width = useThree((state) => state.size.width)
-  const height = useThree((state) => state.size.height)
+let diamondTexture: THREE.Texture | null = null
 
-  useEffect(() => {
-    if (!(camera instanceof THREE.PerspectiveCamera)) return
-    const portrait = width / Math.max(height, 1) < 1
-    camera.position.set(0, portrait ? 1.5 : 1.2, portrait ? 22 : 17)
-    camera.fov = portrait ? 50 : 40
-    camera.lookAt(0, 0, 0)
-    camera.updateProjectionMatrix()
-  }, [camera, width, height])
+function getDiamondTexture(): THREE.Texture {
+  if (diamondTexture) return diamondTexture
 
-  return null
+  const size = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const context = canvas.getContext('2d')
+  if (!context) return new THREE.Texture()
+
+  const center = size / 2
+  const fill = context.createRadialGradient(
+    center,
+    center,
+    0,
+    center,
+    center,
+    size * 0.48,
+  )
+  fill.addColorStop(0, 'rgba(255,255,235,1)')
+  fill.addColorStop(0.28, 'rgba(255,236,150,1)')
+  fill.addColorStop(0.7, 'rgba(255,214,74,1)')
+  fill.addColorStop(1, 'rgba(255,200,0,0.05)')
+
+  context.fillStyle = fill
+  context.beginPath()
+  context.moveTo(center, size * 0.06)
+  context.lineTo(size * 0.78, center)
+  context.lineTo(center, size * 0.94)
+  context.lineTo(size * 0.22, center)
+  context.closePath()
+  context.fill()
+
+  const core = context.createRadialGradient(
+    center,
+    center,
+    0,
+    center,
+    center,
+    size * 0.16,
+  )
+  core.addColorStop(0, 'rgba(255,255,255,1)')
+  core.addColorStop(0.5, 'rgba(255,247,198,0.9)')
+  core.addColorStop(1, 'rgba(255,225,100,0)')
+  context.fillStyle = core
+  context.beginPath()
+  context.arc(center, center, size * 0.16, 0, Math.PI * 2)
+  context.fill()
+
+  diamondTexture = new THREE.CanvasTexture(canvas)
+  diamondTexture.colorSpace = THREE.SRGBColorSpace
+  diamondTexture.needsUpdate = true
+  return diamondTexture
 }
 
-function Earth({ animate }: { animate: boolean }) {
-  const halo = useRef<THREE.Sprite>(null)
+function Earth() {
   const sprite = useMemo(() => getDotTexture(), [])
-
-  useFrame(({ clock }) => {
-    if (!animate || !halo.current) return
-    const scale = 2.2 + Math.sin(clock.elapsedTime * 1.1) * 0.03
-    halo.current.scale.set(scale, scale, 1)
-  })
 
   return (
     <group position={EARTH_POS}>
       <mesh>
-        <sphereGeometry args={[0.62, 48, 48]} />
+        <sphereGeometry args={[EARTH_RADIUS, 48, 48]} />
         <meshStandardMaterial
           color="#0a192f"
           emissive="#0b2a4a"
-          emissiveIntensity={0.45}
+          emissiveIntensity={0.36}
           roughness={0.55}
           metalness={0.1}
         />
       </mesh>
-      {/* Faint atmospheric rim only: the sphere stays midnight blue. */}
-      <GlowShell radius={0.7} color="#2f6f9f" intensity={0.3} />
-      <GlowShell radius={0.95} color="#244f77" intensity={0.11} />
-      <sprite ref={halo} scale={[2.2, 2.2, 1]}>
+      <GlowShell radius={EARTH_RADIUS + 0.045} color="#4f8fc0" intensity={0.22} />
+      <sprite scale={[1.4, 1.4, 1]}>
         <spriteMaterial
           map={sprite}
-          color="#2f7fbf"
+          color="#4f8fc0"
           transparent
-          opacity={0.05}
+          opacity={0.03}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -140,90 +173,82 @@ function Earth({ animate }: { animate: boolean }) {
   )
 }
 
-function ringPoints(radius: number, segments = 128): [number, number, number][] {
-  return Array.from({ length: segments + 1 }, (_, index) => {
-    const angle = (index / segments) * Math.PI * 2
-    return [Math.cos(angle) * radius, Math.sin(angle) * radius, 0] as [
-      number,
-      number,
-      number,
-    ]
-  })
+function ringPositions(radius: number, count = 64): Float32Array {
+  const positions = new Float32Array(count * 3)
+  for (let index = 0; index < count; index += 1) {
+    const angle = (index / count) * Math.PI * 2
+    positions[index * 3] = Math.cos(angle) * radius
+    positions[index * 3 + 1] = Math.sin(angle) * radius
+    positions[index * 3 + 2] = 0
+  }
+  return positions
 }
 
-const LENS_RINGS = [1.1, 1.35, 1.6, 1.85].map((radius, index) => ({
-  radius,
-  points: ringPoints(radius),
-  opacity: [0.22, 0.16, 0.11, 0.07][index],
-}))
+const GALAXY_RING = ringPositions(0.82, 60)
 
-function Galaxy({ animate }: { animate: boolean }) {
-  const field = useRef<THREE.Group>(null)
-
-  useFrame(({ clock }) => {
-    if (!animate || !field.current) return
-    const pulse = 1 + Math.sin(clock.elapsedTime * 0.45) * 0.025
-    field.current.scale.setScalar(pulse)
-    field.current.rotation.z = clock.elapsedTime * 0.02
-  })
+function Galaxy() {
+  const sprite = useMemo(() => getDotTexture(), [])
 
   return (
-    <group ref={field} position={[0, 0, 0]}>
-      {/* The lensing galaxy: a visible amber sphere, independent of the FRB
-          particle material in FrbDataMap3D. */}
-      <mesh position={[0, 0, 0]} renderOrder={1}>
-        <sphereGeometry args={[1.02, 64, 64]} />
+    <group position={GALAXY_POS}>
+      <mesh renderOrder={4}>
+        <sphereGeometry args={[GALAXY_RADIUS, 48, 48]} />
         <meshStandardMaterial
           color="#d97706"
           emissive="#b45309"
-          emissiveIntensity={0.55}
+          emissiveIntensity={0.6}
           transparent
-          opacity={0.85}
+          opacity={0.4}
           roughness={0.45}
           metalness={0.05}
           depthWrite={false}
         />
       </mesh>
-      <GlowShell radius={1.12} color="#d97706" intensity={0.28} />
+      <GlowShell radius={GALAXY_RADIUS + 0.08} color="#d97706" intensity={0.25} />
 
-      {/* Faint lensing rings, tilted so they read as a halo in depth. */}
-      <group rotation={[0.42, 0.18, 0]}>
-        {LENS_RINGS.map((ring) => (
-          <Line
-            key={ring.radius}
-            points={ring.points}
-            color="#e3a54a"
-            lineWidth={0.8}
-            transparent
-            opacity={ring.opacity * 1.8}
-            depthWrite={false}
-            depthTest={false}
-            renderOrder={2}
-            blending={THREE.AdditiveBlending}
-          />
-        ))}
-      </group>
+      <points frustumCulled={false} renderOrder={5}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[GALAXY_RING, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          map={sprite}
+          color="#e6b25a"
+          size={0.055}
+          sizeAttenuation
+          transparent
+          opacity={0.8}
+          depthWrite={false}
+          depthTest={false}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
+        />
+      </points>
     </group>
   )
 }
 
 function Source() {
-  const sprite = useMemo(() => getDotTexture(), [])
+  const glow = useMemo(() => getDotTexture(), [])
+  const diamond = useMemo(() => getDiamondTexture(), [])
 
   return (
     <group position={SOURCE_POS}>
-      <mesh>
-        <sphereGeometry args={[0.16, 24, 24]} />
-        <meshBasicMaterial color="#ffe27a" />
-      </mesh>
-      <sprite scale={[2.0, 2.0, 1]}>
+      <sprite scale={[0.95, 0.95, 1]} renderOrder={6}>
         <spriteMaterial
-          map={sprite}
+          map={glow}
           color="#ffd54a"
           transparent
-          opacity={0.55}
+          opacity={0.5}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
+        />
+      </sprite>
+      <sprite scale={[0.58, 0.58, 1]} renderOrder={7}>
+        <spriteMaterial
+          map={diamond}
+          transparent
+          depthWrite={false}
+          toneMapped={false}
         />
       </sprite>
     </group>
@@ -233,18 +258,17 @@ function Source() {
 function SignalPulse({
   curve,
   color,
-  period,
   duration,
   animate,
 }: {
   curve: THREE.Curve<THREE.Vector3>
   color: string
-  period: number
   duration: number
   animate: boolean
 }) {
   const pulse = useRef<THREE.Group>(null)
   const sprite = useMemo(() => getDotTexture(), [])
+  const period = 8
 
   useFrame(({ clock }) => {
     if (!pulse.current) return
@@ -258,16 +282,16 @@ function SignalPulse({
 
   return (
     <group ref={pulse}>
-      <mesh renderOrder={20}>
-        <sphereGeometry args={[0.11, 16, 16]} />
-        <meshBasicMaterial color={color} depthTest={false} />
+      <mesh renderOrder={10}>
+        <sphereGeometry args={[0.06, 16, 16]} />
+        <meshBasicMaterial color={color} depthTest={false} toneMapped={false} />
       </mesh>
-      <sprite scale={[1.0, 1.0, 1]} renderOrder={21}>
+      <sprite scale={[0.5, 0.5, 1]} renderOrder={11}>
         <spriteMaterial
           map={sprite}
           color={color}
           transparent
-          opacity={0.7}
+          opacity={0.6}
           depthWrite={false}
           depthTest={false}
           blending={THREE.AdditiveBlending}
@@ -277,98 +301,152 @@ function SignalPulse({
   )
 }
 
-function Scene({ animate }: { animate: boolean }) {
+function DiagramLabel({
+  position,
+  className,
+  portal,
+  children,
+}: {
+  position: [number, number, number]
+  className?: string
+  portal: RefObject<HTMLElement>
+  children: ReactNode
+}) {
+  return (
+    <Html
+      position={position}
+      center
+      portal={portal}
+      zIndexRange={[20, 0]}
+      style={{ pointerEvents: 'none', userSelect: 'none' }}
+    >
+      <div className={`frb-diagram-label ${className ?? ''}`}>{children}</div>
+    </Html>
+  )
+}
+
+function CameraRig() {
+  const camera = useThree((state) => state.camera)
+  const width = useThree((state) => state.size.width)
+  const height = useThree((state) => state.size.height)
+
+  useEffect(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) return
+    const portrait = width / Math.max(height, 1) < 1
+    camera.position.set(3, portrait ? 2.8 : 1.9, portrait ? 17.5 : 9.8)
+    camera.fov = portrait ? 42 : 30
+    camera.lookAt(3, portrait ? 0.45 : 0.35, 0)
+    camera.updateProjectionMatrix()
+  }, [camera, width, height])
+
+  return null
+}
+
+function Scene({
+  animate,
+  portal,
+}: {
+  animate: boolean
+  portal: RefObject<HTMLElement>
+}) {
   return (
     <>
       <ambientLight intensity={0.35} />
-      <directionalLight position={[-4, 5, 6]} intensity={1.2} color="#fff3df" />
-      <pointLight position={[-5, 1, 4]} intensity={1.0} color="#2f6f9f" distance={12} />
-      <pointLight position={[0, 0, 4]} intensity={1.0} color="#b8893f" distance={10} />
+      <directionalLight position={[-4, 6, 8]} intensity={0.9} color="#fff3df" />
+      <pointLight position={[2, 1, 4]} intensity={1.0} color="#d97706" distance={8} />
 
       <Stars
         radius={80}
         depth={50}
-        count={900}
-        factor={1.25}
+        count={600}
+        factor={1.0}
         saturation={0}
         fade
-        speed={animate ? 0.12 : 0}
+        speed={animate ? 0.08 : 0}
       />
 
-      <Earth animate={animate} />
-      <Galaxy animate={animate} />
+      <Earth />
+      <Galaxy />
       <Source />
 
-      {/* direct, unlensed path — deliberately faint */}
+      {/* Direct, unlensed path — thin dashed deep-sky blue. */}
       <Line
-        points={[SOURCE_POS, EARTH_END]}
-        color="#bcd7f5"
-        lineWidth={0.8}
+        points={[PATH_START, PATH_END]}
+        color="#38bdf8"
+        lineWidth={0.7}
+        dashed
+        dashSize={0.12}
+        gapSize={0.1}
         transparent
-        opacity={0.36}
+        opacity={0.72}
         depthWrite={false}
+        renderOrder={1}
       />
 
-      {/* lensed path: a wide, low-opacity glow under a bright gold core */}
+      {/* Delayed path — a low gold glow under a solid gold core. */}
       <Line
         points={DELAYED_POINTS}
-        color="#8a5f2a"
-        lineWidth={4.5}
+        color="#b8860b"
+        lineWidth={5}
         transparent
-        opacity={0.1}
+        opacity={0.12}
         depthWrite={false}
+        renderOrder={2}
+        blending={THREE.AdditiveBlending}
       />
       <Line
         points={DELAYED_POINTS}
-        color="#b8893f"
+        color="#ffcf6b"
         lineWidth={1.8}
         transparent
-        opacity={0.65}
+        opacity={0.9}
         depthWrite={false}
+        renderOrder={3}
+        blending={THREE.AdditiveBlending}
       />
 
       <SignalPulse
         curve={DIRECT_CURVE}
-        color="#e8f2ff"
-        period={6}
+        color="#f4f8ff"
         duration={1.4}
         animate={animate}
       />
       <SignalPulse
         curve={DELAYED_CURVE}
-        color="#d8a85a"
-        period={6}
+        color="#ffd166"
         duration={5.2}
         animate={animate}
       />
+
+      <DiagramLabel position={[0, 0.72, 0]} className="frb-diagram-label--observer" portal={portal}>
+        Observer
+      </DiagramLabel>
+      <DiagramLabel position={[2, 1.42, 0]} className="frb-diagram-label--galaxy" portal={portal}>
+        Lensing Galaxy
+      </DiagramLabel>
+      <DiagramLabel position={[6, 0.62, 0]} className="frb-diagram-label--source" portal={portal}>
+        FRB Source
+      </DiagramLabel>
+      <DiagramLabel position={[3.15, 2.05, 0]} className="frb-diagram-label--delta" portal={portal}>
+        Δt = 24.9 days
+      </DiagramLabel>
     </>
   )
 }
 
 export function FrbMechanism3D({ animate = true }: { animate?: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
   return (
-    <div className="frb-scene__canvas">
+    <div ref={containerRef} className="frb-scene__canvas">
       <Canvas
-        camera={{ position: [0, 1.2, 17], fov: 40 }}
+        camera={{ position: [3, 1.9, 9.8], fov: 30 }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >
-        <ResponsiveCamera />
-        <Scene animate={animate} />
-        <OrbitControls
-          makeDefault
-          target={[0, 0, 0]}
-          enablePan={false}
-          enableZoom={false}
-          autoRotate={animate}
-          autoRotateSpeed={0.55}
-          rotateSpeed={0.42}
-          enableDamping
-          dampingFactor={0.07}
-          minPolarAngle={Math.PI / 2 - 0.35}
-          maxPolarAngle={Math.PI / 2 + 0.35}
-        />
+        <CameraRig />
+        <Scene animate={animate} portal={containerRef as unknown as RefObject<HTMLElement>} />
       </Canvas>
     </div>
   )

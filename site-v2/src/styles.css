@@ -3167,12 +3167,45 @@ a {
 
 .frb-scene canvas {
   display: block;
-  cursor: grab;
   touch-action: none;
 }
 
-.frb-scene canvas:active {
-  cursor: grabbing;
+/* Minimal HTML labels anchored to the flat z=0 diagram. */
+.frb-diagram-label {
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(245, 245, 245, 0.55);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+}
+
+.frb-diagram-label--observer {
+  color: rgba(205, 225, 245, 0.55);
+}
+
+.frb-diagram-label--galaxy {
+  color: rgba(226, 166, 74, 0.72);
+}
+
+.frb-diagram-label--source {
+  color: rgba(255, 215, 92, 0.78);
+}
+
+.frb-diagram-label--delta {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.45),
+    0 1px 8px rgba(0, 0, 0, 0.9);
 }
 
 .frb-caption {
@@ -3779,6 +3812,15 @@ a {
 
   .frb-scene {
     height: clamp(400px, 55vh, 480px);
+  }
+
+  .frb-diagram-label {
+    font-size: 9px;
+    letter-spacing: 0.13em;
+  }
+
+  .frb-diagram-label--delta {
+    font-size: 15px;
   }
 
   .frb-caption {

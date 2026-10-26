@@ -542,8 +542,7 @@ export function FrbDataMap3D() {
       </div>
 
       <p className="frb-map__hint">
-        {cloud.total} of 690 plotted · point size ∝ SNR · drag to rotate ·
-        scroll to zoom
+        {cloud.total} FRBs with complete DM data plotted
       </p>
       <p className="frb-map__axes">
         r = DM / max(DM) · RA, Dec → direction
