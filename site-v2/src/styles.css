@@ -3521,10 +3521,35 @@ a {
   color: #8d8d8d;
 }
 
+/* Dedicated top margin for the candidate labels, aligned with the plot. */
+.frb-histogram__candidate-labels {
+  position: relative;
+  height: 1.35rem;
+  margin: 0.65rem 0 0.1rem 2.6rem;
+}
+
+.frb-histogram__candidate-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 0.18rem 0.36rem;
+  border: 1px solid rgba(255, 209, 102, 0.22);
+  border-radius: 2px;
+  background: rgba(2, 3, 5, 0.84);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #ffd166;
+  text-shadow: 0 0 6px rgba(255, 209, 102, 0.7);
+  white-space: nowrap;
+}
+
 .frb-histogram__body {
   display: flex;
   gap: 0.6rem;
-  margin-top: 0.85rem;
+  margin-top: 0.15rem;
 }
 
 .frb-histogram__y-axis {
@@ -3615,21 +3640,6 @@ a {
   background-repeat: repeat-y;
   filter: drop-shadow(0 0 3px rgba(255, 209, 102, 0.95))
     drop-shadow(0 0 10px rgba(255, 176, 32, 0.65));
-}
-
-.frb-histogram__candidate-line em {
-  position: absolute;
-  top: 0.45rem;
-  left: 0;
-  transform: translateX(-50%);
-  font-family: var(--sans);
-  font-size: 0.62rem;
-  font-style: normal;
-  letter-spacing: 0.04em;
-  color: #ffd166;
-  text-shadow: 0 0 6px rgba(255, 209, 102, 0.85),
-    0 0 14px rgba(255, 176, 32, 0.4);
-  white-space: nowrap;
 }
 
 .frb-histogram__median-line {
@@ -3969,6 +3979,16 @@ a {
   .frb-histogram__header {
     padding-left: 2.3rem;
     font-size: 0.52rem;
+  }
+
+  .frb-histogram__candidate-labels {
+    height: 1.2rem;
+    margin-left: 2.1rem;
+  }
+
+  .frb-histogram__candidate-label {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.55rem;
   }
 
   .frb-histogram__body {

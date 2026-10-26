@@ -6,7 +6,7 @@
 const BINS = [1, 2, 3, 4, 6, 8, 9, 10, 11, 10, 9, 7, 5, 3, 2, 1, 1, 0, 0, 0]
 
 const BIN_DAYS = 5
-const MAX_COUNT = 12
+const MAX_COUNT = 16
 const TOTAL = BINS.reduce((sum, count) => sum + count, 0)
 const MEDIAN = 41.4
 
@@ -15,8 +15,8 @@ const CANDIDATE_BINS = new Set(
   CANDIDATE_DELAYS.map((delay) => Math.floor(delay / BIN_DAYS)),
 )
 
-const Y_TICKS = [12, 9, 6, 3, 0]
-const GRID_TICKS = [0, 3, 6, 9, 12]
+const Y_TICKS = [16, 12, 8, 4, 0]
+const GRID_TICKS = [0, 4, 8, 12, 16]
 
 export function TimeDelayHistogram() {
   return (
@@ -24,6 +24,19 @@ export function TimeDelayHistogram() {
       <div className="frb-histogram__header">
         <span>Number of pairs</span>
         <span>{TOTAL} tested pairs · 5-day bins</span>
+      </div>
+
+      {/* Labels live above the plot so they can never overlap a bar. */}
+      <div className="frb-histogram__candidate-labels" aria-hidden="true">
+        {CANDIDATE_DELAYS.map((delay) => (
+          <span
+            key={delay}
+            className="frb-histogram__candidate-label"
+            style={{ left: `${delay}%` }}
+          >
+            {delay} d
+          </span>
+        ))}
       </div>
 
       <div className="frb-histogram__body">
@@ -76,9 +89,7 @@ export function TimeDelayHistogram() {
               className="frb-histogram__candidate-line"
               style={{ left: `${delay}%` }}
               aria-hidden="true"
-            >
-              <em>{delay} d</em>
-            </span>
+            />
           ))}
           <span
             className="frb-histogram__median-line"
