@@ -42,16 +42,16 @@ interface CloudData {
 const SPHERE_RADIUS = 10
 
 /*
- * A bright, star-like DM ramp: violet -> electric blue -> pale gold.
- * The HTML legend uses the same stops, so the bar and the particles agree.
+ * A saturated Viridis-style DM ramp. The HTML legend uses the same stops, so
+ * the bar and the particles agree. Colours are never mixed to white.
  */
 const DM_RAMP: [number, number, number][] = [
-  [0.45, 0.3, 0.78], // #734dc7
-  [0.53, 0.42, 0.92], // #876bef
-  [0.28, 0.57, 0.93], // #4891ed
-  [0.45, 0.75, 0.98], // #73bffa
-  [0.92, 0.72, 0.38], // #ebb861
-  [1.0, 0.84, 0.5], // #ffd680
+  [0.267, 0.005, 0.329], // #440154
+  [0.229, 0.322, 0.545], // #3a528b
+  [0.128, 0.567, 0.551], // #20918c
+  [0.369, 0.789, 0.383], // #5ec962
+  [0.835, 0.839, 0.173], // #d5d62c
+  [1.0, 0.7, 0.145], // #ffb325
 ]
 
 function dmColor(value: number): [number, number, number] {
@@ -122,9 +122,9 @@ function buildCloud(data: FrbData): CloudData {
     colors[index * 3 + 1] = color[1]
     colors[index * 3 + 2] = color[2]
 
-    // Crisp, SNR-ranked stars: roughly 4 px to 10 px, with a distinct
-    // twinkle phase per burst so the field shimmers instead of pulsing as one.
-    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 6.4 + 3.8
+    // World-space particle size, centred on 0.05: small, softly glowing
+    // points that still encode SNR without turning into plastic discs.
+    sizes[index] = 0.05 * (0.72 + (Math.max(0, row.snr ?? 0) / maxSnr) * 0.56)
     phases[index] = twinklePhase(index)
   })
 
@@ -182,11 +182,19 @@ const POINT_VERTEX = `
 
   void main() {
     vColor = aColor;
-    float twinkle = 0.72 + 0.28 * sin(uTime * 2.35 + aPhase);
+    float twinkle = 0.78 + 0.22 * sin(uTime * 2.35 + aPhase);
     vTwinkle = twinkle;
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * uDpr * (0.84 + 0.16 * twinkle);
+
+    // aSize is in world units (0.05 base). Cap the quad tightly so the dense
+    // centre cannot merge into one solid white mass.
+    float perspective = 18.0 / max(-mvPosition.z, 1.0);
+    gl_PointSize = clamp(
+      aSize * uDpr * 280.0 * perspective * (0.94 + 0.06 * twinkle),
+      2.0,
+      14.0
+    );
     gl_Position = projectionMatrix * mvPosition;
   }
 `
@@ -197,17 +205,16 @@ const POINT_FRAGMENT = `
   uniform float uOpacity;
 
   void main() {
-    float distanceToCenter = length(gl_PointCoord - vec2(0.5));
-    if (distanceToCenter > 0.5) discard;
+    float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
+    if (distanceToCenter > 1.0) discard;
 
-    // A hard edge and a white-hot centre: a sharp star, never blurred dust.
-    float disc = smoothstep(0.5, 0.44, distanceToCenter);
-    float core = smoothstep(0.19, 0.0, distanceToCenter);
-    vec3 body = pow(vColor, vec3(0.72)) * 1.65;
-    vec3 color = mix(body, vec3(1.0), core * 0.72);
-    float brightness = 0.72 + vTwinkle * 0.48;
+    // Circular radial gradient: bright at the centre, fading smoothly to
+    // nothing at the edge. No hard rim and no white core.
+    float radial = pow(max(0.0, 1.0 - distanceToCenter), 2.2);
+    vec3 color = vColor * (0.92 + 0.28 * (1.0 - distanceToCenter));
+    float alpha = radial * uOpacity * vTwinkle;
 
-    gl_FragColor = vec4(color * brightness, disc * uOpacity);
+    gl_FragColor = vec4(color, alpha);
   }
 `
 
@@ -239,7 +246,7 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
         uniforms={{
           uDpr: { value: dpr },
           uTime: { value: 0 },
-          uOpacity: { value: 1 },
+          uOpacity: { value: 0.65 },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
@@ -277,11 +284,10 @@ const CANDIDATE_FRAGMENT = `
     float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
     if (distanceToCenter > 1.0) discard;
 
-    // Wide gold aura around a pale-gold core so the four candidates read as
-    // beacons against the 547 ordinary stars.
-    float glow = pow(max(0.0, 1.0 - distanceToCenter), 2.4) * 0.62;
-    float core = smoothstep(0.24, 0.0, distanceToCenter);
-    vec3 color = mix(uColor, vec3(1.0, 0.95, 0.7), core * 0.6);
+    // #FFD700 core with a soft golden halo.
+    float glow = pow(max(0.0, 1.0 - distanceToCenter), 2.2) * 0.55;
+    float core = smoothstep(0.22, 0.0, distanceToCenter);
+    vec3 color = mix(uColor, vec3(1.0, 0.94, 0.6), core * 0.35);
     float alpha = clamp(glow + core, 0.0, 1.0) * vPulse;
 
     gl_FragColor = vec4(color, alpha);
@@ -312,16 +318,16 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           ref={material}
           uniforms={{
             uDpr: { value: dpr },
-            uSize: { value: 38 },
+            uSize: { value: 36 },
             uTime: { value: 0 },
-            uColor: { value: new THREE.Color('#ffe066') },
+            uColor: { value: new THREE.Color('#ffd700') },
           }}
           vertexShader={CANDIDATE_VERTEX}
           fragmentShader={CANDIDATE_FRAGMENT}
           transparent
           depthWrite={false}
           depthTest={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
           toneMapped={false}
         />
       </points>
@@ -330,10 +336,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <Line
           key={index}
           points={points}
-          color="#ffe066"
+          color="#ffd700"
           lineWidth={0.8}
           transparent
-          opacity={0.48}
+          opacity={0.35}
           depthWrite={false}
           depthTest={false}
         />

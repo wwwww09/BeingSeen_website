@@ -3366,14 +3366,14 @@ a {
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #734dc7 0%,
-    #876bef 20%,
-    #4891ed 40%,
-    #73bffa 60%,
-    #ebb861 80%,
-    #ffd680 100%
+    #440154 0%,
+    #3a528b 20%,
+    #20918c 40%,
+    #5ec962 60%,
+    #d5d62c 80%,
+    #ffb325 100%
   );
-  box-shadow: 0 0 10px rgba(173, 140, 84, 0.18);
+  box-shadow: 0 0 10px rgba(173, 140, 84, 0.12);
 }
 
 .frb-map__dm-range {
@@ -3403,8 +3403,8 @@ a {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #ffd166;
-  box-shadow: 0 0 9px rgba(255, 209, 102, 0.7);
+  background: #ffd700;
+  box-shadow: 0 0 9px rgba(255, 215, 0, 0.7);
 }
 
 .frb-map__axes {
