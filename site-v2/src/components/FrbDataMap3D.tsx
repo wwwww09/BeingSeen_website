@@ -46,12 +46,12 @@ const SPHERE_RADIUS = 10
  * The HTML legend uses the same stops, so the bar and the particles agree.
  */
 const DM_RAMP: [number, number, number][] = [
-  [0.12, 0.05, 0.18], // #1f0d2e
-  [0.17, 0.08, 0.29], // #2b144a
-  [0.12, 0.2, 0.4], // #1f3366
-  [0.27, 0.38, 0.56], // #45608f
-  [0.48, 0.4, 0.26], // #7a6642
-  [0.78, 0.63, 0.38], // #c7a161
+  [0.16, 0.07, 0.26], // #291242
+  [0.22, 0.1, 0.36], // #381a5c
+  [0.1, 0.2, 0.42], // #1a336b
+  [0.25, 0.4, 0.6], // #406699
+  [0.55, 0.43, 0.23], // #8c6e3b
+  [0.96, 0.78, 0.42], // #f5c76b
 ]
 
 function dmColor(value: number): [number, number, number] {
@@ -117,7 +117,7 @@ function buildCloud(data: FrbData): CloudData {
     colors[index * 3 + 2] = color[2]
 
     // Fine dust, still SNR-ranked: roughly 1.2 px to 3.8 px.
-    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 4 + 2.4
+    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 8 + 4.8
   })
 
   const byName = new Map(rows.map((row) => [row.frb_name, row]))
@@ -167,11 +167,12 @@ const POINT_VERTEX = `
   attribute vec3 aColor;
   varying vec3 vColor;
   uniform float uDpr;
+  uniform float uSizeScale;
 
   void main() {
     vColor = aColor;
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * uDpr;
+    gl_PointSize = aSize * uSizeScale * uDpr;
     gl_Position = projectionMatrix * mvPosition;
   }
 `
@@ -189,11 +190,23 @@ const POINT_FRAGMENT = `
   }
 `
 
-function FrbPoints({ cloud }: { cloud: CloudData }) {
+function FrbPoints({
+  cloud,
+  opacity,
+  sizeScale,
+  blending,
+  renderOrder,
+}: {
+  cloud: CloudData
+  opacity: number
+  sizeScale: number
+  blending: THREE.Blending
+  renderOrder: number
+}) {
   const dpr = useThree((state) => state.viewport.dpr)
 
   return (
-    <points frustumCulled={false}>
+    <points frustumCulled={false} renderOrder={renderOrder}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
@@ -208,14 +221,15 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
       <shaderMaterial
         uniforms={{
           uDpr: { value: dpr },
-          uOpacity: { value: 0.5 },
+          uOpacity: { value: opacity },
+          uSizeScale: { value: sizeScale },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
         transparent
         depthWrite={false}
         depthTest={false}
-        blending={THREE.NormalBlending}
+        blending={blending}
       />
     </points>
   )
@@ -239,7 +253,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <pointsMaterial
           map={dot}
           color="#05070a"
-          size={16 * dpr}
+          size={24 * dpr}
           sizeAttenuation={false}
           transparent
           opacity={0.7}
@@ -256,11 +270,11 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         </bufferGeometry>
         <pointsMaterial
           map={dot}
-          color="#ad8c54"
-          size={24 * dpr}
+          color="#ffd166"
+          size={40 * dpr}
           sizeAttenuation={false}
           transparent
-          opacity={0.14}
+          opacity={0.2}
           depthWrite={false}
           depthTest={false}
         />
@@ -274,11 +288,11 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         </bufferGeometry>
         <pointsMaterial
           map={dot}
-          color="#c9a45e"
-          size={8 * dpr}
+          color="#ffd166"
+          size={16 * dpr}
           sizeAttenuation={false}
           transparent
-          opacity={0.95}
+          opacity={1}
           depthWrite={false}
           depthTest={false}
           blending={THREE.NormalBlending}
@@ -289,7 +303,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <Line
           key={index}
           points={points}
-          color="#ad8c54"
+          color="#ffd166"
           lineWidth={0.6}
           transparent
           opacity={0.18}
@@ -310,11 +324,11 @@ function ResponsiveCamera() {
     if (!(camera instanceof THREE.PerspectiveCamera)) return
     const portrait = width / Math.max(height, 1) < 1
     camera.position.set(
-      portrait ? 21 : 16,
-      portrait ? 12 : 9,
-      portrait ? 24 : 18,
+      portrait ? 19 : 14,
+      portrait ? 11 : 8,
+      portrait ? 22 : 16,
     )
-    camera.fov = portrait ? 50 : 44
+    camera.fov = portrait ? 52 : 46
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
   }, [camera, width, height])
@@ -377,7 +391,20 @@ export function FrbDataMap3D() {
           style={{ background: 'transparent' }}
         >
           <ResponsiveCamera />
-          <FrbPoints cloud={cloud} />
+          <FrbPoints
+            cloud={cloud}
+            opacity={0.2}
+            sizeScale={1.2}
+            blending={THREE.AdditiveBlending}
+            renderOrder={1}
+          />
+          <FrbPoints
+            cloud={cloud}
+            opacity={0.5}
+            sizeScale={1}
+            blending={THREE.NormalBlending}
+            renderOrder={2}
+          />
           <GoldCandidates cloud={cloud} />
           <OrbitControls
             makeDefault

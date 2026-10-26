@@ -149,41 +149,52 @@ function ringPoints(radius: number, segments = 128): [number, number, number][] 
   })
 }
 
-const LENS_RINGS = [1.0, 1.28, 1.56, 1.86].map((radius, index) => ({
+const LENS_RINGS = [1.28, 1.56, 1.86].map((radius, index) => ({
   radius,
   points: ringPoints(radius),
-  opacity: [0.2, 0.13, 0.09, 0.06][index],
+  opacity: [0.22, 0.14, 0.09][index],
 }))
 
-function Galaxy() {
+function Galaxy({ animate }: { animate: boolean }) {
   const sprite = useMemo(() => getDotTexture(), [])
+  const field = useRef<THREE.Group>(null)
+
+  useFrame(({ clock }) => {
+    if (!animate || !field.current) return
+    const pulse = 1 + Math.sin(clock.elapsedTime * 0.45) * 0.025
+    field.current.scale.setScalar(pulse)
+    field.current.rotation.z = clock.elapsedTime * 0.02
+  })
 
   return (
     <group>
-      {/* No solid core: the lens is a faint halo and concentric ring lines. */}
-      <sprite scale={[4.6, 4.6, 1]}>
+      {/* No filled core: only a faint bubble rim and a diffuse aura. */}
+      <GlowShell radius={1.0} color="#d8a85a" intensity={0.06} />
+      <sprite scale={[4.8, 4.8, 1]}>
         <spriteMaterial
           map={sprite}
           color="#d8a85a"
           transparent
-          opacity={0.08}
+          opacity={0.07}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </sprite>
-      <GlowShell radius={1.0} color="#b8893f" intensity={0.25} />
 
-      {LENS_RINGS.map((ring) => (
-        <Line
-          key={ring.radius}
-          points={ring.points}
-          color="#b8893f"
-          lineWidth={ring.radius === 1.0 ? 0.9 : 0.65}
-          transparent
-          opacity={ring.opacity}
-          depthWrite={false}
-        />
-      ))}
+      <group ref={field}>
+        {LENS_RINGS.map((ring) => (
+          <Line
+            key={ring.radius}
+            points={ring.points}
+            color="#c9963f"
+            lineWidth={0.6}
+            transparent
+            opacity={ring.opacity * 1.5}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        ))}
+      </group>
     </group>
   )
 }
@@ -277,7 +288,7 @@ function Scene({ animate }: { animate: boolean }) {
       />
 
       <Earth animate={animate} />
-      <Galaxy />
+      <Galaxy animate={animate} />
       <Source />
 
       {/* direct, unlensed path — deliberately faint */}

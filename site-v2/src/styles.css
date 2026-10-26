@@ -3275,7 +3275,7 @@ a {
 }
 
 .frb-data-title__accent {
-  color: #d8b26a;
+  color: #e6bd6c;
 }
 
 .frb-data-lede {
@@ -3366,12 +3366,12 @@ a {
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #1f0d2e 0%,
-    #2b144a 20%,
-    #1f3366 40%,
-    #45608f 60%,
-    #7a6642 80%,
-    #c7a161 100%
+    #291242 0%,
+    #381a5c 20%,
+    #1a336b 40%,
+    #406699 60%,
+    #8c6e3b 80%,
+    #f5c76b 100%
   );
   box-shadow: 0 0 10px rgba(173, 140, 84, 0.12);
 }
@@ -3403,8 +3403,8 @@ a {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #c9a45e;
-  box-shadow: 0 0 7px rgba(201, 164, 94, 0.45);
+  background: #ffd166;
+  box-shadow: 0 0 9px rgba(255, 209, 102, 0.7);
 }
 
 .frb-map__axes {
