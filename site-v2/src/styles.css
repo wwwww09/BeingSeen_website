@@ -4849,3 +4849,278 @@ a {
     font-size: 0.98rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Supernovae — Lenscat sky coverage
+   -------------------------------------------------------------------------- */
+
+.sn-coverage {
+  width: min(100%, 1240px);
+}
+
+.sn-chart--coverage {
+  max-width: 1100px;
+}
+
+.sky-map {
+  width: 100%;
+  margin: 0;
+}
+
+.sky-map__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) minmax(190px, 230px);
+  gap: clamp(1.2rem, 3vw, 2.2rem);
+  align-items: start;
+  justify-content: center;
+}
+
+.sky-map__stage {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+}
+
+.sky-map__canvas-wrap {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.sky-map__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sky-map__canvas--overlay {
+  pointer-events: none;
+}
+
+.sky-map__status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1rem;
+  color: rgba(245, 245, 245, 0.55);
+}
+
+.sky-map__summary {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(236, 233, 226, 0.24);
+  text-align: left;
+}
+
+.sky-map__summary-kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8f8b83;
+}
+
+.sky-map__stats {
+  margin: 0.55rem 0 0;
+}
+
+.sky-map__stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(236, 233, 226, 0.08);
+}
+
+.sky-map__stat dt {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  color: #8f8b83;
+}
+
+.sky-map__stat dd {
+  margin: 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1.25rem;
+  color: #f5f5f5;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sky-map__stat--coverage dd {
+  color: #d8b26a;
+}
+
+.sky-map__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  color: #9a978f;
+}
+
+.sky-map__legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sky-map__legend b {
+  margin-left: auto;
+  font-weight: 500;
+  color: #b9b9b9;
+  font-variant-numeric: tabular-nums;
+}
+
+.sky-map__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.sky-map__dot--unmatched {
+  background: #333333;
+  opacity: 0.9;
+}
+
+.sky-map__dot--lens {
+  background: #4a4e69;
+  box-shadow: 0 0 8px rgba(74, 78, 105, 0.9);
+}
+
+.sky-map__dot--matched {
+  background: #d4af37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+}
+
+.sky-map__note {
+  margin: 1rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6f6b64;
+}
+
+.sky-map__hint {
+  margin: 1rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7d7d7d;
+  text-align: center;
+}
+
+.sky-map__caption {
+  max-width: 72ch;
+  margin: 1.1rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #8f8b83;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.sky-map__tooltip {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  max-width: 220px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(0, 0, 0, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.sky-map__tooltip-coord {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: #f5f5f5;
+  white-space: nowrap;
+}
+
+.sky-map__tooltip-match {
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  color: #d8b26a;
+}
+
+.sky-map__tooltip-meta {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: #9a978f;
+}
+
+@media (max-width: 900px) {
+  .sky-map__layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .sky-map__stage {
+    max-width: min(100%, 560px);
+  }
+
+  .sky-map__summary {
+    width: min(100%, 520px);
+    margin-top: 0.4rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .sky-map__stage {
+    max-width: 100%;
+  }
+
+  .sky-map__summary {
+    width: 100%;
+  }
+
+  .sky-map__stat dt {
+    font-size: 0.48rem;
+  }
+
+  .sky-map__stat dd {
+    font-size: 1.08rem;
+  }
+
+  .sky-map__legend {
+    font-size: 0.58rem;
+  }
+
+  .sky-map__caption {
+    font-size: 0.96rem;
+    line-height: 1.6;
+  }
+
+  .sky-map__tooltip {
+    max-width: 190px;
+  }
+}

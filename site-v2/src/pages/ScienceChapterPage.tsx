@@ -5,6 +5,7 @@ import { scienceChapters } from '../content'
 import { LensScatter3D } from '../components/LensScatter3D'
 import { LensedVsUnlensedChart } from '../components/LensedVsUnlensedChart'
 import { MagnitudeChart } from '../components/MagnitudeChart'
+import { SkyCoverageMap } from '../components/SkyCoverageMap'
 import { FrbChapterPage } from './FrbChapterPage'
 import { GwChapterPage } from './GwChapterPage'
 
@@ -106,7 +107,23 @@ export function ScienceChapterPage() {
           </div>
         </section>
 
-        {/* 03 — the simulation: 64,309 events, then the conclusion */}
+        {/* 03 — the coverage: 10,000 mock SNe against the Lenscat footprint */}
+        <section className="sn-section sn-coverage">
+          <div className="sn-copy">
+            <p className="section-kicker">The coverage</p>
+            <h2 className="sn-title">A Census of the Lensed Sky</h2>
+            <p className="sn-body">
+              We generated 10,000 mock supernovae and cross-matched them against
+              the 13,941 Lenscat lenses with a 5.7° radius. 6,843 fall inside a
+              lens footprint — 68.43% of the mock sky.
+            </p>
+          </div>
+          <div className="sn-chart sn-chart--coverage">
+            <SkyCoverageMap />
+          </div>
+        </section>
+
+        {/* 04 — the simulation: 64,309 events, then the conclusion */}
         <section className="sn-section sn-simulation">
           <div className="sn-copy">
             <p className="section-kicker">The simulation</p>
