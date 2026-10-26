@@ -2107,6 +2107,8 @@ a {
 
 .mchart__inner {
   width: 100%;
+  /* keep the 17 / 28 scale labels off the scroller's clipping edge */
+  padding-bottom: 0.75rem;
 }
 
 .mchart__scroller {
@@ -2468,8 +2470,8 @@ a {
 
 .lens-scatter__hud {
   position: absolute;
-  right: clamp(0.8rem, 1.6vw, 1.4rem);
-  bottom: clamp(0.8rem, 1.6vw, 1.4rem);
+  right: 0;
+  bottom: 0;
   z-index: 3;
   pointer-events: none;
 }
@@ -2478,9 +2480,11 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid rgba(236, 233, 226, 0.14);
-  background: rgba(6, 8, 12, 0.74);
+  padding: 0.8rem 0.95rem;
+  border: 0;
+  border-top: 1px solid rgba(236, 233, 226, 0.14);
+  border-left: 1px solid rgba(236, 233, 226, 0.14);
+  background: rgba(6, 8, 12, 0.94);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   font-family: var(--mono);
@@ -2757,11 +2761,6 @@ a {
 
   .lens-scatter__canvas {
     height: 390px;
-  }
-
-  .lens-scatter__hud {
-    right: 0.6rem;
-    bottom: 0.6rem;
   }
 
   .lens-scatter__legend {
