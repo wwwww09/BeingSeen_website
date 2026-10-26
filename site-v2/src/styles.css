@@ -2554,6 +2554,12 @@ a {
   margin-left: auto;
 }
 
+.sn-page .eyebrow {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+}
+
 .sn-hero {
   display: flex;
   flex-direction: column;
@@ -2565,6 +2571,7 @@ a {
 .sn-hero .page-title {
   max-width: 16ch;
   margin: 0 auto;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: clamp(2.8rem, 6vw, 5.6rem);
   line-height: 1.02;
   text-wrap: balance;
@@ -2577,6 +2584,10 @@ a {
 .sn-hero .page-lede {
   max-width: 40rem;
   margin: 0 auto;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.08rem, 1.35vw, 1.28rem);
+  line-height: 1.75;
+  color: rgba(236, 233, 226, 0.78);
   text-align: center;
 }
 
@@ -2599,6 +2610,9 @@ a {
 
 .sn-copy .section-kicker {
   margin-bottom: clamp(0.8rem, 2vh, 1.2rem);
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: 0.24em;
   text-align: center;
 }
 
@@ -2617,10 +2631,10 @@ a {
 .sn-body {
   max-width: 44rem;
   margin: 0 auto;
-  font-family: var(--sans);
-  font-size: clamp(1rem, 1.2vw, 1.12rem);
-  line-height: 1.85;
-  color: rgba(236, 233, 226, 0.74);
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.08rem, 1.3vw, 1.22rem);
+  line-height: 1.8;
+  color: rgba(236, 233, 226, 0.78);
   text-wrap: pretty;
 }
 
@@ -2652,12 +2666,12 @@ a {
   margin: clamp(2.6rem, 5vh, 4rem) auto 0;
 }
 
-.sn-conclusion {
-  min-height: 80svh;
-}
-
-.sn-conclusion .sn-copy {
+.sn-conclusion-inline {
   width: min(100%, 920px);
+  margin: clamp(4rem, 8vh, 7rem) auto 0;
+  padding-top: clamp(3rem, 6vh, 5rem);
+  border-top: 1px solid rgba(236, 233, 226, 0.12);
+  text-align: center;
 }
 
 .sn-next {
@@ -2706,11 +2720,6 @@ a {
   .sn-section {
     min-height: 0;
     padding: clamp(4.5rem, 10vh, 7rem) 0;
-  }
-
-  .sn-conclusion {
-    min-height: 0;
-    padding-bottom: clamp(5rem, 12vh, 8rem);
   }
 
   .sn-title {

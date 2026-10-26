@@ -44,7 +44,7 @@ export const scienceChapters: ScienceChapter[] = [
     title: 'Can Lensing Make Distant Supernovae Visible?',
     summary:
       'A lens can make a faint explosion visible. The question is how many, and at what cost to the count.',
-    body: 'Without gravitational lensing, none of the five known lensed supernovae in this sample could be detected by ZTF. With lensing, two became visible. This is the power of the universe’s natural telescope.',
+    body: 'Distant supernovae are our standard candles. But without a lens, they are too faint to see. If we miss them, our map of the cosmos is incomplete.',
     chartLabel: 'Brightness with and without lensing',
     chartNote:
       'The five known lensed supernovae, each as a pair: its brightness without a lens and with one. The chapter’s core number is the count that survives the detection limit.',

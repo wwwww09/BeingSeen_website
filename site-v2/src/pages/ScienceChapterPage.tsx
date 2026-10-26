@@ -62,17 +62,16 @@ export function ScienceChapterPage() {
           <p className="page-lede">{chapter.body}</p>
         </header>
 
-        {/* 01 — the mechanism: the existing copy and the five-supernova slider */}
+        {/* 01 — the lens: five supernovae and the detection-limit slider */}
         <section className="sn-section sn-mechanism" id="magnification">
           <div className="sn-copy">
             <p className="section-kicker">The mechanism</p>
-            <h2 className="sn-title">The Magnification Effect</h2>
+            <h2 className="sn-title">The Cosmic Magnifying Glass</h2>
             <p className="sn-body">
-              The lens does not make the explosion brighter. It makes the
-              explosion appear brighter — and that is enough to cross a
-              telescope’s detection limit. Each line runs from the magnitude a
-              supernova would have without a lens to the magnitude the lens
-              actually gives it.
+              We sampled 5 known lensed supernovae. Lensing doesn’t make the
+              explosion brighter; it bends and focuses the light. Drag the
+              slider to see how lensing pulls faint signals (grey) above the ZTF
+              detection limit (gold).
             </p>
           </div>
           <div className="sn-chart sn-chart--mechanism">
@@ -80,29 +79,15 @@ export function ScienceChapterPage() {
           </div>
         </section>
 
-        {/* 02 — the simulation: 64,309 systems, almost all below the limit */}
-        <section className="sn-section sn-simulation">
-          <div className="sn-copy">
-            <p className="section-kicker">The simulation</p>
-            <h2 className="sn-title">Theoretical Haystack</h2>
-            <p className="sn-body">
-              We simulated 64,309 lensed systems. Most are too faint for ZTF.
-            </p>
-          </div>
-          <div className="sn-chart sn-chart--histogram">
-            <SimulatedHistogram />
-          </div>
-        </section>
-
-        {/* 03 — the reality: the 3D map stands on its own, no fixed backdrop */}
+        {/* 02 — the search: the 3D catalogue map stands on its own */}
         <section className="sn-section sn-reality">
           <div className="sn-copy">
             <p className="section-kicker">The reality</p>
-            <h2 className="sn-title">Finding a Needle in a Cosmic Haystack</h2>
+            <h2 className="sn-title">A Needle in a Cosmic Haystack</h2>
             <p className="sn-body">
-              We mapped 13,941 known lenses (blue) against the 5 real sampled
-              supernovae (gold). Out of this vast cosmic map, only 5 align
-              perfectly.
+              But how rare is this alignment? We mapped 13,941 known lenses
+              across the sky. Only 5 lensed supernovae have been caught. Most
+              alignments are too faint to detect.
             </p>
           </div>
           <div className="sn-map">
@@ -110,13 +95,23 @@ export function ScienceChapterPage() {
           </div>
         </section>
 
-        {/* 04 — the conclusion */}
-        <section className="sn-section sn-conclusion">
+        {/* 03 — the simulation: 64,309 events, then the conclusion */}
+        <section className="sn-section sn-simulation">
           <div className="sn-copy">
-            <p className="section-kicker">The conclusion</p>
+            <p className="section-kicker">The simulation</p>
+            <h2 className="sn-title">Simulating the Invisible</h2>
+            <p className="sn-body">
+              We ran Monte Carlo simulations for 64,309 lensing events. The vast
+              majority sit below the ZTF detection limit (m = 20.5).
+            </p>
+          </div>
+          <div className="sn-chart sn-chart--histogram">
+            <SimulatedHistogram />
+          </div>
+          <div className="sn-conclusion-inline">
             <blockquote className="sn-quote">
-              “Gravitational lensing boosts supernova detection rates by at least
-              an order of magnitude.”
+              “Despite the rarity, gravitational lensing boosts our supernova
+              detection rates by at least an order of magnitude.”
             </blockquote>
           </div>
         </section>
