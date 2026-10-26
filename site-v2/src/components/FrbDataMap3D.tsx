@@ -117,7 +117,7 @@ function buildCloud(data: FrbData): CloudData {
     colors[index * 3 + 2] = color[2]
 
     // Fine dust, still SNR-ranked: roughly 1.2 px to 3.8 px.
-    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 8 + 4.8
+    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 12 + 6
   })
 
   const byName = new Map(rows.map((row) => [row.frb_name, row]))
@@ -185,8 +185,15 @@ const POINT_FRAGMENT = `
     float distanceToCenter = length(gl_PointCoord - vec2(0.5));
     if (distanceToCenter > 0.5) discard;
 
-    float alpha = smoothstep(0.5, 0.05, distanceToCenter);
-    gl_FragColor = vec4(vColor, alpha * uOpacity);
+    // Sharp edge, small bright core: a pinprick, not a soft bloom.
+    float alpha = smoothstep(0.5, 0.34, distanceToCenter);
+    vec3 color = mix(
+      vColor,
+      vec3(1.0),
+      smoothstep(0.2, 0.0, distanceToCenter) * 0.35
+    );
+
+    gl_FragColor = vec4(color * (0.9 + alpha * 0.35), alpha * uOpacity);
   }
 `
 
@@ -253,10 +260,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <pointsMaterial
           map={dot}
           color="#05070a"
-          size={24 * dpr}
+          size={32 * dpr}
           sizeAttenuation={false}
           transparent
-          opacity={0.7}
+          opacity={0.72}
           depthWrite={false}
           depthTest={false}
         />
@@ -271,10 +278,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <pointsMaterial
           map={dot}
           color="#ffd166"
-          size={40 * dpr}
+          size={64 * dpr}
           sizeAttenuation={false}
           transparent
-          opacity={0.2}
+          opacity={0.22}
           depthWrite={false}
           depthTest={false}
         />
@@ -289,7 +296,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <pointsMaterial
           map={dot}
           color="#ffd166"
-          size={16 * dpr}
+          size={26 * dpr}
           sizeAttenuation={false}
           transparent
           opacity={1}
@@ -393,16 +400,9 @@ export function FrbDataMap3D() {
           <ResponsiveCamera />
           <FrbPoints
             cloud={cloud}
-            opacity={0.2}
-            sizeScale={1.2}
-            blending={THREE.AdditiveBlending}
-            renderOrder={1}
-          />
-          <FrbPoints
-            cloud={cloud}
-            opacity={0.5}
+            opacity={0.82}
             sizeScale={1}
-            blending={THREE.NormalBlending}
+            blending={THREE.AdditiveBlending}
             renderOrder={2}
           />
           <GoldCandidates cloud={cloud} />

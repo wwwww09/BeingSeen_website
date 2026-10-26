@@ -149,14 +149,13 @@ function ringPoints(radius: number, segments = 128): [number, number, number][] 
   })
 }
 
-const LENS_RINGS = [1.28, 1.56, 1.86].map((radius, index) => ({
+const LENS_RINGS = [1.1, 1.35, 1.6, 1.85].map((radius, index) => ({
   radius,
   points: ringPoints(radius),
-  opacity: [0.22, 0.14, 0.09][index],
+  opacity: [0.22, 0.16, 0.11, 0.07][index],
 }))
 
 function Galaxy({ animate }: { animate: boolean }) {
-  const sprite = useMemo(() => getDotTexture(), [])
   const field = useRef<THREE.Group>(null)
 
   useFrame(({ clock }) => {
@@ -167,34 +166,19 @@ function Galaxy({ animate }: { animate: boolean }) {
   })
 
   return (
-    <group>
-      {/* No filled core: only a faint bubble rim and a diffuse aura. */}
-      <GlowShell radius={1.0} color="#d8a85a" intensity={0.06} />
-      <sprite scale={[4.8, 4.8, 1]}>
-        <spriteMaterial
-          map={sprite}
-          color="#d8a85a"
+    <group ref={field}>
+      {LENS_RINGS.map((ring) => (
+        <Line
+          key={ring.radius}
+          points={ring.points}
+          color="#c9963f"
+          lineWidth={0.65}
           transparent
-          opacity={0.07}
+          opacity={ring.opacity * 1.5}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
-      </sprite>
-
-      <group ref={field}>
-        {LENS_RINGS.map((ring) => (
-          <Line
-            key={ring.radius}
-            points={ring.points}
-            color="#c9963f"
-            lineWidth={0.6}
-            transparent
-            opacity={ring.opacity * 1.5}
-            depthWrite={false}
-            blending={THREE.AdditiveBlending}
-          />
-        ))}
-      </group>
+      ))}
     </group>
   )
 }
