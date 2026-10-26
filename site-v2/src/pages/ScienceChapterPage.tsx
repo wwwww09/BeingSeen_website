@@ -5,6 +5,7 @@ import { scienceChapters } from '../content'
 import { LensScatter3D } from '../components/LensScatter3D'
 import { LensedVsUnlensedChart } from '../components/LensedVsUnlensedChart'
 import { MagnitudeChart } from '../components/MagnitudeChart'
+import { FrbChapterPage } from './FrbChapterPage'
 
 export function ScienceChapterPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -42,6 +43,10 @@ export function ScienceChapterPage() {
   const next = scienceChapters[index + 1]
   const headSide = chapter.index === '02' ? 'right' : 'left'
   const dataSide = headSide === 'left' ? 'right' : 'left'
+
+  if (chapter.slug === 'fast-radio-bursts') {
+    return <FrbChapterPage chapter={chapter} reduced={reduced} />
+  }
 
   if (chapter.slug === 'supernovae') {
     return (

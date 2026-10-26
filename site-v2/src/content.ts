@@ -53,10 +53,10 @@ export const scienceChapters: ScienceChapter[] = [
     slug: 'fast-radio-bursts',
     index: '02',
     kicker: 'Fast radio bursts',
-    title: 'Can Lensing ‘Copy’ FRB Signals?',
+    title: 'Seeking the Signals Copied by the Universe.',
     summary:
       'A lens can copy a burst in time. The question is whether any two arrivals in the catalogue are copies.',
-    body: 'When an FRB signal passes near a massive galaxy, its path is bent. Some light takes a longer route, arriving later. We searched for such ‘time-delayed’ pairs in the CHIME/FRB Catalogue.',
+    body: 'If a Fast Radio Burst is lensed by a massive galaxy, we see two identical signals arriving at different times.',
     chartLabel: 'Time-delayed pairs in the CHIME/FRB catalogue',
     chartNote:
       'The search compares sky positions and dispersion measures. The chart and the result are the next pass.',

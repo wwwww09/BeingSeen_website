@@ -21,7 +21,9 @@ const Stage = lazy(() =>
 export function SiteShell() {
   const trackRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
-  const hideStage = location.pathname === '/science/supernovae'
+  const hideStage =
+    location.pathname === '/science/supernovae' ||
+    location.pathname === '/science/fast-radio-bursts'
   const [lensKeys, setLensKeys] = useState<LensKey[]>([
     { p: 0, x: LENS_X },
     { p: 1, x: LENS_X },
