@@ -2844,7 +2844,7 @@ a {
 .sn-coda {
   width: min(100%, 1000px);
   margin: 0 auto;
-  padding: clamp(6rem, 12vh, 10rem) 0 clamp(4rem, 8vh, 6rem);
+  padding: clamp(8rem, 16vh, 13rem) 0 clamp(7rem, 14vh, 11rem);
   text-align: center;
 }
 
@@ -2898,8 +2898,8 @@ a {
 
 .sn-philosophy {
   max-width: 58rem;
-  margin: clamp(4rem, 8vh, 7rem) auto 0;
-  padding-top: clamp(3rem, 6vh, 4.5rem);
+  margin: clamp(6rem, 10vh, 9rem) auto 0;
+  padding-top: clamp(4rem, 8vh, 6rem);
   border-top: 1px solid rgba(236, 233, 226, 0.12);
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: clamp(1.5rem, 2.6vw, 2.3rem);
@@ -2911,7 +2911,7 @@ a {
 }
 
 .sn-footer {
-  margin-top: clamp(4rem, 8vh, 7rem);
+  margin-top: clamp(2rem, 4vh, 3rem);
   padding: 2.2rem 0 0;
   border-top: 1px solid rgba(236, 233, 226, 0.12);
   font-family: var(--mono);

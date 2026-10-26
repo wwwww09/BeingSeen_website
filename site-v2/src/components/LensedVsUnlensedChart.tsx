@@ -11,7 +11,7 @@ import data from '../data/lensed-vs-unlensed.json'
 
 const W = 1000
 const H = 400
-const PAD = { left: 72, right: 30, top: 46, bottom: 64 }
+const PAD = { left: 72, right: 30, top: 58, bottom: 64 }
 const BASE = H - PAD.bottom
 const X_MIN = 19
 const X_MAX = 36
@@ -43,9 +43,9 @@ const stepArea = (edges: number[], counts: number[]) =>
 
 // The zoom panel isolates m = 19...22, where the detections actually happen.
 const IX = 80
-const IY = 44
+const IY = 34
 const IW = 304
-const IH = 152
+const IH = 136
 const I_PAD = 14
 const TAIL_MIN = 19
 const TAIL_MAX = 22
@@ -163,7 +163,7 @@ export function LensedVsUnlensedChart() {
           <text
             className="lensed-chart__limit"
             x={xOf(LIMIT) + 10}
-            y={PAD.top - 22}
+            y={PAD.top - 34}
           >
             ZTF limit · m = {LIMIT}
           </text>
@@ -173,23 +173,23 @@ export function LensedVsUnlensedChart() {
             <line
               x1={W - PAD.right - 220}
               x2={W - PAD.right - 198}
-              y1={22}
-              y2={22}
+              y1={40}
+              y2={40}
               stroke={unlensedColor}
               strokeWidth={2}
             />
-            <text x={W - PAD.right - 190} y={27}>
+            <text x={W - PAD.right - 190} y={45}>
               unlensed
             </text>
             <line
               x1={W - PAD.right - 90}
               x2={W - PAD.right - 68}
-              y1={22}
-              y2={22}
+              y1={40}
+              y2={40}
               stroke={lensedColor}
               strokeWidth={2}
             />
-            <text x={W - PAD.right - 60} y={27}>
+            <text x={W - PAD.right - 60} y={45}>
               lensed
             </text>
           </g>
