@@ -49,7 +49,7 @@ export function FrbChapterPage({
         <div
           className="frb-scene"
           role="img"
-          aria-label="Schematic of a fast radio burst lensed by a massive galaxy. A yellow source on the right sends a straight blue dashed path and a curved red delayed path to Earth on the left. The two signals arrive 24.9 days apart."
+          aria-label="Schematic of a fast radio burst lensed by a massive galaxy. A yellow source on the right sends a faint blue direct path and a curved golden delayed path to Earth on the left. The two signals arrive 24.9 days apart."
         >
           <FrbMechanism3D animate={!reduced} />
         </div>
