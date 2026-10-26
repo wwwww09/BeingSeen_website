@@ -42,29 +42,25 @@ interface CloudData {
 const SPHERE_RADIUS = 10
 
 /*
- * Viridis stops, sampled from the standard d3/Viridis ramp. Keeping the ramp
- * in JS means the WebGL shader and the HTML legend share the exact same colors.
+ * A deliberately dim DM ramp: dark purple -> deep blue -> muted gold.
+ * The HTML legend uses the same stops, so the bar and the particles agree.
  */
-const VIRIDIS: [number, number, number][] = [
-  [0.267, 0.005, 0.329], // #440154
-  [0.283, 0.141, 0.458], // #482878
-  [0.254, 0.265, 0.53], // #3e4989
-  [0.207, 0.372, 0.553], // #31688e
-  [0.164, 0.471, 0.558], // #26828e
-  [0.128, 0.567, 0.551], // #1f9e89
-  [0.208, 0.718, 0.472], // #35b779
-  [0.431, 0.808, 0.345], // #6ece58
-  [0.71, 0.871, 0.169], // #b5de2b
-  [0.993, 0.906, 0.144], // #fde725
+const DM_RAMP: [number, number, number][] = [
+  [0.12, 0.05, 0.18], // #1f0d2e
+  [0.17, 0.08, 0.29], // #2b144a
+  [0.12, 0.2, 0.4], // #1f3366
+  [0.27, 0.38, 0.56], // #45608f
+  [0.48, 0.4, 0.26], // #7a6642
+  [0.78, 0.63, 0.38], // #c7a161
 ]
 
-function viridis(value: number): [number, number, number] {
+function dmColor(value: number): [number, number, number] {
   const t = Math.min(1, Math.max(0, value))
-  const scaled = t * (VIRIDIS.length - 1)
-  const index = Math.min(VIRIDIS.length - 2, Math.floor(scaled))
+  const scaled = t * (DM_RAMP.length - 1)
+  const index = Math.min(DM_RAMP.length - 2, Math.floor(scaled))
   const fraction = scaled - index
-  const low = VIRIDIS[index]
-  const high = VIRIDIS[index + 1]
+  const low = DM_RAMP[index]
+  const high = DM_RAMP[index + 1]
 
   return [
     low[0] + (high[0] - low[0]) * fraction,
@@ -91,6 +87,11 @@ function toSphere(
   ]
 }
 
+function zJitter(index: number) {
+  const value = Math.sin(index * 12.9898) * 43758.5453
+  return (value - Math.floor(value) - 0.5) * 0.09
+}
+
 function buildCloud(data: FrbData): CloudData {
   const rows = data.all_frbs
   const dmMin = Math.min(...rows.map((row) => row.dm))
@@ -103,18 +104,18 @@ function buildCloud(data: FrbData): CloudData {
 
   rows.forEach((row, index) => {
     const [x, y, z] = toSphere(row, dmMax)
-    const color = viridis(row.dm / dmMax)
+    const color = dmColor(row.dm / dmMax)
 
     positions[index * 3] = x
     positions[index * 3 + 1] = y
-    positions[index * 3 + 2] = z
+    positions[index * 3 + 2] = z + zJitter(index)
 
     colors[index * 3] = color[0]
     colors[index * 3 + 1] = color[1]
     colors[index * 3 + 2] = color[2]
 
-    // The requested SNR size mapping: 3 px for the faintest, 13 px at max.
-    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 10 + 3
+    // Fine dust, still SNR-ranked: roughly 1.2 px to 3.8 px.
+    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 3.8 + 1.8
   })
 
   const byName = new Map(rows.map((row) => [row.frb_name, row]))
@@ -164,12 +165,11 @@ const POINT_VERTEX = `
   attribute vec3 aColor;
   varying vec3 vColor;
   uniform float uDpr;
-  uniform float uSizeScale;
 
   void main() {
     vColor = aColor;
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * uSizeScale * uDpr;
+    gl_PointSize = aSize * uDpr;
     gl_Position = projectionMatrix * mvPosition;
   }
 `
@@ -182,30 +182,16 @@ const POINT_FRAGMENT = `
     float distanceToCenter = length(gl_PointCoord - vec2(0.5));
     if (distanceToCenter > 0.5) discard;
 
-    float core = smoothstep(0.5, 0.0, distanceToCenter);
-    float alpha = pow(core, 1.6);
-    vec3 color = vColor * (0.85 + core * 0.55);
-    color = mix(color, vec3(1.0), smoothstep(0.78, 1.0, core) * 0.28);
-
-    gl_FragColor = vec4(color, alpha * uOpacity);
+    float alpha = smoothstep(0.5, 0.05, distanceToCenter);
+    gl_FragColor = vec4(vColor, alpha * uOpacity);
   }
 `
 
-function FrbPoints({
-  cloud,
-  opacity,
-  sizeScale,
-  renderOrder,
-}: {
-  cloud: CloudData
-  opacity: number
-  sizeScale: number
-  renderOrder: number
-}) {
+function FrbPoints({ cloud }: { cloud: CloudData }) {
   const dpr = useThree((state) => state.viewport.dpr)
 
   return (
-    <points frustumCulled={false} renderOrder={renderOrder}>
+    <points frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
@@ -220,15 +206,14 @@ function FrbPoints({
       <shaderMaterial
         uniforms={{
           uDpr: { value: dpr },
-          uOpacity: { value: opacity },
-          uSizeScale: { value: sizeScale },
+          uOpacity: { value: 0.72 },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
         transparent
         depthWrite={false}
         depthTest={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
       />
     </points>
   )
@@ -242,7 +227,6 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
 
   return (
     <>
-      {/* A soft dark backing separates the gold candidates from the dense core. */}
       <points frustumCulled={false} renderOrder={5}>
         <bufferGeometry>
           <bufferAttribute
@@ -253,10 +237,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <pointsMaterial
           map={dot}
           color="#05070a"
-          size={36 * dpr}
+          size={16 * dpr}
           sizeAttenuation={false}
           transparent
-          opacity={0.9}
+          opacity={0.7}
           depthWrite={false}
           depthTest={false}
         />
@@ -270,14 +254,13 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         </bufferGeometry>
         <pointsMaterial
           map={dot}
-          color="#ffcf8b"
-          size={52 * dpr}
+          color="#ad8c54"
+          size={24 * dpr}
           sizeAttenuation={false}
           transparent
           opacity={0.14}
           depthWrite={false}
           depthTest={false}
-          blending={THREE.AdditiveBlending}
         />
       </points>
       <points frustumCulled={false} renderOrder={7}>
@@ -289,11 +272,11 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         </bufferGeometry>
         <pointsMaterial
           map={dot}
-          color="#ffcf8b"
-          size={22 * dpr}
+          color="#c9a45e"
+          size={8 * dpr}
           sizeAttenuation={false}
           transparent
-          opacity={1}
+          opacity={0.95}
           depthWrite={false}
           depthTest={false}
           blending={THREE.NormalBlending}
@@ -304,10 +287,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <Line
           key={index}
           points={points}
-          color="#ffcf8b"
-          lineWidth={0.7}
+          color="#ad8c54"
+          lineWidth={0.6}
           transparent
-          opacity={0.2}
+          opacity={0.18}
           depthWrite={false}
           depthTest={false}
         />
@@ -392,18 +375,7 @@ export function FrbDataMap3D() {
           style={{ background: 'transparent' }}
         >
           <ResponsiveCamera />
-          <FrbPoints
-            cloud={cloud}
-            opacity={0.18}
-            sizeScale={2.6}
-            renderOrder={1}
-          />
-          <FrbPoints
-            cloud={cloud}
-            opacity={1}
-            sizeScale={1}
-            renderOrder={2}
-          />
+          <FrbPoints cloud={cloud} />
           <GoldCandidates cloud={cloud} />
           <OrbitControls
             makeDefault

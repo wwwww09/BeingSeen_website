@@ -3275,12 +3275,12 @@ a {
 }
 
 .frb-data-title__accent {
-  color: #ffcf8b;
+  color: #d8b26a;
 }
 
 .frb-map {
   width: min(100%, 1100px);
-  margin: clamp(1.5rem, 4vh, 2.5rem) auto 0;
+  margin: clamp(2.4rem, 5.5vh, 3.6rem) auto 0;
 }
 
 .frb-map__canvas {
@@ -3350,22 +3350,18 @@ a {
 
 .frb-map__dm-bar {
   width: clamp(120px, 16vw, 200px);
-  height: 3px;
+  height: 4px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #440154 0%,
-    #482878 11%,
-    #3e4989 22%,
-    #31688e 33%,
-    #26828e 44%,
-    #1f9e89 55%,
-    #35b779 66%,
-    #6ece58 77%,
-    #b5de2b 88%,
-    #fde725 100%
+    #1f0d2e 0%,
+    #2b144a 20%,
+    #1f3366 40%,
+    #45608f 60%,
+    #7a6642 80%,
+    #c7a161 100%
   );
-  box-shadow: 0 0 12px rgba(53, 183, 121, 0.16);
+  box-shadow: 0 0 10px rgba(173, 140, 84, 0.12);
 }
 
 .frb-map__dm-range {
@@ -3392,11 +3388,11 @@ a {
 
 .frb-map__gold-dot {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #ffcf8b;
-  box-shadow: 0 0 10px rgba(255, 207, 139, 0.75);
+  background: #c9a45e;
+  box-shadow: 0 0 7px rgba(201, 164, 94, 0.45);
 }
 
 .frb-map__axes {
@@ -3507,7 +3503,7 @@ a {
   }
 
   .frb-map {
-    margin-top: 1.4rem;
+    margin-top: 2rem;
   }
 
   .frb-map__canvas {
