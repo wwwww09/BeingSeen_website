@@ -3366,14 +3366,14 @@ a {
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #291242 0%,
-    #381a5c 20%,
-    #1a336b 40%,
-    #406699 60%,
-    #8c6e3b 80%,
-    #f5c76b 100%
+    #734dc7 0%,
+    #876bef 20%,
+    #4891ed 40%,
+    #73bffa 60%,
+    #ebb861 80%,
+    #ffd680 100%
   );
-  box-shadow: 0 0 10px rgba(173, 140, 84, 0.12);
+  box-shadow: 0 0 10px rgba(173, 140, 84, 0.18);
 }
 
 .frb-map__dm-range {
@@ -3439,8 +3439,8 @@ a {
   width: min(100%, 1000px);
   margin: clamp(2.2rem, 5vh, 3.2rem) auto 0;
   padding: 1.2rem 0 1rem;
-  border-top: 1px solid rgba(236, 233, 226, 0.1);
-  border-bottom: 1px solid rgba(236, 233, 226, 0.1);
+  background: transparent;
+  border: 0;
 }
 
 .frb-histogram__header {
@@ -3449,11 +3449,11 @@ a {
   justify-content: space-between;
   gap: 0.35rem 1rem;
   padding-left: 2.6rem;
-  font-family: var(--mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
+  font-family: var(--sans);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a3a3a3;
+  color: #8d8d8d;
 }
 
 .frb-histogram__body {
@@ -3473,9 +3473,10 @@ a {
   position: absolute;
   right: 0;
   transform: translateY(50%);
-  font-family: var(--mono);
-  font-size: 0.56rem;
-  color: #a3a3a3;
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: #7d7d7d;
 }
 
 .frb-histogram__plot {
@@ -3483,15 +3484,15 @@ a {
   flex: 1;
   min-width: 0;
   height: clamp(230px, 30vh, 320px);
-  border-left: 1px solid rgba(245, 245, 245, 0.14);
-  border-bottom: 1px solid rgba(245, 245, 245, 0.14);
+  background: transparent;
+  border: 0;
 }
 
 .frb-histogram__gridline {
   position: absolute;
   right: 0;
   left: 0;
-  border-top: 1px solid rgba(245, 245, 245, 0.07);
+  border-top: 1px solid rgba(245, 245, 245, 0.045);
 }
 
 .frb-histogram__bars {
@@ -3507,9 +3508,10 @@ a {
 .frb-histogram__bar {
   flex: 1;
   min-width: 0;
-  background: #2a4668;
-  border-top: 1px solid rgba(143, 196, 255, 0.28);
-  opacity: 0.88;
+  background: #333;
+  border: 0;
+  border-radius: 1px 1px 0 0;
+  opacity: 1;
 }
 
 .frb-histogram__candidate-line {
@@ -3517,8 +3519,26 @@ a {
   top: 0;
   bottom: 0;
   z-index: 3;
-  border-left: 1px dashed #ffd166;
-  filter: drop-shadow(0 0 4px rgba(255, 209, 102, 0.5));
+  width: 2px;
+  border-left: 0;
+}
+
+.frb-histogram__candidate-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background-image: linear-gradient(
+    to bottom,
+    #ffd166 0 55%,
+    transparent 55% 100%
+  );
+  background-size: 2px 9px;
+  background-repeat: repeat-y;
+  filter: drop-shadow(0 0 3px rgba(255, 209, 102, 0.95))
+    drop-shadow(0 0 10px rgba(255, 176, 32, 0.65));
 }
 
 .frb-histogram__candidate-line em {
@@ -3526,11 +3546,13 @@ a {
   top: 0.45rem;
   left: 0;
   transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 0.54rem;
+  font-family: var(--sans);
+  font-size: 0.62rem;
   font-style: normal;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   color: #ffd166;
+  text-shadow: 0 0 6px rgba(255, 209, 102, 0.85),
+    0 0 14px rgba(255, 176, 32, 0.4);
   white-space: nowrap;
 }
 
@@ -3539,25 +3561,26 @@ a {
   top: 0;
   bottom: 0;
   z-index: 2;
-  border-left: 1px dashed rgba(163, 163, 163, 0.55);
+  border-left: 1px dashed rgba(163, 163, 163, 0.38);
 }
 
 .frb-histogram__x-axis {
   display: flex;
   justify-content: space-between;
   margin: 0.55rem 0 0 2.6rem;
-  font-family: var(--mono);
-  font-size: 0.56rem;
-  color: #a3a3a3;
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: #7d7d7d;
 }
 
 .frb-histogram__x-label {
   margin: 0.4rem 0 0 2.6rem;
-  font-family: var(--mono);
-  font-size: 0.58rem;
+  font-family: var(--sans);
+  font-size: 0.64rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #a3a3a3;
+  color: #8d8d8d;
 }
 
 .frb-histogram__legend {
@@ -3568,10 +3591,10 @@ a {
   margin: 1rem 0 0;
   padding: 0;
   list-style: none;
-  font-family: var(--mono);
-  font-size: 0.58rem;
+  font-family: var(--sans);
+  font-size: 0.62rem;
   letter-spacing: 0.04em;
-  color: #a3a3a3;
+  color: #8d8d8d;
 }
 
 .frb-histogram__legend li {
@@ -3585,10 +3608,12 @@ a {
   width: 24px;
   height: 0;
   border-top: 1px dashed #ffd166;
+  filter: drop-shadow(0 0 4px rgba(255, 209, 102, 0.8));
 }
 
 .frb-histogram__key--median {
   border-color: rgba(163, 163, 163, 0.6);
+  filter: none;
 }
 
 .frb-cards {
@@ -3674,17 +3699,6 @@ a {
   color: #f5f5f5;
   text-align: center;
   text-wrap: balance;
-  quotes: '“' '”';
-}
-
-.frb-conclusion::before {
-  content: open-quote;
-  color: #d8b26a;
-}
-
-.frb-conclusion::after {
-  content: close-quote;
-  color: #d8b26a;
 }
 
 .frb-candidate-rate {

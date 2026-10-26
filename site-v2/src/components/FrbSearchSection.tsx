@@ -3,7 +3,7 @@ import { TimeDelayHistogram } from './TimeDelayHistogram'
 const CANDIDATES = [
   {
     index: 'Pair 01',
-    title: 'Pair 1: The Perfect Match',
+    title: 'A Perfect Match',
     frb1: 'FRB20181129A',
     frb2: 'FRB20181224A',
     delay: '24.9 days',
@@ -11,7 +11,7 @@ const CANDIDATES = [
   },
   {
     index: 'Pair 02',
-    title: 'Pair 2: The Slight Discrepancy',
+    title: 'A Slight Discrepancy Between....',
     frb1: 'FRB20190425B',
     frb2: 'FRB20190609B',
     delay: '44.9 days',

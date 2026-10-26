@@ -107,7 +107,7 @@ function Earth({ animate }: { animate: boolean }) {
 
   useFrame(({ clock }) => {
     if (!animate || !halo.current) return
-    const scale = 2.2 + Math.sin(clock.elapsedTime * 1.1) * 0.05
+    const scale = 3.6 + Math.sin(clock.elapsedTime * 1.1) * 0.08
     halo.current.scale.set(scale, scale, 1)
   })
 
@@ -116,20 +116,21 @@ function Earth({ animate }: { animate: boolean }) {
       <mesh>
         <sphereGeometry args={[0.62, 48, 48]} />
         <meshStandardMaterial
-          color="#071f33"
-          emissive="#020a12"
-          emissiveIntensity={0.45}
-          roughness={0.8}
-          metalness={0.05}
+          color="#4aa8ff"
+          emissive="#1e6fe8"
+          emissiveIntensity={2.4}
+          roughness={0.32}
+          metalness={0.08}
         />
       </mesh>
-      <GlowShell radius={0.68} color="#2f6f9f" intensity={0.4} />
-      <sprite ref={halo} scale={[2.2, 2.2, 1]}>
+      <GlowShell radius={0.7} color="#5fb8ff" intensity={1.5} />
+      <GlowShell radius={0.95} color="#2f7fcf" intensity={0.55} />
+      <sprite ref={halo} scale={[3.6, 3.6, 1]}>
         <spriteMaterial
           map={sprite}
-          color="#2f7fbf"
+          color="#3f9fff"
           transparent
-          opacity={0.12}
+          opacity={0.45}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -167,18 +168,37 @@ function Galaxy({ animate }: { animate: boolean }) {
 
   return (
     <group ref={field}>
-      {LENS_RINGS.map((ring) => (
-        <Line
-          key={ring.radius}
-          points={ring.points}
-          color="#c9963f"
-          lineWidth={0.65}
+      {/* The lensing galaxy: a translucent amber sphere, not a flat target. */}
+      <mesh renderOrder={1}>
+        <sphereGeometry args={[1.02, 64, 64]} />
+        <meshStandardMaterial
+          color="#d97706"
+          emissive="#b45309"
+          emissiveIntensity={1.1}
           transparent
-          opacity={ring.opacity * 1.5}
+          opacity={0.3}
+          roughness={0.45}
+          metalness={0.05}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
         />
-      ))}
+      </mesh>
+      <GlowShell radius={1.12} color="#d97706" intensity={0.55} />
+
+      {/* Faint lensing rings, tilted so they read as a halo in depth. */}
+      <group rotation={[0.42, 0.18, 0]}>
+        {LENS_RINGS.map((ring) => (
+          <Line
+            key={ring.radius}
+            points={ring.points}
+            color="#e3a54a"
+            lineWidth={0.8}
+            transparent
+            opacity={ring.opacity * 1.8}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        ))}
+      </group>
     </group>
   )
 }
@@ -258,8 +278,8 @@ function Scene({ animate }: { animate: boolean }) {
     <>
       <ambientLight intensity={0.35} />
       <directionalLight position={[-4, 5, 6]} intensity={1.2} color="#fff3df" />
-      <pointLight position={[-5, 1, 4]} intensity={1.5} color="#3f8fcf" distance={10} />
-      <pointLight position={[0, 0, 4]} intensity={1.2} color="#b8893f" distance={8} />
+      <pointLight position={[-5, 1, 4]} intensity={3.4} color="#4aa8ff" distance={14} />
+      <pointLight position={[0, 0, 4]} intensity={1.8} color="#d97706" distance={10} />
 
       <Stars
         radius={80}

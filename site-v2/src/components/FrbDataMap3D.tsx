@@ -1,6 +1,6 @@
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Line, OrbitControls } from '@react-three/drei'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 interface FrbRow {
@@ -29,6 +29,7 @@ interface CloudData {
   positions: Float32Array
   colors: Float32Array
   sizes: Float32Array
+  phases: Float32Array
   candidatePositions: Float32Array
   pairLines: Vec3[][]
   total: number
@@ -41,16 +42,16 @@ interface CloudData {
 const SPHERE_RADIUS = 10
 
 /*
- * A deliberately dim DM ramp: dark purple -> deep blue -> muted gold.
+ * A bright, star-like DM ramp: violet -> electric blue -> pale gold.
  * The HTML legend uses the same stops, so the bar and the particles agree.
  */
 const DM_RAMP: [number, number, number][] = [
-  [0.16, 0.07, 0.26], // #291242
-  [0.22, 0.1, 0.36], // #381a5c
-  [0.1, 0.2, 0.42], // #1a336b
-  [0.25, 0.4, 0.6], // #406699
-  [0.55, 0.43, 0.23], // #8c6e3b
-  [0.96, 0.78, 0.42], // #f5c76b
+  [0.45, 0.3, 0.78], // #734dc7
+  [0.53, 0.42, 0.92], // #876bef
+  [0.28, 0.57, 0.93], // #4891ed
+  [0.45, 0.75, 0.98], // #73bffa
+  [0.92, 0.72, 0.38], // #ebb861
+  [1.0, 0.84, 0.5], // #ffd680
 ]
 
 function dmColor(value: number): [number, number, number] {
@@ -93,6 +94,11 @@ function radialJitter(index: number) {
   return (value - Math.floor(value) - 0.5) * 0.3
 }
 
+function twinklePhase(index: number) {
+  const value = Math.sin(index * 78.233) * 43758.5453
+  return (value - Math.floor(value)) * Math.PI * 2
+}
+
 function buildCloud(data: FrbData): CloudData {
   const rows = data.all_frbs
   const dmMin = Math.min(...rows.map((row) => row.dm))
@@ -102,6 +108,7 @@ function buildCloud(data: FrbData): CloudData {
   const positions = new Float32Array(rows.length * 3)
   const colors = new Float32Array(rows.length * 3)
   const sizes = new Float32Array(rows.length)
+  const phases = new Float32Array(rows.length)
 
   rows.forEach((row, index) => {
     const [x, y, z] = toSphere(row, dmMax, SPHERE_RADIUS, radialJitter(index))
@@ -115,8 +122,10 @@ function buildCloud(data: FrbData): CloudData {
     colors[index * 3 + 1] = color[1]
     colors[index * 3 + 2] = color[2]
 
-    // Fine dust, still SNR-ranked: roughly 1.2 px to 3.8 px.
-    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 5.2 + 2.2
+    // Crisp, SNR-ranked stars: roughly 4 px to 10 px, with a distinct
+    // twinkle phase per burst so the field shimmers instead of pulsing as one.
+    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 6.4 + 3.8
+    phases[index] = twinklePhase(index)
   })
 
   const byName = new Map(rows.map((row) => [row.frb_name, row]))
@@ -151,6 +160,7 @@ function buildCloud(data: FrbData): CloudData {
     positions,
     colors,
     sizes,
+    phases,
     candidatePositions,
     pairLines,
     total: rows.length,
@@ -163,34 +173,52 @@ function buildCloud(data: FrbData): CloudData {
 
 const POINT_VERTEX = `
   attribute float aSize;
+  attribute float aPhase;
   attribute vec3 aColor;
   varying vec3 vColor;
+  varying float vTwinkle;
   uniform float uDpr;
+  uniform float uTime;
 
   void main() {
     vColor = aColor;
+    float twinkle = 0.72 + 0.28 * sin(uTime * 2.35 + aPhase);
+    vTwinkle = twinkle;
+
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * uDpr;
+    gl_PointSize = aSize * uDpr * (0.84 + 0.16 * twinkle);
     gl_Position = projectionMatrix * mvPosition;
   }
 `
 
 const POINT_FRAGMENT = `
   varying vec3 vColor;
+  varying float vTwinkle;
   uniform float uOpacity;
 
   void main() {
     float distanceToCenter = length(gl_PointCoord - vec2(0.5));
     if (distanceToCenter > 0.5) discard;
 
-    // Hard-edged disc: crisp, with no halo or bloom.
-    float alpha = smoothstep(0.5, 0.43, distanceToCenter);
-    gl_FragColor = vec4(vColor * 1.15, alpha * uOpacity);
+    // A hard edge and a white-hot centre: a sharp star, never blurred dust.
+    float disc = smoothstep(0.5, 0.44, distanceToCenter);
+    float core = smoothstep(0.19, 0.0, distanceToCenter);
+    vec3 body = pow(vColor, vec3(0.72)) * 1.65;
+    vec3 color = mix(body, vec3(1.0), core * 0.72);
+    float brightness = 0.72 + vTwinkle * 0.48;
+
+    gl_FragColor = vec4(color * brightness, disc * uOpacity);
   }
 `
 
 function FrbPoints({ cloud }: { cloud: CloudData }) {
   const dpr = useThree((state) => state.viewport.dpr)
+  const material = useRef<THREE.ShaderMaterial>(null)
+
+  useFrame(({ clock }) => {
+    if (!material.current) return
+    material.current.uniforms.uTime.value = clock.elapsedTime
+  })
 
   return (
     <points frustumCulled={false} renderOrder={2}>
@@ -204,15 +232,22 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
           args={[cloud.colors, 3]}
         />
         <bufferAttribute attach="attributes-aSize" args={[cloud.sizes, 1]} />
+        <bufferAttribute attach="attributes-aPhase" args={[cloud.phases, 1]} />
       </bufferGeometry>
       <shaderMaterial
-        uniforms={{ uDpr: { value: dpr }, uOpacity: { value: 1 } }}
+        ref={material}
+        uniforms={{
+          uDpr: { value: dpr },
+          uTime: { value: 0 },
+          uOpacity: { value: 1 },
+        }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
         transparent
         depthWrite={false}
         depthTest={false}
-        blending={THREE.NormalBlending}
+        blending={THREE.AdditiveBlending}
+        toneMapped={false}
       />
     </points>
   )
@@ -221,33 +256,46 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
 const CANDIDATE_VERTEX = `
   uniform float uDpr;
   uniform float uSize;
+  uniform float uTime;
+  varying float vPulse;
 
   void main() {
+    float pulse = 1.0 + 0.08 * sin(uTime * 2.1 + position.x);
+    vPulse = pulse;
+
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = uSize * uDpr;
+    gl_PointSize = uSize * uDpr * pulse;
     gl_Position = projectionMatrix * mvPosition;
   }
 `
 
 const CANDIDATE_FRAGMENT = `
   uniform vec3 uColor;
+  varying float vPulse;
 
   void main() {
-    float distanceToCenter = length(gl_PointCoord - vec2(0.5));
-    if (distanceToCenter > 0.5) discard;
+    float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
+    if (distanceToCenter > 1.0) discard;
 
-    float core = smoothstep(0.16, 0.08, distanceToCenter);
-    float ring =
-      smoothstep(0.42, 0.36, distanceToCenter) *
-      (1.0 - smoothstep(0.48, 0.44, distanceToCenter));
-    float alpha = max(core, ring * 0.8);
+    // Wide gold aura around a pale-gold core so the four candidates read as
+    // beacons against the 547 ordinary stars.
+    float glow = pow(max(0.0, 1.0 - distanceToCenter), 2.4) * 0.62;
+    float core = smoothstep(0.24, 0.0, distanceToCenter);
+    vec3 color = mix(uColor, vec3(1.0, 0.95, 0.7), core * 0.6);
+    float alpha = clamp(glow + core, 0.0, 1.0) * vPulse;
 
-    gl_FragColor = vec4(uColor, alpha);
+    gl_FragColor = vec4(color, alpha);
   }
 `
 
 function GoldCandidates({ cloud }: { cloud: CloudData }) {
   const dpr = useThree((state) => state.viewport.dpr)
+  const material = useRef<THREE.ShaderMaterial>(null)
+
+  useFrame(({ clock }) => {
+    if (!material.current) return
+    material.current.uniforms.uTime.value = clock.elapsedTime
+  })
 
   if (cloud.candidatePositions.length === 0) return null
 
@@ -261,17 +309,20 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           />
         </bufferGeometry>
         <shaderMaterial
+          ref={material}
           uniforms={{
             uDpr: { value: dpr },
-            uSize: { value: 20 },
-            uColor: { value: new THREE.Color('#ffd166') },
+            uSize: { value: 38 },
+            uTime: { value: 0 },
+            uColor: { value: new THREE.Color('#ffe066') },
           }}
           vertexShader={CANDIDATE_VERTEX}
           fragmentShader={CANDIDATE_FRAGMENT}
           transparent
           depthWrite={false}
           depthTest={false}
-          blending={THREE.NormalBlending}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
         />
       </points>
 
@@ -279,10 +330,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         <Line
           key={index}
           points={points}
-          color="#ffd166"
-          lineWidth={0.55}
+          color="#ffe066"
+          lineWidth={0.8}
           transparent
-          opacity={0.22}
+          opacity={0.48}
           depthWrite={false}
           depthTest={false}
         />
@@ -358,7 +409,7 @@ export function FrbDataMap3D() {
       <div
         className="frb-map__canvas"
         role="img"
-        aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following the Viridis DM scale. Four candidate bursts are highlighted in gold.`}
+        aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following a violet-to-gold dispersion-measure scale. Four candidate bursts are highlighted as large glowing gold stars.`}
       >
         <Canvas
           camera={{ position: [18, 10, 20], fov: 42 }}
