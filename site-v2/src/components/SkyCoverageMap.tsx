@@ -238,8 +238,8 @@ export function SkyCoverageMap() {
 
   const sprites = useMemo(
     () => ({
-      lens: makeGlowSprite('#eef0ff', '#4A4E69', 9),
-      matched: makeGlowSprite('#fff7d1', '#D4AF37', 8),
+      lens: makeGlowSprite('#c9cdf0', '#4A4E69', 6),
+      matched: makeGlowSprite('#e6d3a3', '#B89B5E', 6),
     }),
     [],
   )
@@ -369,26 +369,28 @@ export function SkyCoverageMap() {
     // Keep the mobile map from turning into a solid gold band: the same
     // catalogue at 350 px needs smaller sprites than it does at 720 px.
     const spriteScale = Math.min(1, size.w / 720)
-    const lensSize = Math.max(3.5, 9 * spriteScale)
-    const matchedSize = Math.max(3.5, 8 * spriteScale)
+    const lensSize = Math.max(2.5, 5.5 * spriteScale)
+    const matchedSize = Math.max(2.5, 5 * spriteScale)
 
     const drawBase = (time: number) => {
       drawGrid(baseContext, projection)
 
       // 1. Ghostly unmatched SNe flicker into existence.
-      baseContext.fillStyle = '#333333'
+      baseContext.globalCompositeOperation = 'source-over'
+      baseContext.fillStyle = '#222222'
       for (const point of unmatched) {
         const progress = smoothstep((time - point.appear) / 0.32)
         if (progress <= 0) continue
         const flicker =
           time < 1.55 ? 0.55 + 0.45 * Math.sin(time * 7 + point.phase) : 1
-        baseContext.globalAlpha = 0.3 * progress * flicker
+        baseContext.globalAlpha = 0.2 * progress * flicker
         baseContext.fillRect(point.x, point.y, 1, 1)
       }
 
       // 2. Lenscat lenses emerge as a soft blue field.
+      baseContext.globalCompositeOperation = 'lighter'
       const lensFade = smoothstep((time - 0.55) / 0.85)
-      baseContext.globalAlpha = 0.72 * lensFade
+      baseContext.globalAlpha = 0.5 * lensFade
       for (const lens of projectedLenses) {
         if (time < lens.appear) continue
         baseContext.drawImage(
@@ -402,9 +404,9 @@ export function SkyCoverageMap() {
 
       // 3. A faint gold web connects a subset of matches to their lenses.
       if (time > 1.9) {
-        const lineAlpha = smoothstep((time - 1.9) / 0.7) * 0.06
+        const lineAlpha = smoothstep((time - 1.9) / 0.7) * 0.04
         baseContext.globalAlpha = lineAlpha
-        baseContext.strokeStyle = '#D4AF37'
+        baseContext.strokeStyle = '#B89B5E'
         baseContext.lineWidth = 0.5
         baseContext.beginPath()
         for (let index = 0; index < matched.length; index += 12) {
@@ -423,7 +425,7 @@ export function SkyCoverageMap() {
         if (progress <= 0) continue
         const twinkle =
           time < 3.15 ? 0.62 + 0.38 * Math.sin(time * 5.2 + point.phase) : 1
-        baseContext.globalAlpha = progress * twinkle * 0.95
+        baseContext.globalAlpha = progress * twinkle * 0.55
         baseContext.drawImage(
           sprites.matched,
           point.x - matchedSize / 2,
@@ -434,6 +436,7 @@ export function SkyCoverageMap() {
       }
 
       baseContext.globalAlpha = 1
+      baseContext.globalCompositeOperation = 'source-over'
     }
 
     const drawHover = (info: HoverInfo | null) => {
@@ -445,21 +448,21 @@ export function SkyCoverageMap() {
       if (info.matched && info.lens >= 0) {
         const lens = data.lensScreen[info.lens]
         if (lens) {
-          overlayContext.strokeStyle = 'rgba(212, 175, 55, 0.5)'
+          overlayContext.strokeStyle = 'rgba(184, 155, 94, 0.6)'
           overlayContext.lineWidth = 1
           overlayContext.beginPath()
           overlayContext.moveTo(info.x, info.y)
           overlayContext.lineTo(lens.x, lens.y)
           overlayContext.stroke()
 
-          overlayContext.strokeStyle = 'rgba(122, 138, 190, 0.8)'
+          overlayContext.strokeStyle = 'rgba(122, 138, 190, 0.72)'
           overlayContext.lineWidth = 1
           overlayContext.beginPath()
           overlayContext.arc(lens.x, lens.y, 4.5, 0, Math.PI * 2)
           overlayContext.stroke()
         }
 
-        overlayContext.strokeStyle = 'rgba(255, 220, 120, 0.95)'
+        overlayContext.strokeStyle = 'rgba(216, 192, 140, 0.9)'
         overlayContext.lineWidth = 1.2
         overlayContext.beginPath()
         overlayContext.arc(info.x, info.y, 7, 0, Math.PI * 2)

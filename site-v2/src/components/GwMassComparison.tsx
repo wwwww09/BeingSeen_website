@@ -35,7 +35,7 @@ const GAP_Y = yOf(MASS_GAP)
  * M1 vs M2, observed vs de-lensed.
  *
  * Each event gets two subgroups, one for each component mass, and each subgroup
- * gets a red observed bar and a blue de-lensed bar. This keeps all four masses
+ * gets a dark-red hatched observed bar and a gold de-lensed bar. This keeps all four masses
  * in one view while preserving the event-level comparison.
  */
 export function GwMassComparison() {
@@ -64,18 +64,39 @@ export function GwMassComparison() {
 
             <defs>
               <linearGradient
-                id={`${uid}-observed`}
+                id={`${uid}-observed-bg`}
                 x1="0"
                 y1="0"
                 x2="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#c85462" />
-                <stop offset="100%" stopColor="#7c2632" />
+                <stop offset="0%" stopColor="#8B0000" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#4A0000" stopOpacity="0.55" />
               </linearGradient>
+              <pattern
+                id={`${uid}-observed`}
+                width="7"
+                height="7"
+                patternUnits="userSpaceOnUse"
+                patternTransform="rotate(45)"
+              >
+                <rect
+                  width="7"
+                  height="7"
+                  fill={`url(#${uid}-observed-bg)`}
+                />
+                <line
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="7"
+                  stroke="rgba(230, 160, 160, 0.22)"
+                  strokeWidth="2"
+                />
+              </pattern>
               <linearGradient id={`${uid}-true`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4d89c8" />
-                <stop offset="100%" stopColor="#234366" />
+                <stop offset="0%" stopColor="#D4AF37" />
+                <stop offset="100%" stopColor="#8F7A46" />
               </linearGradient>
             </defs>
 
@@ -115,7 +136,7 @@ export function GwMassComparison() {
               x2={PAD.left + PLOT_W}
               y1={GAP_Y}
               y2={GAP_Y}
-              stroke="#d65a5a"
+              stroke="#a84a4a"
               strokeWidth={1.3}
               strokeDasharray="7 6"
               initial={reduced ? false : { opacity: 0 }}
@@ -182,6 +203,7 @@ export function GwMassComparison() {
                         width={BAR_W}
                         rx={1}
                         fill={`url(#${uid}-observed)`}
+                        fillOpacity={0.8}
                         {...barMotion(observedY, observedH)}
                       />
                       <motion.rect
@@ -189,6 +211,7 @@ export function GwMassComparison() {
                         width={BAR_W}
                         rx={1}
                         fill={`url(#${uid}-true)`}
+                        fillOpacity={0.8}
                         {...barMotion(trueY, trueH)}
                       />
 
@@ -258,6 +281,12 @@ export function GwMassComparison() {
           Mass Gap Boundary (45 M⊙)
         </span>
       </div>
+
+      <p className="gw-compare__note">
+        <span className="gw-compare__note-label">Note</span>{' '}
+        the subtle drop of GW241125’s M2: 47.0 → 43.1 M⊙. Though it seems
+        close, it successfully crosses the boundary into the allowed region.
+      </p>
 
       <figcaption className="gw-compare__caption">
         M1 and M2 are the two component masses of each binary. The observed
