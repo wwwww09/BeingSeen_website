@@ -2152,7 +2152,7 @@ a {
 }
 
 .mchart__row {
-  opacity: 0.78;
+  opacity: 1;
   transition: opacity 0.45s ease;
 }
 
@@ -2162,7 +2162,7 @@ a {
 
 .mchart__name {
   font-size: 26px;
-  fill: rgba(255, 255, 255, 0.66);
+  fill: #f5f5f5;
   letter-spacing: 0.005em;
   transition: fill 0.45s ease;
 }
@@ -2172,8 +2172,8 @@ a {
 }
 
 .mchart__tick {
-  font-size: 20px;
-  fill: rgba(255, 255, 255, 0.5);
+  font-size: 21px;
+  fill: #f5f5f5;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2184,42 +2184,42 @@ a {
 }
 
 .mchart__axis-title {
-  font-size: 20px;
-  fill: rgba(255, 255, 255, 0.62);
+  font-size: 21px;
+  fill: #f5f5f5;
   letter-spacing: 0.04em;
 }
 
 .mchart__axis-hint {
-  font-size: 17px;
-  fill: rgba(255, 255, 255, 0.42);
+  font-size: 18px;
+  fill: #f5f5f5;
   letter-spacing: 0.08em;
 }
 
 .mchart__limit-label {
-  font-size: 17px;
+  font-size: 18px;
   fill: #ff5c35;
   letter-spacing: 0.1em;
 }
 
 .mchart__legend text {
-  font-size: 15px;
-  fill: rgba(255, 255, 255, 0.48);
+  font-size: 16px;
+  fill: #f5f5f5;
   letter-spacing: 0.03em;
 }
 
 .mchart__mu {
-  font-size: 13px;
-  fill: rgba(255, 255, 255, 0.48);
+  font-size: 15px;
+  fill: #f5f5f5;
   letter-spacing: 0.02em;
   transition: fill 0.45s ease;
 }
 
 .mchart__row.is-seen .mchart__mu {
-  fill: rgba(255, 207, 139, 0.66);
+  fill: #ffcf8b;
 }
 
 .mchart__detected {
-  font-size: 14px;
+  font-size: 15px;
   fill: #ffcf8b;
   letter-spacing: 0.08em;
 }
@@ -2233,10 +2233,10 @@ a {
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: #f5f5f5;
 }
 
 .mchart__slider-value {
@@ -2314,17 +2314,17 @@ a {
 .mchart__scale {
   display: flex;
   justify-content: space-between;
-  font-size: 0.66rem;
+  font-size: 0.74rem;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.36);
+  color: #f5f5f5;
 }
 
 .mchart__caption {
   margin: clamp(1.6rem, 3.4vh, 2.2rem) auto 0;
   max-width: 62ch;
-  font-size: clamp(1.02rem, 1.5vw, 1.32rem);
+  font-size: clamp(1.12rem, 1.62vw, 1.44rem);
   line-height: 1.65;
-  color: rgba(255, 255, 255, 0.82);
+  color: #f5f5f5;
   text-align: center;
 }
 
@@ -2337,9 +2337,9 @@ a {
 .mchart__caption-note {
   display: block;
   margin-top: 0.6rem;
-  font-size: 0.78em;
+  font-size: 0.84em;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.46);
+  color: #f5f5f5;
 }
 
 @media (max-width: 760px) {
@@ -2400,43 +2400,43 @@ a {
 }
 
 .lensed-chart__tick {
-  font-size: 17px;
-  fill: rgba(255, 255, 255, 0.45);
+  font-size: 18px;
+  fill: #f5f5f5;
   font-variant-numeric: tabular-nums;
 }
 
 .lensed-chart__axis {
-  font-size: 16px;
-  fill: rgba(255, 255, 255, 0.55);
+  font-size: 17px;
+  fill: #f5f5f5;
   letter-spacing: 0.03em;
 }
 
 .lensed-chart__limit {
-  font-size: 15px;
+  font-size: 16px;
   fill: #ff5c35;
   letter-spacing: 0.06em;
 }
 
 .lensed-chart__legend text {
-  font-size: 14px;
-  fill: rgba(255, 255, 255, 0.5);
+  font-size: 15px;
+  fill: #f5f5f5;
 }
 
 .lensed-chart__inset-title {
-  font-size: 12px;
-  fill: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  fill: #f5f5f5;
   letter-spacing: 0.12em;
 }
 
 .lensed-chart__inset-count {
-  font-size: 12px;
+  font-size: 13px;
   fill: #ffcf8b;
   letter-spacing: 0.04em;
 }
 
 .lensed-chart__inset-tick {
-  font-size: 11px;
-  fill: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  fill: #f5f5f5;
 }
 
 .lensed-chart__summary {
@@ -2465,14 +2465,14 @@ a {
 }
 
 .lensed-chart__value--muted {
-  color: rgba(200, 200, 200, 0.45);
+  color: #f5f5f5;
 }
 
 .lensed-chart__label {
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   letter-spacing: 0.04em;
-  color: rgba(236, 233, 226, 0.52);
+  color: #f5f5f5;
 }
 
 .lensed-chart__arrow {
@@ -2486,9 +2486,9 @@ a {
   max-width: 64ch;
   margin: 0.9rem auto 0;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(1.02rem, 1.3vw, 1.15rem);
+  font-size: clamp(1.12rem, 1.45vw, 1.28rem);
   line-height: 1.7;
-  color: rgba(236, 233, 226, 0.78);
+  color: #f5f5f5;
   text-wrap: balance;
 }
 
@@ -2496,9 +2496,9 @@ a {
   max-width: 70ch;
   margin: 0.9rem auto 0;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   line-height: 1.6;
-  color: rgba(236, 233, 226, 0.42);
+  color: #f5f5f5;
   text-align: center;
 }
 
@@ -2511,9 +2511,9 @@ a {
   display: none;
   margin: 0.8rem auto 0;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   letter-spacing: 0.08em;
-  color: rgba(236, 233, 226, 0.42);
+  color: #f5f5f5;
   text-align: center;
 }
 
@@ -2609,11 +2609,11 @@ a {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   line-height: 1;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(236, 233, 226, 0.76);
+  color: #f5f5f5;
 }
 
 .lens-scatter__key {
@@ -2648,10 +2648,10 @@ a {
   margin: 0;
   pointer-events: none;
   font-family: var(--mono);
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(236, 233, 226, 0.38);
+  color: #f5f5f5;
 }
 
 .lens-scatter-wrap {
@@ -2671,32 +2671,32 @@ a {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: 0.84rem;
+  font-size: 0.92rem;
   line-height: 1.25;
   white-space: nowrap;
-  color: rgba(236, 233, 226, 0.68);
+  color: #f5f5f5;
   pointer-events: none;
   transform: translate(14px, -50%);
 }
 
 .lens-scatter__tooltip strong {
   font-weight: 400;
-  font-size: 0.96rem;
+  font-size: 1.04rem;
   letter-spacing: 0.02em;
   color: #ffcf8b;
 }
 
 .lens-scatter__tooltip span {
-  color: rgba(236, 233, 226, 0.62);
+  color: #f5f5f5;
 }
 
 .lens-scatter__caption {
   max-width: 68ch;
   margin: 1.4rem auto 0;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: 0.96rem;
+  font-size: 1.05rem;
   line-height: 1.7;
-  color: rgba(236, 233, 226, 0.54);
+  color: #f5f5f5;
   text-align: center;
   text-wrap: pretty;
 }
@@ -2723,6 +2723,7 @@ a {
 
 .sn-page .eyebrow {
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.24em;
 }
@@ -2741,6 +2742,7 @@ a {
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: clamp(2.8rem, 6vw, 5.6rem);
   line-height: 1.02;
+  color: #f5f5f5;
   text-wrap: balance;
 }
 
@@ -2752,9 +2754,9 @@ a {
   max-width: 40rem;
   margin: 0 auto;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(1.08rem, 1.35vw, 1.28rem);
+  font-size: clamp(1.18rem, 1.5vw, 1.4rem);
   line-height: 1.75;
-  color: rgba(236, 233, 226, 0.78);
+  color: #f5f5f5;
   text-align: center;
 }
 
@@ -2778,6 +2780,7 @@ a {
 .sn-copy .section-kicker {
   margin-bottom: clamp(0.8rem, 2vh, 1.2rem);
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.24em;
   text-align: center;
@@ -2790,7 +2793,7 @@ a {
   font-weight: 400;
   line-height: 1.04;
   letter-spacing: -0.02em;
-  color: #f3f1ec;
+  color: #f5f5f5;
   text-align: center;
   text-wrap: balance;
 }
@@ -2799,9 +2802,9 @@ a {
   max-width: 44rem;
   margin: 0 auto;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(1.08rem, 1.3vw, 1.22rem);
+  font-size: clamp(1.18rem, 1.42vw, 1.34rem);
   line-height: 1.8;
-  color: rgba(236, 233, 226, 0.78);
+  color: #f5f5f5;
   text-wrap: pretty;
 }
 
@@ -2852,9 +2855,9 @@ a {
   max-width: 46rem;
   margin: 0 auto 2rem;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  font-size: clamp(1.24rem, 1.75vw, 1.56rem);
   line-height: 1.7;
-  color: rgba(236, 233, 226, 0.76);
+  color: #f5f5f5;
   text-wrap: balance;
 }
 
@@ -2872,7 +2875,7 @@ a {
   padding: 0.85rem 1.4rem;
   border: 1px solid rgba(255, 207, 139, 0.5);
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
-  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  font-size: clamp(1.06rem, 1.3vw, 1.2rem);
   letter-spacing: 0.02em;
   color: #ffcf8b;
   text-decoration: none;
@@ -2906,7 +2909,7 @@ a {
   font-weight: 400;
   line-height: 1.45;
   letter-spacing: -0.01em;
-  color: #f3f1ec;
+  color: #f5f5f5;
   text-wrap: balance;
 }
 
@@ -2915,11 +2918,21 @@ a {
   padding: 2.2rem 0 0;
   border-top: 1px solid rgba(236, 233, 226, 0.12);
   font-family: var(--mono);
-  font-size: 0.58rem;
+  font-size: 0.66rem;
   letter-spacing: 0.16em;
   text-align: center;
   text-transform: uppercase;
-  color: #8b877e;
+  color: #f5f5f5;
+}
+
+.sn-page .back-link {
+  border-bottom-color: rgba(236, 233, 226, 0.4);
+  font-size: 0.72rem;
+  color: #f5f5f5;
+}
+
+.sn-page .back-link:hover {
+  color: #fff;
 }
 
 #magnification {
@@ -2989,6 +3002,25 @@ a {
   .mchart__scroll-hint,
   .lensed-chart__scroll-hint {
     display: block;
+  }
+
+  .lensed-chart__summary {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .lensed-chart__stat {
+    min-width: 0;
+  }
+
+  .lensed-chart__arrow {
+    font-size: 1.5rem;
+    transform: rotate(90deg);
+  }
+
+  .lensed-chart__message {
+    width: 100%;
+    margin-top: 1rem;
   }
 }
 

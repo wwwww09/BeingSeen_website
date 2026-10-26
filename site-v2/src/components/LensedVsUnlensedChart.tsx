@@ -208,7 +208,7 @@ export function LensedVsUnlensedChart() {
               TAIL ZOOM · m &lt; 22
             </text>
             <text className="lensed-chart__inset-count" x={IX + IW - 14} y={IY + 22} textAnchor="end">
-              {data.detected.lensed} lensed · {data.detected.unlensed} unlensed
+              {data.detected.lensed} lensed · {data.detected.unlensed} grey
             </text>
 
             {tail.edges.slice(0, -1).map((from, index) => {
