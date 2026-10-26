@@ -13,16 +13,22 @@ import { getDotTexture } from '../scene/dotTexture'
  * abstract glowing spheres; the paths are screen-space lines.
  */
 
-const EARTH_POS: [number, number, number] = [-5.6, 0, 0.5]
-const SOURCE_POS: [number, number, number] = [5.6, 0, -0.5]
+const EARTH_POS: [number, number, number] = [-6, 0, 0]
+const SOURCE_POS: [number, number, number] = [6, 0, 0]
+const EARTH_END: [number, number, number] = [-5.38, 0, 0]
+
+const DIRECT_CURVE = new THREE.LineCurve3(
+  new THREE.Vector3(...SOURCE_POS),
+  new THREE.Vector3(...EARTH_END),
+)
 
 const DELAYED_CURVE = new THREE.CatmullRomCurve3([
   new THREE.Vector3(...SOURCE_POS),
-  new THREE.Vector3(3.8, 1.9, 0.2),
-  new THREE.Vector3(1.5, 3.4, 0.8),
-  new THREE.Vector3(-1.5, 3.4, 0.8),
-  new THREE.Vector3(-3.8, 1.9, 0.2),
-  new THREE.Vector3(...EARTH_POS),
+  new THREE.Vector3(4.1, 1.8, 0),
+  new THREE.Vector3(1.6, 3.3, 0),
+  new THREE.Vector3(-1.6, 3.3, 0),
+  new THREE.Vector3(-4.1, 1.8, 0),
+  new THREE.Vector3(...EARTH_END),
 ])
 
 const DELAYED_POINTS = DELAYED_CURVE.getPoints(128)
@@ -86,7 +92,7 @@ function ResponsiveCamera() {
   useEffect(() => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return
     const portrait = width / Math.max(height, 1) < 1
-    camera.position.set(0, portrait ? 1.5 : 1.2, portrait ? 21 : 17)
+    camera.position.set(0, portrait ? 1.5 : 1.2, portrait ? 22 : 17)
     camera.fov = portrait ? 50 : 40
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
@@ -101,7 +107,7 @@ function Earth({ animate }: { animate: boolean }) {
 
   useFrame(({ clock }) => {
     if (!animate || !halo.current) return
-    const scale = 2.4 + Math.sin(clock.elapsedTime * 1.1) * 0.06
+    const scale = 2.2 + Math.sin(clock.elapsedTime * 1.1) * 0.05
     halo.current.scale.set(scale, scale, 1)
   })
 
@@ -110,20 +116,20 @@ function Earth({ animate }: { animate: boolean }) {
       <mesh>
         <sphereGeometry args={[0.62, 48, 48]} />
         <meshStandardMaterial
-          color="#1a6f9e"
-          emissive="#08324f"
-          emissiveIntensity={0.7}
-          roughness={0.55}
-          metalness={0.1}
+          color="#071f33"
+          emissive="#020a12"
+          emissiveIntensity={0.45}
+          roughness={0.8}
+          metalness={0.05}
         />
       </mesh>
-      <GlowShell radius={0.68} color="#3f9dff" intensity={0.55} />
-      <sprite ref={halo} scale={[2.4, 2.4, 1]}>
+      <GlowShell radius={0.68} color="#2f6f9f" intensity={0.4} />
+      <sprite ref={halo} scale={[2.2, 2.2, 1]}>
         <spriteMaterial
           map={sprite}
-          color="#4fa9ff"
+          color="#2f7fbf"
           transparent
-          opacity={0.26}
+          opacity={0.12}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -140,42 +146,42 @@ function Galaxy() {
       <mesh>
         <sphereGeometry args={[0.95, 48, 48]} />
         <meshStandardMaterial
-          color="#d9a24c"
-          emissive="#7a4f12"
-          emissiveIntensity={0.55}
-          roughness={0.5}
-          metalness={0.2}
+          color="#6b4a1f"
+          emissive="#2f1d08"
+          emissiveIntensity={0.5}
+          roughness={0.65}
+          metalness={0.15}
         />
       </mesh>
-      <GlowShell radius={1.06} color="#ffcf8b" intensity={0.55} />
-      <sprite scale={[5.2, 5.2, 1]}>
+      <GlowShell radius={1.06} color="#b8893f" intensity={0.35} />
+      <sprite scale={[4.8, 4.8, 1]}>
         <spriteMaterial
           map={sprite}
-          color="#ffcf8b"
+          color="#d8a85a"
           transparent
-          opacity={0.28}
+          opacity={0.12}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </sprite>
 
       {/* a tilted ring gives the galaxy its depth */}
-      <mesh rotation={[Math.PI / 2.35, 0.35, 0.15]}>
+      <mesh>
         <torusGeometry args={[1.55, 0.018, 12, 128]} />
         <meshBasicMaterial
-          color="#ffcf8b"
+          color="#b8893f"
           transparent
-          opacity={0.3}
+          opacity={0.18}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-      <mesh rotation={[Math.PI / 2.1, -0.25, 0.1]}>
+      <mesh>
         <torusGeometry args={[1.9, 0.012, 8, 128]} />
         <meshBasicMaterial
-          color="#ffcf8b"
+          color="#b8893f"
           transparent
-          opacity={0.12}
+          opacity={0.08}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -193,12 +199,12 @@ function Source() {
         <sphereGeometry args={[0.16, 24, 24]} />
         <meshBasicMaterial color="#ffe27a" />
       </mesh>
-      <sprite scale={[2.2, 2.2, 1]}>
+      <sprite scale={[2.0, 2.0, 1]}>
         <spriteMaterial
           map={sprite}
           color="#ffd54a"
           transparent
-          opacity={0.65}
+          opacity={0.55}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -207,32 +213,46 @@ function Source() {
   )
 }
 
-function SignalPulse({ animate }: { animate: boolean }) {
+function SignalPulse({
+  curve,
+  color,
+  period,
+  duration,
+  animate,
+}: {
+  curve: THREE.Curve<THREE.Vector3>
+  color: string
+  period: number
+  duration: number
+  animate: boolean
+}) {
   const pulse = useRef<THREE.Group>(null)
   const sprite = useMemo(() => getDotTexture(), [])
 
   useFrame(({ clock }) => {
     if (!pulse.current) return
-    const t = animate ? (clock.elapsedTime % 5.2) / 5.2 : 0.58
-    const point = DELAYED_CURVE.getPointAt(t)
+    const elapsed = clock.elapsedTime % period
+    const t = animate ? Math.min(1, elapsed / duration) : 0.55
+    const point = curve.getPointAt(t)
     pulse.current.position.copy(point)
-    const scale = animate ? 0.85 + Math.sin(t * Math.PI) * 0.35 : 1
+    const scale = animate ? 0.85 + Math.sin(t * Math.PI) * 0.25 : 1
     pulse.current.scale.setScalar(scale)
   })
 
   return (
     <group ref={pulse}>
-      <mesh>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshBasicMaterial color="#ffe8c4" />
+      <mesh renderOrder={20}>
+        <sphereGeometry args={[0.11, 16, 16]} />
+        <meshBasicMaterial color={color} depthTest={false} />
       </mesh>
-      <sprite scale={[1.1, 1.1, 1]}>
+      <sprite scale={[1.0, 1.0, 1]} renderOrder={21}>
         <spriteMaterial
           map={sprite}
-          color="#ffcf8b"
+          color={color}
           transparent
           opacity={0.7}
           depthWrite={false}
+          depthTest={false}
           blending={THREE.AdditiveBlending}
         />
       </sprite>
@@ -243,10 +263,10 @@ function SignalPulse({ animate }: { animate: boolean }) {
 function Scene({ animate }: { animate: boolean }) {
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[-4, 5, 6]} intensity={2.2} color="#fff3df" />
-      <pointLight position={[-5, 1, 4]} intensity={3} color="#4fa9ff" distance={12} />
-      <pointLight position={[0, 0, 4]} intensity={2.4} color="#ffcf8b" distance={10} />
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[-4, 5, 6]} intensity={1.2} color="#fff3df" />
+      <pointLight position={[-5, 1, 4]} intensity={1.5} color="#3f8fcf" distance={10} />
+      <pointLight position={[0, 0, 4]} intensity={1.2} color="#b8893f" distance={8} />
 
       <Stars
         radius={80}
@@ -264,33 +284,46 @@ function Scene({ animate }: { animate: boolean }) {
 
       {/* direct, unlensed path — deliberately faint */}
       <Line
-        points={[SOURCE_POS, EARTH_POS]}
-        color="#cfe4ff"
-        lineWidth={1}
+        points={[SOURCE_POS, EARTH_END]}
+        color="#bcd7f5"
+        lineWidth={0.8}
         transparent
-        opacity={0.4}
+        opacity={0.36}
         depthWrite={false}
       />
 
       {/* lensed path: a wide, low-opacity glow under a bright gold core */}
       <Line
         points={DELAYED_POINTS}
-        color="#ff9d3d"
-        lineWidth={7}
+        color="#8a5f2a"
+        lineWidth={4.5}
         transparent
-        opacity={0.14}
+        opacity={0.1}
         depthWrite={false}
       />
       <Line
         points={DELAYED_POINTS}
-        color="#f5b85a"
-        lineWidth={2.4}
+        color="#b8893f"
+        lineWidth={1.8}
         transparent
-        opacity={0.96}
+        opacity={0.65}
         depthWrite={false}
       />
 
-      <SignalPulse animate={animate} />
+      <SignalPulse
+        curve={DIRECT_CURVE}
+        color="#e8f2ff"
+        period={6}
+        duration={1.4}
+        animate={animate}
+      />
+      <SignalPulse
+        curve={DELAYED_CURVE}
+        color="#d8a85a"
+        period={6}
+        duration={5.2}
+        animate={animate}
+      />
     </>
   )
 }
