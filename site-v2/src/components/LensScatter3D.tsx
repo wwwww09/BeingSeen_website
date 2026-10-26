@@ -1,8 +1,9 @@
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { getDotTexture } from '../scene/dotTexture'
+import { supernovae } from '../data/supernovae'
 
 interface LensDatum {
   ra: number
@@ -18,6 +19,16 @@ interface LensFeed {
   lenses: LensDatum[]
   sne: SneDatum[]
 }
+
+interface HoverPoint {
+  index: number
+  x: number
+  y: number
+}
+
+/** Match feed names like "SN_Refsdal" to catalogue names robustly. */
+const normalizeName = (name: string) =>
+  name.replace(/[\s_]/g, '').toLowerCase()
 
 /** The catalogue size quoted in the chapter copy. */
 const LENS_TOTAL = 13941
@@ -81,7 +92,17 @@ function LensCloud({ lenses, maxZ }: { lenses: LensDatum[]; maxZ: number }) {
   )
 }
 
-function SneMarkers({ sne, maxZ }: { sne: SneDatum[]; maxZ: number }) {
+function SneMarkers({
+  sne,
+  maxZ,
+  hoveredIndex,
+  onHover,
+}: {
+  sne: SneDatum[]
+  maxZ: number
+  hoveredIndex: number | null
+  onHover: (point: HoverPoint | null) => void
+}) {
   const dpr = useThree((state) => state.viewport.dpr)
   const sprite = useMemo(() => getDotTexture(), [])
   const positions = useMemo(() => {
@@ -91,6 +112,21 @@ function SneMarkers({ sne, maxZ }: { sne: SneDatum[]; maxZ: number }) {
     })
     return arr
   }, [sne, maxZ])
+
+  const hoveredPosition =
+    hoveredIndex !== null && hoveredIndex * 3 + 3 <= positions.length
+      ? positions.slice(hoveredIndex * 3, hoveredIndex * 3 + 3)
+      : null
+
+  const showHover = (event: ThreeEvent<PointerEvent>) => {
+    if (event.index === undefined) return
+    const native = event.nativeEvent
+    onHover({
+      index: event.index,
+      x: native.offsetX,
+      y: native.offsetY,
+    })
+  }
 
   return (
     <>
@@ -111,7 +147,13 @@ function SneMarkers({ sne, maxZ }: { sne: SneDatum[]; maxZ: number }) {
         />
       </points>
       {/* wide, faint halo so five points still read against 13,941 */}
-      <points frustumCulled={false} renderOrder={2}>
+      <points
+        frustumCulled={false}
+        renderOrder={2}
+        onPointerMove={showHover}
+        onClick={showHover}
+        onPointerOut={() => onHover(null)}
+      >
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
@@ -143,6 +185,27 @@ function SneMarkers({ sne, maxZ }: { sne: SneDatum[]; maxZ: number }) {
           blending={THREE.NormalBlending}
         />
       </points>
+      {hoveredPosition ? (
+        <points frustumCulled={false} renderOrder={4}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              args={[hoveredPosition, 3]}
+            />
+          </bufferGeometry>
+          <pointsMaterial
+            map={sprite}
+            color="#ffe8c4"
+            size={30 * dpr}
+            transparent
+            opacity={0.42}
+            sizeAttenuation={false}
+            depthWrite={false}
+            depthTest={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </points>
+      ) : null}
     </>
   )
 }
@@ -172,6 +235,22 @@ function ResponsiveFraming() {
 export function LensScatter3D() {
   const [feed, setFeed] = useState<LensFeed>(FALLBACK)
   const [live, setLive] = useState(false)
+  const [hover, setHover] = useState<HoverPoint | null>(null)
+
+  const sneMeta = useMemo(
+    () =>
+      new Map(
+        supernovae.map((event) => [normalizeName(event.name), event] as const),
+      ),
+    [],
+  )
+
+  useEffect(() => {
+    document.body.style.cursor = hover ? 'pointer' : ''
+    return () => {
+      document.body.style.cursor = ''
+    }
+  }, [hover])
 
   useEffect(() => {
     let cancelled = false
@@ -201,62 +280,103 @@ export function LensScatter3D() {
 
   const lensCount = live ? feed.lenses.length : LENS_TOTAL
   const sneCount = live ? feed.sne.length : SNE_TOTAL
+  const hoveredSne = hover ? feed.sne[hover.index] : null
+  const hoveredMeta = hoveredSne
+    ? sneMeta.get(normalizeName(hoveredSne.name))
+    : null
 
   return (
-    <div className="lens-scatter">
-      <div
-        className="lens-scatter__canvas"
-        role="img"
-        aria-label="Three-dimensional scatter map of 13,941 known gravitational lenses in blue and five sampled lensed supernovae in gold."
-      >
-        <Canvas
-          camera={{ position: [23, 15, 26], fov: 42 }}
-          dpr={[1, 2]}
-          gl={{ antialias: true, alpha: true }}
-          style={{ background: 'transparent' }}
+    <div className="lens-scatter-wrap">
+      <div className="lens-scatter">
+        <div
+          className="lens-scatter__canvas"
+          role="img"
+          aria-label="Three-dimensional scatter map of 13,941 known gravitational lenses in blue and five sampled lensed supernovae in gold."
         >
-          <ResponsiveFraming />
-          <LensCloud lenses={feed.lenses} maxZ={maxZ} />
-          <SneMarkers sne={feed.sne} maxZ={maxZ} />
-          <gridHelper args={[24, 24, '#222222', '#222222']} position={[0, -10, 0]}>
-            <lineBasicMaterial
-              attach="material"
-              color="#222222"
-              transparent
-              opacity={0.2}
+          <Canvas
+            camera={{ position: [23, 15, 26], fov: 42 }}
+            dpr={[1, 2]}
+            gl={{ antialias: true, alpha: true }}
+            style={{ background: 'transparent' }}
+            onPointerMissed={() => setHover(null)}
+          >
+            <ResponsiveFraming />
+            <LensCloud lenses={feed.lenses} maxZ={maxZ} />
+            <SneMarkers
+              sne={feed.sne}
+              maxZ={maxZ}
+              hoveredIndex={hover?.index ?? null}
+              onHover={setHover}
             />
-          </gridHelper>
-          <OrbitControls
-            enablePan={false}
-            minDistance={14}
-            maxDistance={56}
-            target={[0, 0, 0]}
-            autoRotate
-            autoRotateSpeed={0.16}
-          />
-        </Canvas>
-      </div>
-
-      <div className="lens-scatter__hud">
-        <div className="lens-scatter__legend" role="group" aria-label="Map legend">
-          <span className="lens-scatter__key">
-            <i
-              className="lens-scatter__dot lens-scatter__dot--lens"
-              aria-hidden="true"
+            <gridHelper
+              args={[24, 24, '#222222', '#222222']}
+              position={[0, -10, 0]}
+            >
+              <lineBasicMaterial
+                attach="material"
+                color="#222222"
+                transparent
+                opacity={0.2}
+              />
+            </gridHelper>
+            <OrbitControls
+              enablePan={false}
+              minDistance={14}
+              maxDistance={56}
+              target={[0, 0, 0]}
+              autoRotate
+              autoRotateSpeed={0.16}
             />
-            {lensCount.toLocaleString()} Lenses
-          </span>
-          <span className="lens-scatter__key">
-            <i
-              className="lens-scatter__dot lens-scatter__dot--sne"
-              aria-hidden="true"
-            />
-            {sneCount} Supernovae
-          </span>
+          </Canvas>
         </div>
+
+        {hover && hoveredSne ? (
+          <div
+            className="lens-scatter__tooltip"
+            style={{ left: hover.x, top: hover.y }}
+            role="status"
+            aria-live="polite"
+          >
+            <strong>{hoveredSne.name.replace(/_/g, ' ')}</strong>
+            <span>Redshift z = {hoveredSne.redshift.toFixed(3)}</span>
+            {hoveredMeta ? (
+              <span>Magnification μ = {hoveredMeta.magnification.toFixed(1)}×</span>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="lens-scatter__hud">
+          <div
+            className="lens-scatter__legend"
+            role="group"
+            aria-label="Map legend"
+          >
+            <span className="lens-scatter__key">
+              <i
+                className="lens-scatter__dot lens-scatter__dot--lens"
+                aria-hidden="true"
+              />
+              {lensCount.toLocaleString()} Lenses
+            </span>
+            <span className="lens-scatter__key">
+              <i
+                className="lens-scatter__dot lens-scatter__dot--sne"
+                aria-hidden="true"
+              />
+              {sneCount} Supernovae
+            </span>
+          </div>
+        </div>
+
+        <p className="lens-scatter__hint">Drag to rotate · scroll to zoom</p>
       </div>
 
-      <p className="lens-scatter__hint">Drag to rotate · scroll to zoom</p>
+      <p className="lens-scatter__caption">
+        Only {sneCount} of {lensCount.toLocaleString()} known lenses line up
+        closely enough with a supernova — and even then, only those with extreme
+        magnification clear our detection limits. Hover or tap a gold point for
+        its redshift and magnification.
+      </p>
     </div>
   )
 }

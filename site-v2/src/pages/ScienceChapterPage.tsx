@@ -3,8 +3,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { scienceChapters } from '../content'
 import { LensScatter3D } from '../components/LensScatter3D'
+import { LensedVsUnlensedChart } from '../components/LensedVsUnlensedChart'
 import { MagnitudeChart } from '../components/MagnitudeChart'
-import { SimulatedHistogram } from '../components/SimulatedHistogram'
 
 export function ScienceChapterPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -68,10 +68,11 @@ export function ScienceChapterPage() {
             <p className="section-kicker">The mechanism</p>
             <h2 className="sn-title">The Cosmic Magnifying Glass</h2>
             <p className="sn-body">
-              We sampled 5 known lensed supernovae. Lensing doesn’t make the
-              explosion brighter; it bends and focuses the light. Drag the
-              slider to see how lensing pulls faint signals (grey) above the ZTF
-              detection limit (gold).
+              We sampled 5 known lensed supernovae. The lens doesn’t change the
+              explosion itself; it bends and focuses its light, adding 2.5
+              log₁₀ μ magnitudes. Drag the magnification slider to watch the
+              same five events cross the ZTF limit. Only the brightest, most
+              highly magnified events turn gold.
             </p>
           </div>
           <div className="sn-chart sn-chart--mechanism">
@@ -101,12 +102,13 @@ export function ScienceChapterPage() {
             <p className="section-kicker">The simulation</p>
             <h2 className="sn-title">Simulating the Invisible</h2>
             <p className="sn-body">
-              We ran Monte Carlo simulations for 64,309 lensing events. The vast
-              majority sit below the ZTF detection limit (m = 20.5).
+              We ran Monte Carlo simulations for 64,309 lensing events. Without
+              a lens, none clear the ZTF limit. With a lens, a small but real
+              bright tail does.
             </p>
           </div>
           <div className="sn-chart sn-chart--histogram">
-            <SimulatedHistogram />
+            <LensedVsUnlensedChart />
           </div>
           <div className="sn-conclusion-inline">
             <blockquote className="sn-quote">
@@ -116,17 +118,35 @@ export function ScienceChapterPage() {
           </div>
         </section>
 
-        <div className="chapter-next sn-next">
-          <Link className="next-link" to={`/science/${next?.slug ?? ''}`}>
-            <span className="next-link__label">Next chapter</span>
-            <span className="next-link__title">
-              {next?.title ?? 'The Science'} <span aria-hidden="true">→</span>
-            </span>
-          </Link>
-          <Link className="back-link" to="/science">
-            All chapters
-          </Link>
-        </div>
+        <motion.section
+          className="sn-coda"
+          initial={reduced ? false : { opacity: 0, y: 28 }}
+          whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="sn-transition__body">
+            We leveraged the magnification of lensing for Supernovae. But how
+            does lensing affect transient signals in the time domain?
+          </p>
+          <div className="sn-transition__actions">
+            <Link
+              className="sn-transition__button"
+              to={`/science/${next?.slug ?? 'fast-radio-bursts'}`}
+            >
+              Next: Time Delay in FRBs <span aria-hidden="true">→</span>
+            </Link>
+            <Link className="back-link" to="/science">
+              All chapters
+            </Link>
+          </div>
+          <blockquote className="sn-philosophy">
+            “Because of gravitational lensing—the universe’s own magnifying
+            glass—objects that are ‘Being unseen’ due to technological,
+            temporal, or physical limits can finally be ‘Being seen.’ This is
+            just one small step in recovering our blind universe.”
+          </blockquote>
+        </motion.section>
 
         <footer className="sn-footer">
           Being Seen <span aria-hidden="true">/</span> The Science{' '}

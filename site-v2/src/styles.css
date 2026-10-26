@@ -2129,6 +2129,7 @@ a {
 
 .mchart__svg text {
   /* a dark halo per glyph — map-label technique, no panel needed */
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   paint-order: stroke;
   stroke: rgba(0, 0, 0, 0.82);
   stroke-width: 3.5px;
@@ -2151,7 +2152,7 @@ a {
 }
 
 .mchart__row {
-  opacity: 0.5;
+  opacity: 0.78;
   transition: opacity 0.45s ease;
 }
 
@@ -2161,7 +2162,7 @@ a {
 
 .mchart__name {
   font-size: 26px;
-  fill: rgba(255, 255, 255, 0.58);
+  fill: rgba(255, 255, 255, 0.66);
   letter-spacing: 0.005em;
   transition: fill 0.45s ease;
 }
@@ -2200,8 +2201,31 @@ a {
   letter-spacing: 0.1em;
 }
 
+.mchart__legend text {
+  font-size: 15px;
+  fill: rgba(255, 255, 255, 0.48);
+  letter-spacing: 0.03em;
+}
+
+.mchart__mu {
+  font-size: 13px;
+  fill: rgba(255, 255, 255, 0.48);
+  letter-spacing: 0.02em;
+  transition: fill 0.45s ease;
+}
+
+.mchart__row.is-seen .mchart__mu {
+  fill: rgba(255, 207, 139, 0.66);
+}
+
+.mchart__detected {
+  font-size: 14px;
+  fill: #ffcf8b;
+  letter-spacing: 0.08em;
+}
+
 .mchart__controls {
-  margin: 1.5rem 4.6% 0 20.8%;
+  margin: 1.5rem 8% 0 22%;
 }
 
 .mchart__slider-head {
@@ -2310,6 +2334,14 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+.mchart__caption-note {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.78em;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.46);
+}
+
 @media (max-width: 760px) {
   .mchart__inner {
     min-width: 620px;
@@ -2333,67 +2365,156 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   Simulated histogram + closing quote
+   Lensed vs unlensed distribution + closing quote
    -------------------------------------------------------------------------- */
 
-.shist {
+.lensed-chart {
   width: 100%;
-  margin: clamp(2.2rem, 5vh, 3rem) 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
 }
 
-.shist__scroller {
+.lensed-chart__scroller {
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
+  scrollbar-color: rgba(236, 233, 226, 0.22) transparent;
 }
 
-.shist__svg {
+.lensed-chart__svg {
   display: block;
   width: 100%;
   height: auto;
+  overflow: visible;
 }
 
-.shist__tick,
-.shist__axis,
-.shist__limit,
-.shist__note {
+.lensed-chart__svg text {
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   paint-order: stroke;
-  stroke: rgba(0, 0, 0, 0.8);
+  stroke: rgba(0, 0, 0, 0.82);
   stroke-width: 3px;
   stroke-linejoin: round;
 }
 
-.shist__tick {
-  font-size: 18px;
-  fill: rgba(255, 255, 255, 0.42);
+.lensed-chart__tick {
+  font-size: 17px;
+  fill: rgba(255, 255, 255, 0.45);
   font-variant-numeric: tabular-nums;
 }
 
-.shist__axis {
-  font-size: 17px;
+.lensed-chart__axis {
+  font-size: 16px;
   fill: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.03em;
 }
 
-.shist__limit {
+.lensed-chart__limit {
   font-size: 15px;
   fill: #ff5c35;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
 }
 
-.shist__note {
-  font-size: 15px;
-  fill: rgba(255, 255, 255, 0.34);
+.lensed-chart__legend text {
+  font-size: 14px;
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+.lensed-chart__inset-title {
+  font-size: 12px;
+  fill: rgba(255, 255, 255, 0.58);
+  letter-spacing: 0.12em;
+}
+
+.lensed-chart__inset-count {
+  font-size: 12px;
+  fill: #ffcf8b;
   letter-spacing: 0.04em;
 }
 
-.shist__note--gold {
-  fill: #ffcf8b;
+.lensed-chart__inset-tick {
+  font-size: 11px;
+  fill: rgba(255, 255, 255, 0.4);
+}
+
+.lensed-chart__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1.8rem;
+  text-align: center;
+}
+
+.lensed-chart__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 8rem;
+}
+
+.lensed-chart__value {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(2.4rem, 4.2vw, 3.4rem);
+  line-height: 1;
+  color: #ffcf8b;
+}
+
+.lensed-chart__value--muted {
+  color: rgba(200, 200, 200, 0.45);
+}
+
+.lensed-chart__label {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: rgba(236, 233, 226, 0.52);
+}
+
+.lensed-chart__arrow {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1.8rem;
+  color: #ffcf8b;
+}
+
+.lensed-chart__message {
+  flex-basis: 100%;
+  max-width: 64ch;
+  margin: 0.9rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.02rem, 1.3vw, 1.15rem);
+  line-height: 1.7;
+  color: rgba(236, 233, 226, 0.78);
+  text-wrap: balance;
+}
+
+.lensed-chart__note {
+  max-width: 70ch;
+  margin: 0.9rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(236, 233, 226, 0.42);
+  text-align: center;
+}
+
+.lensed-chart__note sub {
+  font-size: 0.78em;
+}
+
+.mchart__scroll-hint,
+.lensed-chart__scroll-hint {
+  display: none;
+  margin: 0.8rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: rgba(236, 233, 226, 0.42);
+  text-align: center;
 }
 
 .sn-quote {
@@ -2533,6 +2654,53 @@ a {
   color: rgba(236, 233, 226, 0.38);
 }
 
+.lens-scatter-wrap {
+  width: 100%;
+}
+
+.lens-scatter__tooltip {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(255, 207, 139, 0.36);
+  background: rgba(6, 8, 12, 0.95);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.84rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  color: rgba(236, 233, 226, 0.68);
+  pointer-events: none;
+  transform: translate(14px, -50%);
+}
+
+.lens-scatter__tooltip strong {
+  font-weight: 400;
+  font-size: 0.96rem;
+  letter-spacing: 0.02em;
+  color: #ffcf8b;
+}
+
+.lens-scatter__tooltip span {
+  color: rgba(236, 233, 226, 0.62);
+}
+
+.lens-scatter__caption {
+  max-width: 68ch;
+  margin: 1.4rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: rgba(236, 233, 226, 0.54);
+  text-align: center;
+  text-wrap: pretty;
+}
+
 /* --------------------------------------------------------------------------
    Supernovae — vertical, centre-aligned magazine layout
    Every section is in normal document flow. No fixed or sticky backdrops.
@@ -2547,7 +2715,6 @@ a {
 }
 
 .sn-hero,
-.sn-next,
 .sn-footer {
   width: min(100%, 880px);
   margin-right: auto;
@@ -2653,7 +2820,7 @@ a {
 
 /* the chart components already carry their own top margins; the section
    wrapper owns the vertical rhythm now */
-.sn-chart .shist {
+.sn-chart .lensed-chart {
   margin-top: 0;
 }
 
@@ -2674,21 +2841,73 @@ a {
   text-align: center;
 }
 
-.sn-next {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.6rem;
-  margin-top: clamp(3rem, 8vh, 6rem);
-  padding-top: clamp(3rem, 6vh, 4rem);
-  border-top: 1px solid rgba(236, 233, 226, 0.12);
+.sn-coda {
+  width: min(100%, 1000px);
+  margin: 0 auto;
+  padding: clamp(6rem, 12vh, 10rem) 0 clamp(4rem, 8vh, 6rem);
   text-align: center;
 }
 
-.sn-next .next-link__title {
-  max-width: 36rem;
-  margin-right: auto;
-  margin-left: auto;
+.sn-transition__body {
+  max-width: 46rem;
+  margin: 0 auto 2rem;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  line-height: 1.7;
+  color: rgba(236, 233, 226, 0.76);
+  text-wrap: balance;
+}
+
+.sn-transition__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.sn-transition__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.4rem;
+  border: 1px solid rgba(255, 207, 139, 0.5);
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  letter-spacing: 0.02em;
+  color: #ffcf8b;
+  text-decoration: none;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+
+.sn-transition__button span {
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sn-transition__button:hover {
+  border-color: #ffcf8b;
+  background: #ffcf8b;
+  color: #07080a;
+}
+
+.sn-transition__button:hover span {
+  transform: translateX(4px);
+}
+
+.sn-philosophy {
+  max-width: 58rem;
+  margin: clamp(4rem, 8vh, 7rem) auto 0;
+  padding-top: clamp(3rem, 6vh, 4.5rem);
+  border-top: 1px solid rgba(236, 233, 226, 0.12);
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.5rem, 2.6vw, 2.3rem);
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: #f3f1ec;
+  text-wrap: balance;
 }
 
 .sn-footer {
@@ -2754,8 +2973,22 @@ a {
     display: none;
   }
 
-  .shist__svg {
+  .lensed-chart__svg {
     min-width: 680px;
+  }
+
+  .mchart__controls {
+    margin: 1.5rem 0 0;
+  }
+
+  .mchart__legend,
+  .lensed-chart__legend {
+    display: none;
+  }
+
+  .mchart__scroll-hint,
+  .lensed-chart__scroll-hint {
+    display: block;
   }
 }
 
