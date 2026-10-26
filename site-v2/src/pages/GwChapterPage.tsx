@@ -66,7 +66,7 @@ export function GwChapterPage({
         <h2 className="gw-section-title">M1 vs M2: Before and After</h2>
         <p className="gw-section-lede">
           Each event contributes two component masses. The observed masses
-          (red) sit above the boundary; the de-lensed masses (gold) return to
+          (violet) sit above the boundary; the de-lensed masses (lapis blue) return to
           the normal range. The μ values show how much magnification each
           component requires.
         </p>

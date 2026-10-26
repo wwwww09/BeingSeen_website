@@ -238,8 +238,8 @@ export function SkyCoverageMap() {
 
   const sprites = useMemo(
     () => ({
-      lens: makeGlowSprite('#c9cdf0', '#4A4E69', 6),
-      matched: makeGlowSprite('#e6d3a3', '#B89B5E', 6),
+      lens: makeGlowSprite('#d0d5ff', '#4A4E69', 7),
+      matched: makeGlowSprite('#c9b07a', '#b89b5e', 6),
     }),
     [],
   )
@@ -297,12 +297,16 @@ export function SkyCoverageMap() {
       return
     }
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3)
     for (const canvas of [baseCanvas, overlayCanvas]) {
       canvas.width = Math.round(size.w * dpr)
       canvas.height = Math.round(size.h * dpr)
       const context = canvas.getContext('2d')
-      if (context) context.setTransform(dpr, 0, 0, dpr, 0, 0)
+      if (context) {
+        context.setTransform(dpr, 0, 0, dpr, 0, 0)
+        context.imageSmoothingEnabled = true
+        context.imageSmoothingQuality = 'high'
+      }
     }
 
     const baseContext = baseCanvas.getContext('2d')
@@ -369,8 +373,8 @@ export function SkyCoverageMap() {
     // Keep the mobile map from turning into a solid gold band: the same
     // catalogue at 350 px needs smaller sprites than it does at 720 px.
     const spriteScale = Math.min(1, size.w / 720)
-    const lensSize = Math.max(2.5, 5.5 * spriteScale)
-    const matchedSize = Math.max(2.5, 5 * spriteScale)
+    const lensSize = Math.max(2.4, 5 * spriteScale)
+    const matchedSize = Math.max(1.8, 3.4 * spriteScale)
 
     const drawBase = (time: number) => {
       drawGrid(baseContext, projection)
@@ -400,6 +404,8 @@ export function SkyCoverageMap() {
           lensSize,
           lensSize,
         )
+        baseContext.fillStyle = '#aab0dc'
+        baseContext.fillRect(lens.x - 0.5, lens.y - 0.5, 1, 1)
       }
 
       // 3. A faint gold web connects a subset of matches to their lenses.
@@ -419,7 +425,9 @@ export function SkyCoverageMap() {
         baseContext.stroke()
       }
 
-      // 4. Matched SNe arrive as a gold, twinkling network.
+      // 4. Matched SNe arrive as a gold, twinkling network. Source-over keeps
+      // the dark gold from summing with the blue lens field into white.
+      baseContext.globalCompositeOperation = 'source-over'
       for (const point of matched) {
         const progress = smoothstep((time - point.appear) / 0.3)
         if (progress <= 0) continue
@@ -433,6 +441,10 @@ export function SkyCoverageMap() {
           matchedSize,
           matchedSize,
         )
+        // A one-pixel core keeps each fragment sharp on high-DPI canvases.
+        baseContext.globalAlpha = progress
+        baseContext.fillStyle = '#b89b5e'
+        baseContext.fillRect(point.x - 0.75, point.y - 0.75, 1.5, 1.5)
       }
 
       baseContext.globalAlpha = 1

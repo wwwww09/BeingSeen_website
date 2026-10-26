@@ -35,7 +35,7 @@ const GAP_Y = yOf(MASS_GAP)
  * M1 vs M2, observed vs de-lensed.
  *
  * Each event gets two subgroups, one for each component mass, and each subgroup
- * gets a dark-red hatched observed bar and a gold de-lensed bar. This keeps all four masses
+ * gets a violet hatched observed bar and a lapis-blue de-lensed bar. This keeps all four masses
  * in one view while preserving the event-level comparison.
  */
 export function GwMassComparison() {
@@ -70,8 +70,8 @@ export function GwMassComparison() {
                 x2="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#8B0000" stopOpacity="0.85" />
-                <stop offset="100%" stopColor="#4A0000" stopOpacity="0.55" />
+                <stop offset="0%" stopColor="#2B1E4A" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#1A1130" stopOpacity="0.6" />
               </linearGradient>
               <pattern
                 id={`${uid}-observed`}
@@ -85,19 +85,31 @@ export function GwMassComparison() {
                   height="7"
                   fill={`url(#${uid}-observed-bg)`}
                 />
-                <line
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="7"
-                  stroke="rgba(230, 160, 160, 0.22)"
-                  strokeWidth="2"
+                <rect
+                  width="7"
+                  height="2"
+                  fill="rgba(185, 165, 230, 0.22)"
                 />
               </pattern>
               <linearGradient id={`${uid}-true`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#D4AF37" />
-                <stop offset="100%" stopColor="#8F7A46" />
+                <stop offset="0%" stopColor="#4169E1" />
+                <stop offset="100%" stopColor="#1C39BB" />
               </linearGradient>
+              <filter
+                id={`${uid}-true-glow`}
+                x="-30%"
+                y="-30%"
+                width="160%"
+                height="160%"
+              >
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  stdDeviation="3"
+                  floodColor="#4169E1"
+                  floodOpacity="0.28"
+                />
+              </filter>
             </defs>
 
             {Y_TICKS.map((value) => (
@@ -204,6 +216,8 @@ export function GwMassComparison() {
                         rx={1}
                         fill={`url(#${uid}-observed)`}
                         fillOpacity={0.8}
+                        stroke="rgba(60, 40, 100, 0.7)"
+                        strokeWidth={1}
                         {...barMotion(observedY, observedH)}
                       />
                       <motion.rect
@@ -212,6 +226,7 @@ export function GwMassComparison() {
                         rx={1}
                         fill={`url(#${uid}-true)`}
                         fillOpacity={0.8}
+                        filter={`url(#${uid}-true-glow)`}
                         {...barMotion(trueY, trueH)}
                       />
 
@@ -268,11 +283,11 @@ export function GwMassComparison() {
       <p className="gw-compare__scroll-hint">Scroll the chart sideways →</p>
 
       <div className="gw-compare__legend" aria-label="Chart legend">
-        <span>
+        <span className="gw-compare__legend-item--observed">
           <i className="gw-compare__swatch gw-compare__swatch--observed" />
           Observed Mass
         </span>
-        <span>
+        <span className="gw-compare__legend-item--true">
           <i className="gw-compare__swatch gw-compare__swatch--true" />
           De-lensed True Mass
         </span>
