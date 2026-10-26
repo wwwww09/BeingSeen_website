@@ -169,15 +169,16 @@ function Galaxy({ animate }: { animate: boolean }) {
 
   return (
     <group ref={field} position={[0, 0, 0]}>
-      {/* The lensing galaxy: a translucent amber sphere, not a flat target. */}
+      {/* The lensing galaxy: a visible amber sphere, independent of the FRB
+          particle material in FrbDataMap3D. */}
       <mesh position={[0, 0, 0]} renderOrder={1}>
         <sphereGeometry args={[1.02, 64, 64]} />
         <meshStandardMaterial
           color="#d97706"
           emissive="#b45309"
-          emissiveIntensity={0.5}
+          emissiveIntensity={0.55}
           transparent
-          opacity={0.1}
+          opacity={0.85}
           roughness={0.45}
           metalness={0.05}
           depthWrite={false}
@@ -196,6 +197,8 @@ function Galaxy({ animate }: { animate: boolean }) {
             transparent
             opacity={ring.opacity * 1.8}
             depthWrite={false}
+            depthTest={false}
+            renderOrder={2}
             blending={THREE.AdditiveBlending}
           />
         ))}

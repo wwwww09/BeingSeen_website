@@ -187,13 +187,13 @@ const POINT_VERTEX = `
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 
-    // aSize is in world units (0.05 base). Cap the quad tightly so the dense
-    // centre cannot merge into one solid white mass.
+    // aSize is in world units (0.05 base). This is roughly twice the previous
+    // point size; the cap keeps the densest part of the cluster readable.
     float perspective = 18.0 / max(-mvPosition.z, 1.0);
     gl_PointSize = clamp(
-      aSize * uDpr * 280.0 * perspective * (0.94 + 0.06 * twinkle),
+      aSize * uDpr * 520.0 * perspective * (0.94 + 0.06 * twinkle),
       2.0,
-      14.0
+      26.0
     );
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -208,11 +208,12 @@ const POINT_FRAGMENT = `
     float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
     if (distanceToCenter > 1.0) discard;
 
-    // Circular radial gradient: bright at the centre, fading smoothly to
-    // nothing at the edge. No hard rim and no white core.
-    float radial = pow(max(0.0, 1.0 - distanceToCenter), 2.2);
-    vec3 color = vColor * (0.92 + 0.28 * (1.0 - distanceToCenter));
-    float alpha = radial * uOpacity * vTwinkle;
+    // Circular radial gradient: a compact coloured core with a smooth halo.
+    // No white mix, so each star keeps its Viridis colour.
+    float halo = pow(max(0.0, 1.0 - distanceToCenter), 2.0);
+    float core = pow(max(0.0, 1.0 - distanceToCenter), 6.0);
+    vec3 color = vColor * (0.95 + 0.4 * core);
+    float alpha = max(core, halo * 0.22) * uOpacity * vTwinkle;
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -246,10 +247,90 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
         uniforms={{
           uDpr: { value: dpr },
           uTime: { value: 0 },
-          uOpacity: { value: 0.65 },
+          uOpacity: { value: 0.95 },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
+        transparent
+        depthWrite={false}
+        depthTest={false}
+        blending={THREE.NormalBlending}
+        toneMapped={false}
+      />
+    </points>
+  )
+}
+
+const FRB_GLOW_VERTEX = `
+  attribute float aSize;
+  attribute float aPhase;
+  attribute vec3 aColor;
+  varying vec3 vColor;
+  uniform float uDpr;
+  uniform float uTime;
+
+  void main() {
+    vColor = aColor;
+    float twinkle = 0.8 + 0.2 * sin(uTime * 2.35 + aPhase);
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+
+    // Broad additive aura. It is much wider than the core but deliberately
+    // low-opacity, so it adds glow without bleaching the Viridis colour.
+    float perspective = 18.0 / max(-mvPosition.z, 1.0);
+    gl_PointSize = clamp(
+      aSize * uDpr * 1000.0 * perspective * (0.9 + 0.1 * twinkle),
+      8.0,
+      54.0
+    );
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`
+
+const FRB_GLOW_FRAGMENT = `
+  varying vec3 vColor;
+  uniform float uOpacity;
+
+  void main() {
+    float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
+    if (distanceToCenter > 1.0) discard;
+
+    float glow = pow(max(0.0, 1.0 - distanceToCenter), 2.6);
+    gl_FragColor = vec4(vColor, glow * uOpacity);
+  }
+`
+
+function FrbGlow({ cloud }: { cloud: CloudData }) {
+  const dpr = useThree((state) => state.viewport.dpr)
+  const material = useRef<THREE.ShaderMaterial>(null)
+
+  useFrame(({ clock }) => {
+    if (!material.current) return
+    material.current.uniforms.uTime.value = clock.elapsedTime
+  })
+
+  return (
+    <points frustumCulled={false} renderOrder={1}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[cloud.positions, 3]}
+        />
+        <bufferAttribute
+          attach="attributes-aColor"
+          args={[cloud.colors, 3]}
+        />
+        <bufferAttribute attach="attributes-aSize" args={[cloud.sizes, 1]} />
+        <bufferAttribute attach="attributes-aPhase" args={[cloud.phases, 1]} />
+      </bufferGeometry>
+      <shaderMaterial
+        ref={material}
+        uniforms={{
+          uDpr: { value: dpr },
+          uTime: { value: 0 },
+          uOpacity: { value: 0.07 },
+        }}
+        vertexShader={FRB_GLOW_VERTEX}
+        fragmentShader={FRB_GLOW_FRAGMENT}
         transparent
         depthWrite={false}
         depthTest={false}
@@ -318,7 +399,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           ref={material}
           uniforms={{
             uDpr: { value: dpr },
-            uSize: { value: 36 },
+            uSize: { value: 48 },
             uTime: { value: 0 },
             uColor: { value: new THREE.Color('#ffd700') },
           }}
@@ -424,6 +505,7 @@ export function FrbDataMap3D() {
           style={{ background: 'transparent' }}
         >
           <ResponsiveCamera />
+          <FrbGlow cloud={cloud} />
           <FrbPoints cloud={cloud} />
           <GoldCandidates cloud={cloud} />
           <OrbitControls
