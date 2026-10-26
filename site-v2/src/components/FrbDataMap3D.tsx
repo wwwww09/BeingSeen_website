@@ -27,51 +27,94 @@ interface FrbData {
 type Vec3 = [number, number, number]
 
 interface CloudData {
-  regular: Float32Array
-  candidates: Float32Array
+  positions: Float32Array
+  colors: Float32Array
+  sizes: Float32Array
+  candidatePositions: Float32Array
   pairLines: Vec3[][]
   total: number
   candidateCount: number
   pairCount: number
+  dmMin: number
+  dmMax: number
 }
 
-function makeNormalizer(values: number[], transform: (value: number) => number) {
-  const transformed = values.map(transform)
-  const min = Math.min(...transformed)
-  const max = Math.max(...transformed)
-  return (value: number) => {
-    if (!Number.isFinite(value) || max === min) return 0
-    return ((transform(value) - min) / (max - min)) * 20 - 10
-  }
+const SPHERE_RADIUS = 10
+
+/*
+ * Viridis stops, sampled from the standard d3/Viridis ramp. Keeping the ramp
+ * in JS means the WebGL shader and the HTML legend share the exact same colors.
+ */
+const VIRIDIS: [number, number, number][] = [
+  [0.267, 0.005, 0.329], // #440154
+  [0.283, 0.141, 0.458], // #482878
+  [0.254, 0.265, 0.53], // #3e4989
+  [0.207, 0.372, 0.553], // #31688e
+  [0.164, 0.471, 0.558], // #26828e
+  [0.128, 0.567, 0.551], // #1f9e89
+  [0.208, 0.718, 0.472], // #35b779
+  [0.431, 0.808, 0.345], // #6ece58
+  [0.71, 0.871, 0.169], // #b5de2b
+  [0.993, 0.906, 0.144], // #fde725
+]
+
+function viridis(value: number): [number, number, number] {
+  const t = Math.min(1, Math.max(0, value))
+  const scaled = t * (VIRIDIS.length - 1)
+  const index = Math.min(VIRIDIS.length - 2, Math.floor(scaled))
+  const fraction = scaled - index
+  const low = VIRIDIS[index]
+  const high = VIRIDIS[index + 1]
+
+  return [
+    low[0] + (high[0] - low[0]) * fraction,
+    low[1] + (high[1] - low[1]) * fraction,
+    low[2] + (high[2] - low[2]) * fraction,
+  ]
+}
+
+/** r = dm / max(dm), with RA/Dec defining the unit-sphere direction. */
+function toSphere(
+  row: FrbRow,
+  maxDm: number,
+  scale = SPHERE_RADIUS,
+): Vec3 {
+  const radius = (row.dm / Math.max(maxDm, 1e-6)) * scale
+  const ra = (row.ra * Math.PI) / 180
+  const dec = (row.dec * Math.PI) / 180
+  const cosDec = Math.cos(dec)
+
+  return [
+    radius * cosDec * Math.cos(ra),
+    radius * cosDec * Math.sin(ra),
+    radius * Math.sin(dec),
+  ]
 }
 
 function buildCloud(data: FrbData): CloudData {
   const rows = data.all_frbs
-  const x = makeNormalizer(
-    rows.map((row) => row.ra),
-    (value) => value,
-  )
-  const y = makeNormalizer(
-    rows.map((row) => row.dec),
-    (value) => value,
-  )
-  const z = makeNormalizer(
-    rows.map((row) => row.dm),
-    (value) => Math.log10(Math.max(value, 0) + 1),
-  )
+  const dmMin = Math.min(...rows.map((row) => row.dm))
+  const dmMax = Math.max(...rows.map((row) => row.dm), 1e-6)
+  const maxSnr = Math.max(...rows.map((row) => row.snr ?? 0), 1e-6)
 
-  const toPosition = (row: FrbRow): Vec3 => [
-    x(row.ra),
-    y(row.dec),
-    z(row.dm),
-  ]
+  const positions = new Float32Array(rows.length * 3)
+  const colors = new Float32Array(rows.length * 3)
+  const sizes = new Float32Array(rows.length)
 
-  const regular = new Float32Array(rows.length * 3)
   rows.forEach((row, index) => {
-    const [px, py, pz] = toPosition(row)
-    regular[index * 3] = px
-    regular[index * 3 + 1] = py
-    regular[index * 3 + 2] = pz
+    const [x, y, z] = toSphere(row, dmMax)
+    const color = viridis(row.dm / dmMax)
+
+    positions[index * 3] = x
+    positions[index * 3 + 1] = y
+    positions[index * 3 + 2] = z
+
+    colors[index * 3] = color[0]
+    colors[index * 3 + 1] = color[1]
+    colors[index * 3 + 2] = color[2]
+
+    // The requested SNR size mapping: 3 px for the faintest, 13 px at max.
+    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 10 + 3
   })
 
   const byName = new Map(rows.map((row) => [row.frb_name, row]))
@@ -90,26 +133,187 @@ function buildCloud(data: FrbData): CloudData {
     }
 
     if (first && second) {
-      pairLines.push([toPosition(first), toPosition(second)])
+      pairLines.push([toSphere(first, dmMax), toSphere(second, dmMax)])
     }
   }
 
-  const candidates = new Float32Array(candidateRows.length * 3)
+  const candidatePositions = new Float32Array(candidateRows.length * 3)
   candidateRows.forEach((row, index) => {
-    const [px, py, pz] = toPosition(row)
-    candidates[index * 3] = px
-    candidates[index * 3 + 1] = py
-    candidates[index * 3 + 2] = pz
+    const [x, y, z] = toSphere(row, dmMax)
+    candidatePositions[index * 3] = x
+    candidatePositions[index * 3 + 1] = y
+    candidatePositions[index * 3 + 2] = z
   })
 
   return {
-    regular,
-    candidates,
+    positions,
+    colors,
+    sizes,
+    candidatePositions,
     pairLines,
     total: rows.length,
     candidateCount: candidateRows.length,
     pairCount: data.candidates.length,
+    dmMin,
+    dmMax,
   }
+}
+
+const POINT_VERTEX = `
+  attribute float aSize;
+  attribute vec3 aColor;
+  varying vec3 vColor;
+  uniform float uDpr;
+  uniform float uSizeScale;
+
+  void main() {
+    vColor = aColor;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = aSize * uSizeScale * uDpr;
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`
+
+const POINT_FRAGMENT = `
+  varying vec3 vColor;
+  uniform float uOpacity;
+
+  void main() {
+    float distanceToCenter = length(gl_PointCoord - vec2(0.5));
+    if (distanceToCenter > 0.5) discard;
+
+    float core = smoothstep(0.5, 0.0, distanceToCenter);
+    float alpha = pow(core, 1.6);
+    vec3 color = vColor * (0.85 + core * 0.55);
+    color = mix(color, vec3(1.0), smoothstep(0.78, 1.0, core) * 0.28);
+
+    gl_FragColor = vec4(color, alpha * uOpacity);
+  }
+`
+
+function FrbPoints({
+  cloud,
+  opacity,
+  sizeScale,
+  renderOrder,
+}: {
+  cloud: CloudData
+  opacity: number
+  sizeScale: number
+  renderOrder: number
+}) {
+  const dpr = useThree((state) => state.viewport.dpr)
+
+  return (
+    <points frustumCulled={false} renderOrder={renderOrder}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[cloud.positions, 3]}
+        />
+        <bufferAttribute
+          attach="attributes-aColor"
+          args={[cloud.colors, 3]}
+        />
+        <bufferAttribute attach="attributes-aSize" args={[cloud.sizes, 1]} />
+      </bufferGeometry>
+      <shaderMaterial
+        uniforms={{
+          uDpr: { value: dpr },
+          uOpacity: { value: opacity },
+          uSizeScale: { value: sizeScale },
+        }}
+        vertexShader={POINT_VERTEX}
+        fragmentShader={POINT_FRAGMENT}
+        transparent
+        depthWrite={false}
+        depthTest={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  )
+}
+
+function GoldCandidates({ cloud }: { cloud: CloudData }) {
+  const dpr = useThree((state) => state.viewport.dpr)
+  const dot = useMemo(() => getDotTexture(), [])
+
+  if (cloud.candidatePositions.length === 0) return null
+
+  return (
+    <>
+      {/* A soft dark backing separates the gold candidates from the dense core. */}
+      <points frustumCulled={false} renderOrder={5}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[cloud.candidatePositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          map={dot}
+          color="#05070a"
+          size={36 * dpr}
+          sizeAttenuation={false}
+          transparent
+          opacity={0.9}
+          depthWrite={false}
+          depthTest={false}
+        />
+      </points>
+      <points frustumCulled={false} renderOrder={6}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[cloud.candidatePositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          map={dot}
+          color="#ffcf8b"
+          size={52 * dpr}
+          sizeAttenuation={false}
+          transparent
+          opacity={0.14}
+          depthWrite={false}
+          depthTest={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+      <points frustumCulled={false} renderOrder={7}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[cloud.candidatePositions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          map={dot}
+          color="#ffcf8b"
+          size={22 * dpr}
+          sizeAttenuation={false}
+          transparent
+          opacity={1}
+          depthWrite={false}
+          depthTest={false}
+          blending={THREE.NormalBlending}
+        />
+      </points>
+
+      {cloud.pairLines.map((points, index) => (
+        <Line
+          key={index}
+          points={points}
+          color="#ffcf8b"
+          lineWidth={0.7}
+          transparent
+          opacity={0.2}
+          depthWrite={false}
+          depthTest={false}
+        />
+      ))}
+    </>
+  )
 }
 
 function ResponsiveCamera() {
@@ -121,11 +325,11 @@ function ResponsiveCamera() {
     if (!(camera instanceof THREE.PerspectiveCamera)) return
     const portrait = width / Math.max(height, 1) < 1
     camera.position.set(
-      portrait ? 25 : 19,
-      portrait ? 16 : 12,
-      portrait ? 31 : 24,
+      portrait ? 21 : 16,
+      portrait ? 12 : 9,
+      portrait ? 24 : 18,
     )
-    camera.fov = portrait ? 46 : 42
+    camera.fov = portrait ? 50 : 44
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
   }, [camera, width, height])
@@ -133,97 +337,8 @@ function ResponsiveCamera() {
   return null
 }
 
-function FrbCloud({ cloud }: { cloud: CloudData }) {
-  const dot = useMemo(() => getDotTexture(), [])
-
-  return (
-    <>
-      <gridHelper
-        args={[24, 24, '#1a1a1a', '#1a1a1a']}
-        position={[0, -10, 0]}
-      >
-        <lineBasicMaterial
-          attach="material"
-          color="#1a1a1a"
-          transparent
-          opacity={0.14}
-        />
-      </gridHelper>
-
-      {/* the catalogue — intentionally quiet */}
-      <points frustumCulled={false}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[cloud.regular, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          map={dot}
-          color="#8fc4ff"
-          size={0.18}
-          sizeAttenuation
-          transparent
-          opacity={0.7}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
-
-      {/* candidate halos, then the four bright cores */}
-      <points frustumCulled={false} renderOrder={4}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[cloud.candidates, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          map={dot}
-          color="#ffcf8b"
-          size={2.0}
-          sizeAttenuation
-          transparent
-          opacity={0.24}
-          depthWrite={false}
-          depthTest={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
-      <points frustumCulled={false} renderOrder={5}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[cloud.candidates, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          map={dot}
-          color="#ffcf8b"
-          size={0.65}
-          sizeAttenuation
-          transparent
-          opacity={0.95}
-          depthWrite={false}
-          depthTest={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
-
-      {cloud.pairLines.map((points, index) => (
-        <Line
-          key={index}
-          points={points}
-          color="#ffcf8b"
-          lineWidth={0.9}
-          transparent
-          opacity={0.34}
-          depthWrite={false}
-          depthTest={false}
-        />
-      ))}
-    </>
-  )
+function formatDm(value: number) {
+  return Math.round(value).toLocaleString('en-US')
 }
 
 export function FrbDataMap3D() {
@@ -268,25 +383,37 @@ export function FrbDataMap3D() {
       <div
         className="frb-map__canvas"
         role="img"
-        aria-label={`3D scatter plot of ${cloud.total} fast radio bursts. Right ascension is the horizontal axis, declination the vertical axis, and dispersion measure on a logarithmic depth axis. Four candidate bursts are highlighted in gold.`}
+        aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following the Viridis DM scale. Four candidate bursts are highlighted in gold.`}
       >
         <Canvas
-          camera={{ position: [24, 15, 30], fov: 42 }}
+          camera={{ position: [18, 10, 20], fov: 42 }}
           dpr={[1, 2]}
           gl={{ antialias: true, alpha: true }}
           style={{ background: 'transparent' }}
         >
           <ResponsiveCamera />
-          <FrbCloud cloud={cloud} />
+          <FrbPoints
+            cloud={cloud}
+            opacity={0.18}
+            sizeScale={2.6}
+            renderOrder={1}
+          />
+          <FrbPoints
+            cloud={cloud}
+            opacity={1}
+            sizeScale={1}
+            renderOrder={2}
+          />
+          <GoldCandidates cloud={cloud} />
           <OrbitControls
             makeDefault
             target={[0, 0, 0]}
             enablePan={false}
             enableZoom
-            minDistance={16}
-            maxDistance={70}
-            minPolarAngle={0.25}
-            maxPolarAngle={Math.PI / 2 + 0.08}
+            minDistance={14}
+            maxDistance={55}
+            minPolarAngle={0.2}
+            maxPolarAngle={Math.PI - 0.2}
             enableDamping
             dampingFactor={0.06}
             rotateSpeed={0.55}
@@ -294,29 +421,30 @@ export function FrbDataMap3D() {
         </Canvas>
       </div>
 
-      <p className="frb-map__hint">Drag to rotate · scroll to zoom</p>
-
-      <ul className="frb-map__legend" aria-label="Data map legend">
-        <li>
-          <i
-            className="frb-map-dot frb-map-dot--detected"
-            aria-hidden="true"
-          />
-          Detected FRBs <b>{cloud.total} of 690 plotted</b>
-        </li>
-        <li>
-          <i
-            className="frb-map-dot frb-map-dot--candidate"
-            aria-hidden="true"
-          />
+      <div className="frb-map__legend" aria-label="Map legend">
+        <div className="frb-map__dm">
+          <span className="frb-map__dm-label">DM</span>
+          <span className="frb-map__dm-bar" aria-hidden="true" />
+          <span className="frb-map__dm-range">
+            {formatDm(cloud.dmMin)}–{formatDm(cloud.dmMax)}
+          </span>
+        </div>
+        <span className="frb-map__key">
+          <i className="frb-map__gold-dot" aria-hidden="true" />
           Candidate FRBs{' '}
           <b>
             {cloud.candidateCount} · {cloud.pairCount} pairs
           </b>
-        </li>
-      </ul>
+        </span>
+      </div>
 
-      <p className="frb-map__axes">RA → X · Dec → Y · DM (log) → Z</p>
+      <p className="frb-map__hint">
+        {cloud.total} of 690 plotted · point size ∝ SNR · drag to rotate ·
+        scroll to zoom
+      </p>
+      <p className="frb-map__axes">
+        r = DM / max(DM) · RA, Dec → direction
+      </p>
     </div>
   )
 }
