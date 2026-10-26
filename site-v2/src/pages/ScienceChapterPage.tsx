@@ -6,6 +6,7 @@ import { LensScatter3D } from '../components/LensScatter3D'
 import { LensedVsUnlensedChart } from '../components/LensedVsUnlensedChart'
 import { MagnitudeChart } from '../components/MagnitudeChart'
 import { FrbChapterPage } from './FrbChapterPage'
+import { GwChapterPage } from './GwChapterPage'
 
 export function ScienceChapterPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -46,6 +47,10 @@ export function ScienceChapterPage() {
 
   if (chapter.slug === 'fast-radio-bursts') {
     return <FrbChapterPage chapter={chapter} reduced={reduced} />
+  }
+
+  if (chapter.slug === 'gravitational-waves') {
+    return <GwChapterPage chapter={chapter} reduced={reduced} />
   }
 
   if (chapter.slug === 'supernovae') {

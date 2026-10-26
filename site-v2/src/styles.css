@@ -4041,3 +4041,811 @@ a {
     font-size: clamp(1.65rem, 7.2vw, 2.3rem);
   }
 }
+
+/* --------------------------------------------------------------------------
+   Chapter 03 — Gravitational waves
+   -------------------------------------------------------------------------- */
+
+.gw-page {
+  width: 100%;
+  margin: 0;
+  padding: 0 6vw clamp(4rem, 8vh, 7rem);
+  background: transparent;
+}
+
+.gw-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100svh - 92px);
+  padding: clamp(5rem, 10vh, 8rem) 0;
+  text-align: center;
+}
+
+.gw-hero .eyebrow {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  color: var(--accent);
+}
+
+.gw-title {
+  max-width: 20ch;
+  margin: 0 auto;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(2.8rem, 6vw, 5.8rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: #f5f5f5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.gw-hero .chapter__rule {
+  margin: clamp(1.8rem, 4vh, 2.6rem) auto;
+}
+
+.gw-lede {
+  max-width: 60rem;
+  margin: 0 auto;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.16rem, 1.5vw, 1.42rem);
+  line-height: 1.75;
+  color: #f5f5f5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.gw-section {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  padding: clamp(4rem, 8vh, 7rem) 0;
+  text-align: center;
+}
+
+.gw-section + .gw-section {
+  border-top: 1px solid rgba(236, 233, 226, 0.08);
+}
+
+.gw-section-title {
+  max-width: 20ch;
+  margin: 0 auto;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(2.3rem, 4.4vw, 4rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #f5f5f5;
+  text-wrap: balance;
+}
+
+.gw-section-lede {
+  max-width: 62ch;
+  margin: 1.2rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  line-height: 1.7;
+  color: #b9b9b9;
+  text-wrap: balance;
+}
+
+.gw-section-caption {
+  max-width: 64ch;
+  margin: 1.3rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #8f8b83;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------- mass mirage */
+
+.gw-mirage {
+  --gw-chart-h: clamp(320px, 44vh, 430px);
+  width: min(100%, 1000px);
+  margin: clamp(2.4rem, 5vh, 3.6rem) auto 0;
+  text-align: left;
+}
+
+.gw-mirage__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(236, 233, 226, 0.08);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #7d7d7d;
+}
+
+.gw-mirage__status b {
+  font-weight: 500;
+  color: #d8b26a;
+  font-variant-numeric: tabular-nums;
+}
+
+.gw-mirage__plot {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.1rem;
+}
+
+.gw-mirage__y-axis {
+  position: relative;
+  flex: none;
+  width: 2.2rem;
+  height: var(--gw-chart-h);
+}
+
+.gw-mirage__y-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: #7d7d7d;
+}
+
+.gw-mirage__chart {
+  flex: 1;
+  min-width: 0;
+}
+
+.gw-mirage__chart-area {
+  position: relative;
+  height: var(--gw-chart-h);
+  border-left: 1px solid rgba(245, 245, 245, 0.08);
+  border-bottom: 1px solid rgba(245, 245, 245, 0.08);
+}
+
+/* 45/80 = 56.25% and its complement, kept as literals for portability. */
+.gw-mirage__danger-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 43.75%;
+  background: linear-gradient(
+    to bottom,
+    rgba(160, 55, 60, 0.1),
+    rgba(160, 55, 60, 0.015)
+  );
+  pointer-events: none;
+}
+
+.gw-mirage__safe-zone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 56.25%;
+  background: linear-gradient(
+    to top,
+    rgba(55, 130, 95, 0.12),
+    rgba(55, 130, 95, 0.015)
+  );
+  pointer-events: none;
+}
+
+.gw-mirage__gridline {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px solid rgba(245, 245, 245, 0.045);
+}
+
+.gw-mirage__gap-line {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  border-top: 1px dashed #d65a5a;
+  filter: drop-shadow(0 0 4px rgba(214, 90, 90, 0.22));
+}
+
+.gw-mirage__gap-line span {
+  position: absolute;
+  top: -1.35rem;
+  right: 0;
+  padding: 0.18rem 0.4rem;
+  border: 1px solid rgba(214, 90, 90, 0.2);
+  border-radius: 2px;
+  background: rgba(2, 3, 5, 0.78);
+  font-family: var(--sans);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e8a0a0;
+  white-space: nowrap;
+}
+
+.gw-mirage__gap-note {
+  display: none;
+  margin: 0.6rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e8a0a0;
+  text-align: center;
+}
+
+.gw-mirage__bars {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: end;
+  padding: 0 7%;
+}
+
+.gw-mirage__column {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+
+.gw-mirage__bar {
+  position: relative;
+  width: clamp(74px, 10vw, 118px);
+  height: 100%;
+}
+
+.gw-mirage__bar-ghost {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 1px dashed rgba(130, 180, 240, 0.24);
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+}
+
+.gw-mirage__bar-ghost span {
+  position: absolute;
+  top: -1.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.03em;
+  color: rgba(160, 190, 225, 0.55);
+  white-space: nowrap;
+}
+
+.gw-mirage__bar-fill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, #5c95d0 0%, #2c5a8a 55%, #1b3757 100%);
+  box-shadow: 0 0 18px rgba(70, 130, 200, 0.16);
+  transition: background 0.45s ease, box-shadow 0.45s ease;
+}
+
+.gw-mirage__bar-fill.is-safe {
+  background: linear-gradient(180deg, #6bc7a4 0%, #2f8f72 55%, #1d5a49 100%);
+  box-shadow: 0 0 22px rgba(70, 180, 135, 0.18);
+}
+
+.gw-mirage__bar-value {
+  position: absolute;
+  top: -1.45rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: #d2e5fb;
+  white-space: nowrap;
+}
+
+.gw-mirage__bar-fill.is-safe .gw-mirage__bar-value {
+  color: #a9f0cd;
+}
+
+.gw-mirage__event-labels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 1rem 7% 0;
+}
+
+.gw-mirage__event-label {
+  text-align: center;
+}
+
+.gw-mirage__event-label strong {
+  display: block;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #f5f5f5;
+}
+
+.gw-mirage__event-label span {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+  color: #8f8b83;
+}
+
+.gw-mirage__event-label i {
+  font-style: normal;
+  color: #d8b26a;
+}
+
+.gw-mirage__reveal {
+  margin: 1.1rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+  line-height: 1.3;
+  color: #ffcf8b;
+  text-align: center;
+  text-shadow: 0 0 18px rgba(255, 207, 139, 0.25);
+}
+
+.gw-mirage__reveal span {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d8b26a;
+}
+
+.gw-mirage__controls {
+  width: min(100%, 760px);
+  margin: 1.5rem auto 0;
+}
+
+.gw-mirage__slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b9b9b9;
+}
+
+.gw-mirage__slider-value {
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  color: #ffcf8b;
+  font-variant-numeric: tabular-nums;
+}
+
+.gw-mirage__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: calc(100% + 13px);
+  height: 26px;
+  margin: 0.2rem -6.5px 0;
+  padding: 0;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.gw-mirage__slider::-webkit-slider-runnable-track {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+}
+
+.gw-mirage__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin-top: -6px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffcf8b;
+  box-shadow: 0 0 12px rgba(255, 207, 139, 0.55);
+}
+
+.gw-mirage__slider::-moz-range-track {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+}
+
+.gw-mirage__slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffcf8b;
+  box-shadow: 0 0 12px rgba(255, 207, 139, 0.55);
+}
+
+.gw-mirage__slider:focus,
+.gw-mirage__slider:focus-visible,
+.gw-mirage__slider:active {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.gw-mirage__slider:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 6px rgba(255, 207, 139, 0.16),
+    0 0 16px rgba(255, 207, 139, 0.65);
+}
+
+.gw-mirage__slider:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 6px rgba(255, 207, 139, 0.16),
+    0 0 16px rgba(255, 207, 139, 0.65);
+}
+
+.gw-mirage__scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7d7d7d;
+}
+
+.gw-mirage__caption {
+  max-width: 64ch;
+  margin: 1.2rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #8f8b83;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* ----------------------------------------------------- mass comparison */
+
+.gw-compare {
+  width: min(100%, 1100px);
+  margin: clamp(2.4rem, 5vh, 3.6rem) auto 0;
+}
+
+.gw-compare__scroller {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.gw-compare__inner {
+  min-width: 0;
+}
+
+.gw-compare__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.gw-compare__tick {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  fill: #7d7d7d;
+}
+
+.gw-compare__axis-title {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  fill: #8d8d8d;
+}
+
+.gw-compare__value {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  fill: #d7e1ee;
+}
+
+.gw-compare__value--true {
+  fill: #a9c8ea;
+}
+
+.gw-compare__group-label {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: #8d8d8d;
+}
+
+.gw-compare__mu {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
+  fill: #d8b26a;
+}
+
+.gw-compare__event {
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  fill: #f5f5f5;
+}
+
+.gw-compare__gap-label {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  fill: #e39a9a;
+}
+
+.gw-compare__scroll-hint {
+  display: none;
+  margin: 0.55rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7d7d7d;
+}
+
+.gw-compare__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.6rem;
+  margin: 1.1rem auto 0;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  color: #9a978f;
+}
+
+.gw-compare__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.gw-compare__swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+}
+
+.gw-compare__swatch--observed {
+  background: linear-gradient(180deg, #c85462, #7c2632);
+}
+
+.gw-compare__swatch--true {
+  background: linear-gradient(180deg, #4d89c8, #234366);
+}
+
+.gw-compare__dash {
+  flex: none;
+  width: 22px;
+  height: 0;
+  border-top: 1px dashed #d65a5a;
+}
+
+.gw-compare__caption {
+  max-width: 70ch;
+  margin: 1.1rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #8f8b83;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------- coda */
+
+.gw-coda {
+  width: min(100%, 1000px);
+  margin: 0 auto;
+  padding: clamp(5rem, 10vh, 8rem) 0 clamp(3rem, 6vh, 5rem);
+  border-top: 1px solid rgba(236, 233, 226, 0.08);
+  text-align: center;
+}
+
+.gw-quote {
+  max-width: 48rem;
+  margin: clamp(1.6rem, 4vh, 2.2rem) auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.7rem, 3vw, 2.8rem);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: #f5f5f5;
+  text-wrap: balance;
+}
+
+.gw-coda-copy {
+  max-width: 56ch;
+  margin: 1.4rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  line-height: 1.7;
+  color: #b9b9b9;
+  text-wrap: balance;
+}
+
+.gw-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4rem 2.4rem;
+  margin-top: clamp(3rem, 6vh, 4.5rem);
+  padding-top: clamp(2rem, 4vh, 3rem);
+  border-top: 1px solid rgba(236, 233, 226, 0.1);
+}
+
+.gw-footer {
+  width: min(100%, 880px);
+  margin: clamp(4rem, 8vh, 7rem) auto 0;
+  padding: 2.2rem 0 0;
+  border-top: 1px solid rgba(236, 233, 226, 0.1);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #f5f5f5;
+}
+
+@media (max-width: 900px) {
+  .gw-page {
+    padding-right: 5vw;
+    padding-left: 5vw;
+  }
+
+  .gw-title {
+    max-width: 18ch;
+    font-size: clamp(2.5rem, 8vw, 4.2rem);
+  }
+
+  .gw-section-title {
+    font-size: clamp(2rem, 7vw, 3rem);
+  }
+
+  .gw-mirage__bars,
+  .gw-mirage__event-labels {
+    padding-right: 3%;
+    padding-left: 3%;
+  }
+
+  .gw-compare__inner {
+    min-width: 820px;
+  }
+
+  .gw-compare__scroller {
+    margin: 0 -5vw;
+    padding: 0 5vw 0.6rem;
+  }
+
+  .gw-compare__scroll-hint {
+    display: block;
+  }
+}
+
+@media (max-width: 760px) {
+  .gw-hero {
+    min-height: calc(100svh - 92px);
+    padding: 4rem 0 5rem;
+  }
+
+  .gw-title {
+    max-width: 100%;
+    font-size: clamp(2.45rem, 10.6vw, 3.5rem);
+  }
+
+  .gw-lede {
+    font-size: 1.08rem;
+    line-height: 1.7;
+  }
+
+  .gw-section {
+    padding: 3.2rem 0;
+  }
+
+  .gw-section-lede,
+  .gw-section-caption,
+  .gw-mirage__caption,
+  .gw-compare__caption {
+    font-size: 0.96rem;
+    line-height: 1.6;
+  }
+
+  .gw-mirage {
+    --gw-chart-h: 320px;
+  }
+
+  .gw-mirage__status {
+    font-size: 0.52rem;
+  }
+
+  .gw-mirage__plot {
+    gap: 0.5rem;
+  }
+
+  .gw-mirage__bar {
+    width: clamp(56px, 18vw, 92px);
+  }
+
+  .gw-mirage__gap-line span {
+    display: none;
+  }
+
+  .gw-mirage__gap-note {
+    display: block;
+  }
+
+  .gw-mirage__event-label strong {
+    font-size: 1rem;
+  }
+
+  .gw-mirage__event-label span {
+    font-size: 0.49rem;
+  }
+
+  .gw-mirage__slider-head {
+    font-size: 0.62rem;
+  }
+
+  .gw-mirage__scale {
+    font-size: 0.5rem;
+  }
+
+  .gw-mirage__reveal {
+    font-size: 1.15rem;
+  }
+
+  .gw-mirage__reveal span {
+    font-size: 0.55rem;
+  }
+
+  .gw-compare__legend {
+    justify-content: flex-start;
+    gap: 0.5rem 1.1rem;
+    font-size: 0.6rem;
+  }
+
+  .gw-compare__scroll-hint {
+    margin-top: 0.4rem;
+  }
+
+  .gw-coda {
+    padding: 4rem 0 3rem;
+  }
+
+  .gw-quote {
+    font-size: clamp(1.65rem, 7.2vw, 2.3rem);
+  }
+
+  .gw-coda-copy {
+    font-size: 0.98rem;
+  }
+}

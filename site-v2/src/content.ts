@@ -67,11 +67,11 @@ export const scienceChapters: ScienceChapter[] = [
     kicker: 'Gravitational waves',
     title: 'Can GW Lensing Correct Black Hole Masses?',
     summary:
-      'A lens can make a black hole look heavier. The question is how much magnification would be required.',
-    body: 'Two events in the GWTC-5.0 catalogue fall into the ‘pair-instability mass gap’ — a range where stellar evolution theory says black holes should not exist. But if their signals were magnified by lensing, their true masses would fall back into the normal range.',
-    chartLabel: 'Observed mass vs lens-corrected mass',
+      'A lens can make a black hole look heavier. Two mass-gap candidates may be ordinary black holes seen through a magnifying glass.',
+    body: 'Lensing does more than reveal the distant universe. It can also deceive us. A magnified gravitational-wave signal appears more massive than its source, so a normal black hole can masquerade as a mass-gap anomaly. Two events in GWTC-5.0 sit above 45 M⊙ — but perhaps we are only seeing them through the universe’s magnifying glass. Remove the lens, and their true masses return to the normal range.',
+    chartLabel: 'Observed vs de-lensed black hole masses',
     chartNote:
-      'The two candidates with error bars, before and after applying a common magnification. The correction is a hypothesis test, not a measurement.',
+      'The two candidate events, each with two component masses. The lens correction moves all four masses below the 45 M⊙ mass-gap boundary. The correction is a hypothesis test, not a measurement.',
   },
 ]
 
