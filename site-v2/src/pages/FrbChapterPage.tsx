@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { ScienceChapter } from '../content'
 import { FrbMechanism3D } from '../components/FrbMechanism3D'
 import { FrbDataMap3D } from '../components/FrbDataMap3D'
+import { FrbSearchSection } from '../components/FrbSearchSection'
 
 /**
  * Chapter 02 — the FRB lensing mechanism.
@@ -97,6 +98,8 @@ export function FrbChapterPage({
         </p>
         <FrbDataMap3D />
       </section>
+
+      <FrbSearchSection />
 
       <div className="frb-next">
         <Link className="back-link" to="/science">

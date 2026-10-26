@@ -3416,6 +3416,291 @@ a {
   color: #a3a3a3;
 }
 
+.frb-search {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  padding: clamp(4rem, 8vh, 7rem) 0;
+  border-top: 1px solid rgba(236, 233, 226, 0.1);
+  text-align: center;
+}
+
+.frb-search-lede {
+  max-width: 58ch;
+  margin: 1.2rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  line-height: 1.65;
+  color: #b9b9b9;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.frb-histogram {
+  width: min(100%, 1000px);
+  margin: clamp(2.2rem, 5vh, 3.2rem) auto 0;
+  padding: 1.2rem 0 1rem;
+  border-top: 1px solid rgba(236, 233, 226, 0.1);
+  border-bottom: 1px solid rgba(236, 233, 226, 0.1);
+}
+
+.frb-histogram__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding-left: 2.6rem;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a3a3a3;
+}
+
+.frb-histogram__body {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.frb-histogram__y-axis {
+  position: relative;
+  flex: none;
+  width: 2rem;
+  height: clamp(230px, 30vh, 320px);
+}
+
+.frb-histogram__y-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  color: #a3a3a3;
+}
+
+.frb-histogram__plot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: clamp(230px, 30vh, 320px);
+  border-left: 1px solid rgba(245, 245, 245, 0.14);
+  border-bottom: 1px solid rgba(245, 245, 245, 0.14);
+}
+
+.frb-histogram__gridline {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px solid rgba(245, 245, 245, 0.07);
+}
+
+.frb-histogram__bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0 1px;
+  z-index: 1;
+}
+
+.frb-histogram__bar {
+  flex: 1;
+  min-width: 0;
+  background: #2a4668;
+  border-top: 1px solid rgba(143, 196, 255, 0.28);
+  opacity: 0.88;
+}
+
+.frb-histogram__candidate-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  border-left: 1px dashed #ffd166;
+  filter: drop-shadow(0 0 4px rgba(255, 209, 102, 0.5));
+}
+
+.frb-histogram__candidate-line em {
+  position: absolute;
+  top: 0.45rem;
+  left: 0;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.54rem;
+  font-style: normal;
+  letter-spacing: 0.03em;
+  color: #ffd166;
+  white-space: nowrap;
+}
+
+.frb-histogram__median-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  border-left: 1px dashed rgba(163, 163, 163, 0.55);
+}
+
+.frb-histogram__x-axis {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.55rem 0 0 2.6rem;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  color: #a3a3a3;
+}
+
+.frb-histogram__x-label {
+  margin: 0.4rem 0 0 2.6rem;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a3a3a3;
+}
+
+.frb-histogram__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.6rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  color: #a3a3a3;
+}
+
+.frb-histogram__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.frb-histogram__key {
+  flex: none;
+  width: 24px;
+  height: 0;
+  border-top: 1px dashed #ffd166;
+}
+
+.frb-histogram__key--median {
+  border-color: rgba(163, 163, 163, 0.6);
+}
+
+.frb-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+  width: min(100%, 1000px);
+  margin: clamp(2.4rem, 5vh, 3.5rem) auto 0;
+}
+
+.frb-card {
+  padding: clamp(1.5rem, 2.4vw, 2rem);
+  border: 1px solid rgba(236, 233, 226, 0.13);
+  background: rgba(255, 255, 255, 0.015);
+  text-align: left;
+}
+
+.frb-card__index {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #d8b26a;
+}
+
+.frb-card h3 {
+  margin: 0.55rem 0 1.1rem;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: #f5f5f5;
+}
+
+.frb-card__names {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  line-height: 1.75;
+  color: #f5f5f5;
+  overflow-wrap: anywhere;
+}
+
+.frb-card__names span {
+  padding: 0 0.3rem;
+  color: #d8b26a;
+}
+
+.frb-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(236, 233, 226, 0.1);
+}
+
+.frb-card__stats dt {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a3a3a3;
+}
+
+.frb-card__stats dd {
+  margin: 0.35rem 0 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.1rem, 1.4vw, 1.3rem);
+  color: #f5f5f5;
+}
+
+.frb-conclusion {
+  max-width: 50rem;
+  margin: clamp(3.5rem, 7vh, 5rem) auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 3.2vw, 3rem);
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  color: #f5f5f5;
+  text-align: center;
+  text-wrap: balance;
+  quotes: '“' '”';
+}
+
+.frb-conclusion::before {
+  content: open-quote;
+  color: #d8b26a;
+}
+
+.frb-conclusion::after {
+  content: close-quote;
+  color: #d8b26a;
+}
+
+.frb-candidate-rate {
+  margin: 1.25rem auto 0;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a3a3a3;
+}
+
+.frb-candidate-rate b {
+  font-weight: 500;
+  color: #ffd166;
+}
+
 .frb-next {
   width: min(100%, 880px);
   margin: clamp(3rem, 6vh, 5rem) auto 0;
@@ -3544,5 +3829,73 @@ a {
 
   .frb-map__hint {
     margin-top: 0.35rem;
+  }
+}
+
+
+@media (max-width: 900px) {
+  .frb-search {
+    padding: clamp(3rem, 7vh, 5rem) 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .frb-search-lede {
+    font-size: 1rem;
+  }
+
+  .frb-histogram__header {
+    padding-left: 2.3rem;
+    font-size: 0.52rem;
+  }
+
+  .frb-histogram__body {
+    gap: 0.45rem;
+  }
+
+  .frb-histogram__y-axis,
+  .frb-histogram__plot {
+    height: 230px;
+  }
+
+  .frb-histogram__y-axis {
+    width: 1.65rem;
+  }
+
+  .frb-histogram__x-axis {
+    margin-left: 2.3rem;
+    font-size: 0.52rem;
+  }
+
+  .frb-histogram__x-label {
+    margin-left: 2.3rem;
+    font-size: 0.52rem;
+  }
+
+  .frb-histogram__legend {
+    justify-content: flex-start;
+    gap: 0.45rem 1.1rem;
+    font-size: 0.53rem;
+  }
+
+  .frb-cards {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .frb-card {
+    padding: 1.4rem;
+  }
+
+  .frb-card h3 {
+    font-size: 1.4rem;
+  }
+
+  .frb-card__names {
+    font-size: 0.66rem;
+  }
+
+  .frb-conclusion {
+    font-size: clamp(1.65rem, 7.2vw, 2.3rem);
   }
 }
