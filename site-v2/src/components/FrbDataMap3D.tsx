@@ -582,6 +582,11 @@ export function FrbDataMap3D() {
 
   return (
     <div className="frb-map">
+      <p className="frb-map__hover-hint">
+        <span className="frb-map__hover-hint-dot" aria-hidden="true" />
+        Hover one of the four gold candidate stars
+      </p>
+
       <div
         className="frb-map__canvas"
         role="img"
