@@ -138,54 +138,52 @@ function Earth({ animate }: { animate: boolean }) {
   )
 }
 
+function ringPoints(radius: number, segments = 128): [number, number, number][] {
+  return Array.from({ length: segments + 1 }, (_, index) => {
+    const angle = (index / segments) * Math.PI * 2
+    return [Math.cos(angle) * radius, Math.sin(angle) * radius, 0] as [
+      number,
+      number,
+      number,
+    ]
+  })
+}
+
+const LENS_RINGS = [1.0, 1.28, 1.56, 1.86].map((radius, index) => ({
+  radius,
+  points: ringPoints(radius),
+  opacity: [0.2, 0.13, 0.09, 0.06][index],
+}))
+
 function Galaxy() {
   const sprite = useMemo(() => getDotTexture(), [])
 
   return (
     <group>
-      <mesh>
-        <sphereGeometry args={[0.95, 48, 48]} />
-        <meshStandardMaterial
-          color="#6b4a1f"
-          emissive="#2f1d08"
-          emissiveIntensity={0.5}
-          roughness={0.65}
-          metalness={0.15}
-        />
-      </mesh>
-      <GlowShell radius={1.06} color="#b8893f" intensity={0.35} />
-      <sprite scale={[4.8, 4.8, 1]}>
+      {/* No solid core: the lens is a faint halo and concentric ring lines. */}
+      <sprite scale={[4.6, 4.6, 1]}>
         <spriteMaterial
           map={sprite}
           color="#d8a85a"
-          transparent
-          opacity={0.12}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </sprite>
-
-      {/* a tilted ring gives the galaxy its depth */}
-      <mesh>
-        <torusGeometry args={[1.55, 0.018, 12, 128]} />
-        <meshBasicMaterial
-          color="#b8893f"
-          transparent
-          opacity={0.18}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-      <mesh>
-        <torusGeometry args={[1.9, 0.012, 8, 128]} />
-        <meshBasicMaterial
-          color="#b8893f"
           transparent
           opacity={0.08}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
-      </mesh>
+      </sprite>
+      <GlowShell radius={1.0} color="#b8893f" intensity={0.25} />
+
+      {LENS_RINGS.map((ring) => (
+        <Line
+          key={ring.radius}
+          points={ring.points}
+          color="#b8893f"
+          lineWidth={ring.radius === 1.0 ? 0.9 : 0.65}
+          transparent
+          opacity={ring.opacity}
+          depthWrite={false}
+        />
+      ))}
     </group>
   )
 }

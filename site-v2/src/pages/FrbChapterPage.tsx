@@ -2,13 +2,13 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import type { ScienceChapter } from '../content'
 import { FrbMechanism3D } from '../components/FrbMechanism3D'
+import { FrbDataMap3D } from '../components/FrbDataMap3D'
 
 /**
  * Chapter 02 — the FRB lensing mechanism.
  *
- * This pass builds the hero and the standalone 3D geometry: a source on the
- * right, a lensing galaxy in the middle, Earth on the left, and the direct and
- * delayed signal paths. The catalogue search arrives in the next pass.
+ * The hero and mechanism are followed by the real catalogue: every plotted
+ * FRB, with the four bursts that form the two candidate lensed pairs.
  */
 export function FrbChapterPage({
   chapter,
@@ -83,6 +83,15 @@ export function FrbChapterPage({
             Delayed path
           </li>
         </ul>
+      </section>
+
+      <section className="frb-data">
+        <p className="section-kicker">The real data</p>
+        <h2 className="frb-data-title">
+          Out of 690 detected FRBs, we found{' '}
+          <span className="frb-data-title__accent">2 candidate pairs</span>.
+        </h2>
+        <FrbDataMap3D />
       </section>
 
       <div className="frb-next">

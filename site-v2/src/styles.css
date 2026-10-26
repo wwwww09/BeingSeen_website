@@ -3254,6 +3254,124 @@ a {
   opacity: 1;
 }
 
+.frb-data {
+  width: min(100%, 1200px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: clamp(3rem, 6vh, 5rem) 0;
+  text-align: center;
+}
+
+.frb-data-title {
+  max-width: 24ch;
+  margin: 0 auto;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(2.1rem, 4.4vw, 3.9rem);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  color: #f5f5f5;
+  text-wrap: balance;
+}
+
+.frb-data-title__accent {
+  color: #ffcf8b;
+}
+
+.frb-map {
+  width: min(100%, 1100px);
+  margin: clamp(1.5rem, 4vh, 2.5rem) auto 0;
+}
+
+.frb-map__canvas {
+  width: 100%;
+  height: clamp(460px, 64vh, 680px);
+  background: transparent;
+}
+
+.frb-map__canvas canvas {
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+.frb-map__canvas:active canvas {
+  cursor: grabbing;
+}
+
+.frb-map__status {
+  display: grid;
+  place-items: center;
+  min-height: clamp(460px, 64vh, 680px);
+  margin: 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  color: rgba(245, 245, 245, 0.55);
+}
+
+.frb-map__hint {
+  margin: 0.55rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.38);
+}
+
+.frb-map__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 2rem;
+  margin: 1.2rem auto 0;
+  padding: 0;
+  list-style: none;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.9rem;
+  color: #f5f5f5;
+}
+
+.frb-map__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.frb-map__legend b {
+  font-weight: 400;
+  color: rgba(245, 245, 245, 0.48);
+  font-variant-numeric: tabular-nums;
+}
+
+.frb-map-dot {
+  flex: none;
+  border-radius: 50%;
+}
+
+.frb-map-dot--detected {
+  width: 5px;
+  height: 5px;
+  background: #6f9fd8;
+  box-shadow: 0 0 8px rgba(111, 159, 216, 0.65);
+}
+
+.frb-map-dot--candidate {
+  width: 8px;
+  height: 8px;
+  background: #ffcf8b;
+  box-shadow: 0 0 10px rgba(255, 207, 139, 0.75);
+}
+
+.frb-map__axes {
+  margin: 0.7rem auto 0;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.3);
+}
+
 .frb-next {
   width: min(100%, 880px);
   margin: clamp(3rem, 6vh, 5rem) auto 0;
@@ -3332,5 +3450,44 @@ a {
   .frb-legend {
     font-size: 0.8rem;
     gap: 0.5rem 1rem;
+  }
+}
+
+
+@media (max-width: 900px) {
+  .frb-data {
+    padding: clamp(2.8rem, 7vh, 4rem) 0;
+  }
+
+  .frb-map__canvas {
+    height: clamp(430px, 60vh, 600px);
+  }
+}
+
+@media (max-width: 760px) {
+  .frb-data-title {
+    max-width: 20ch;
+    font-size: clamp(1.85rem, 8vw, 2.7rem);
+  }
+
+  .frb-map {
+    margin-top: 1.4rem;
+  }
+
+  .frb-map__canvas {
+    height: clamp(390px, 52vh, 480px);
+  }
+
+  .frb-map__legend {
+    gap: 0.5rem 1.2rem;
+    font-size: 0.82rem;
+  }
+
+  .frb-map__legend b {
+    display: inline;
+  }
+
+  .frb-map__hint {
+    margin-top: 0.35rem;
   }
 }
