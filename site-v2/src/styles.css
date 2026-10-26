@@ -3096,7 +3096,7 @@ a {
 }
 
 .frb-lede {
-  max-width: 44rem;
+  max-width: 56rem;
   margin: 0 auto;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: clamp(1.18rem, 1.5vw, 1.4rem);
@@ -3278,6 +3278,18 @@ a {
   color: #d8b26a;
 }
 
+.frb-data-lede {
+  max-width: 52ch;
+  margin: 1.15rem auto 0;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  font-weight: 400;
+  line-height: 1.65;
+  color: #b9b9b9;
+  text-align: center;
+  text-wrap: balance;
+}
+
 .frb-map {
   width: min(100%, 1100px);
   margin: clamp(2.4rem, 5.5vh, 3.6rem) auto 0;
@@ -3317,7 +3329,7 @@ a {
   line-height: 1.7;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(245, 245, 245, 0.38);
+  color: #a3a3a3;
   text-wrap: balance;
 }
 
@@ -3345,7 +3357,7 @@ a {
   font-size: 0.6rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(245, 245, 245, 0.55);
+  color: #c7c7c7;
 }
 
 .frb-map__dm-bar {
@@ -3368,7 +3380,7 @@ a {
   font-family: var(--mono);
   font-size: 0.56rem;
   letter-spacing: 0.04em;
-  color: rgba(245, 245, 245, 0.42);
+  color: #a3a3a3;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -3382,7 +3394,7 @@ a {
 
 .frb-map__key b {
   font-weight: 400;
-  color: rgba(245, 245, 245, 0.48);
+  color: #b8b8b8;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3401,7 +3413,7 @@ a {
   font-size: 0.58rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(245, 245, 245, 0.3);
+  color: #a3a3a3;
 }
 
 .frb-next {
@@ -3500,6 +3512,13 @@ a {
   .frb-data-title {
     max-width: 20ch;
     font-size: clamp(1.85rem, 8vw, 2.7rem);
+  }
+
+  .frb-data-lede {
+    max-width: 36ch;
+    margin-top: 0.95rem;
+    font-size: 0.98rem;
+    line-height: 1.6;
   }
 
   .frb-map {

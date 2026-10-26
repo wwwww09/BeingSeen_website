@@ -74,8 +74,10 @@ function toSphere(
   row: FrbRow,
   maxDm: number,
   scale = SPHERE_RADIUS,
+  radialOffset = 0,
 ): Vec3 {
-  const radius = (row.dm / Math.max(maxDm, 1e-6)) * scale
+  const baseRadius = (row.dm / Math.max(maxDm, 1e-6)) * scale
+  const radius = Math.max(0.02, baseRadius + radialOffset)
   const ra = (row.ra * Math.PI) / 180
   const dec = (row.dec * Math.PI) / 180
   const cosDec = Math.cos(dec)
@@ -87,9 +89,9 @@ function toSphere(
   ]
 }
 
-function zJitter(index: number) {
+function radialJitter(index: number) {
   const value = Math.sin(index * 12.9898) * 43758.5453
-  return (value - Math.floor(value) - 0.5) * 0.09
+  return (value - Math.floor(value) - 0.5) * 0.3
 }
 
 function buildCloud(data: FrbData): CloudData {
@@ -103,19 +105,19 @@ function buildCloud(data: FrbData): CloudData {
   const sizes = new Float32Array(rows.length)
 
   rows.forEach((row, index) => {
-    const [x, y, z] = toSphere(row, dmMax)
+    const [x, y, z] = toSphere(row, dmMax, SPHERE_RADIUS, radialJitter(index))
     const color = dmColor(row.dm / dmMax)
 
     positions[index * 3] = x
     positions[index * 3 + 1] = y
-    positions[index * 3 + 2] = z + zJitter(index)
+    positions[index * 3 + 2] = z
 
     colors[index * 3] = color[0]
     colors[index * 3 + 1] = color[1]
     colors[index * 3 + 2] = color[2]
 
     // Fine dust, still SNR-ranked: roughly 1.2 px to 3.8 px.
-    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 3.8 + 1.8
+    sizes[index] = (Math.max(0, row.snr ?? 0) / maxSnr) * 4 + 2.4
   })
 
   const byName = new Map(rows.map((row) => [row.frb_name, row]))
@@ -206,7 +208,7 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
       <shaderMaterial
         uniforms={{
           uDpr: { value: dpr },
-          uOpacity: { value: 0.72 },
+          uOpacity: { value: 0.5 },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}

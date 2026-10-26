@@ -91,6 +91,10 @@ export function FrbChapterPage({
           Out of 690 detected FRBs, we found{' '}
           <span className="frb-data-title__accent">2 candidate pairs</span>.
         </h2>
+        <p className="frb-data-lede">
+          We searched for pairs of bursts that share the exact same dispersion
+          measure (DM) but arrived days apart.
+        </p>
         <FrbDataMap3D />
       </section>
 

@@ -56,7 +56,7 @@ export const scienceChapters: ScienceChapter[] = [
     title: 'Seeking the Signals Copied by the Universe.',
     summary:
       'A lens can copy a burst in time. The question is whether any two arrivals in the catalogue are copies.',
-    body: 'If a Fast Radio Burst is lensed by a massive galaxy, we see two identical signals arriving at different times.',
+    body: 'When a massive galaxy acts as a gravitational lens, it can bend the radio waves along multiple paths, causing the same burst to arrive at Earth at different times.',
     chartLabel: 'Time-delayed pairs in the CHIME/FRB catalogue',
     chartNote:
       'The search compares sky positions and dispersion measures. The chart and the result are the next pass.',
