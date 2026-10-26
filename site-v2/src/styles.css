@@ -3449,6 +3449,38 @@ a {
   color: #a3a3a3;
 }
 
+.frb-map__tooltip {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(255, 215, 0, 0.42);
+  border-radius: 2px;
+  background: rgba(5, 6, 8, 0.86);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(255, 215, 0, 0.12);
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: #ffe08a;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
+.frb-map__tooltip-name {
+  display: block;
+}
+
+.frb-map__tooltip-meta {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 224, 138, 0.58);
+}
+
 .frb-search {
   width: min(100%, 1200px);
   margin: 0 auto;
@@ -3539,12 +3571,23 @@ a {
 }
 
 .frb-histogram__bar {
+  position: relative;
   flex: 1;
   min-width: 0;
   background: #333;
   border: 0;
   border-radius: 1px 1px 0 0;
   opacity: 1;
+}
+
+/* The selected bins keep their grey base and receive a gold overlay. */
+.frb-histogram__bar--candidate::after {
+  content: '';
+  position: absolute;
+  inset: 0 1px;
+  background: linear-gradient(180deg, #ffd166 0%, #c9942e 100%);
+  border-radius: 1px 1px 0 0;
+  box-shadow: 0 0 12px rgba(255, 209, 102, 0.45);
 }
 
 .frb-histogram__candidate-line {
@@ -3638,15 +3681,27 @@ a {
 
 .frb-histogram__key {
   flex: none;
-  width: 24px;
-  height: 0;
-  border-top: 1px dashed #ffd166;
-  filter: drop-shadow(0 0 4px rgba(255, 209, 102, 0.8));
+  width: 12px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+.frb-histogram__key--all {
+  background: #333;
+}
+
+.frb-histogram__key--candidate {
+  background: #ffd166;
+  box-shadow: 0 0 8px rgba(255, 209, 102, 0.65);
 }
 
 .frb-histogram__key--median {
-  border-color: rgba(163, 163, 163, 0.6);
-  filter: none;
+  width: 24px;
+  height: 0;
+  background: transparent;
+  border-top: 1px dashed rgba(163, 163, 163, 0.6);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .frb-cards {
@@ -3719,6 +3774,17 @@ a {
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: clamp(1.1rem, 1.4vw, 1.3rem);
   color: #f5f5f5;
+}
+
+.frb-card__note {
+  margin: 0.9rem 0 0;
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  font-style: italic;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  color: #8d8d8d;
+  text-wrap: pretty;
 }
 
 .frb-conclusion {

@@ -1,5 +1,5 @@
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Line, OrbitControls } from '@react-three/drei'
+import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { Html, Line, OrbitControls } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 
@@ -25,12 +25,21 @@ interface FrbData {
 
 type Vec3 = [number, number, number]
 
+interface HoveredCandidate {
+  name: string
+  partner: string
+  pairIndex: number
+  position: Vec3
+}
+
 interface CloudData {
   positions: Float32Array
   colors: Float32Array
   sizes: Float32Array
   phases: Float32Array
   candidatePositions: Float32Array
+  candidateNames: string[]
+  candidateMeta: { name: string; partner: string; pairIndex: number }[]
   pairLines: Vec3[][]
   total: number
   candidateCount: number
@@ -156,12 +165,28 @@ function buildCloud(data: FrbData): CloudData {
     candidatePositions[index * 3 + 2] = z
   })
 
+  const partnerByName = new Map<
+    string,
+    { partner: string; pairIndex: number }
+  >()
+  data.candidates.forEach((pair, pairIndex) => {
+    partnerByName.set(pair.frb1, { partner: pair.frb2, pairIndex })
+    partnerByName.set(pair.frb2, { partner: pair.frb1, pairIndex })
+  })
+  const candidateMeta = candidateRows.map((row) => ({
+    name: row.frb_name,
+    partner: partnerByName.get(row.frb_name)?.partner ?? '',
+    pairIndex: partnerByName.get(row.frb_name)?.pairIndex ?? 0,
+  }))
+
   return {
     positions,
     colors,
     sizes,
     phases,
     candidatePositions,
+    candidateNames: candidateRows.map((row) => row.frb_name),
+    candidateMeta,
     pairLines,
     total: rows.length,
     candidateCount: candidateRows.length,
@@ -377,7 +402,18 @@ const CANDIDATE_FRAGMENT = `
 
 function GoldCandidates({ cloud }: { cloud: CloudData }) {
   const dpr = useThree((state) => state.viewport.dpr)
+  const raycaster = useThree((state) => state.raycaster)
+  const gl = useThree((state) => state.gl)
   const material = useRef<THREE.ShaderMaterial>(null)
+  const [hovered, setHovered] = useState<HoveredCandidate | null>(null)
+
+  useEffect(() => {
+    const previous = raycaster.params.Points?.threshold ?? 1
+    if (raycaster.params.Points) raycaster.params.Points.threshold = 0.6
+    return () => {
+      if (raycaster.params.Points) raycaster.params.Points.threshold = previous
+    }
+  }, [raycaster])
 
   useFrame(({ clock }) => {
     if (!material.current) return
@@ -386,9 +422,43 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
 
   if (cloud.candidatePositions.length === 0) return null
 
+  function handlePointerMove(event: ThreeEvent<PointerEvent>) {
+    event.stopPropagation()
+    if (typeof event.index !== 'number') return
+    const index = event.index
+    const meta = cloud.candidateMeta[index]
+    if (!meta) return
+    const offset = index * 3
+    setHovered({
+      name: meta.name,
+      partner: meta.partner,
+      pairIndex: meta.pairIndex,
+      position: [
+        cloud.candidatePositions[offset],
+        cloud.candidatePositions[offset + 1] + 0.55,
+        cloud.candidatePositions[offset + 2],
+      ],
+    })
+  }
+
+  function handlePointerOut() {
+    gl.domElement.style.cursor = 'grab'
+    setHovered(null)
+  }
+
+  function handlePointerOver() {
+    gl.domElement.style.cursor = 'pointer'
+  }
+
   return (
     <>
-      <points frustumCulled={false} renderOrder={6}>
+      <points
+        frustumCulled={false}
+        renderOrder={6}
+        onPointerMove={handlePointerMove}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      >
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
@@ -412,6 +482,25 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           toneMapped={false}
         />
       </points>
+
+      {hovered && (
+        <Html
+          position={hovered.position}
+          center
+          zIndexRange={[30, 0]}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          <div className="frb-map__tooltip" role="tooltip">
+            <span className="frb-map__tooltip-name">{hovered.name}</span>
+            {hovered.partner && (
+              <span className="frb-map__tooltip-meta">
+                Pair {String(hovered.pairIndex + 1).padStart(2, '0')} ·{' '}
+                {hovered.partner}
+              </span>
+            )}
+          </div>
+        </Html>
+      )}
 
       {cloud.pairLines.map((points, index) => (
         <Line
@@ -496,7 +585,7 @@ export function FrbDataMap3D() {
       <div
         className="frb-map__canvas"
         role="img"
-        aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following a violet-to-gold dispersion-measure scale. Four candidate bursts are highlighted as large glowing gold stars.`}
+        aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following a violet-to-gold dispersion-measure scale. Four candidate FRB signals, forming two pairs, are highlighted as large glowing gold stars; hover one to see its name.`}
       >
         <Canvas
           camera={{ position: [18, 10, 20], fov: 42 }}
@@ -536,7 +625,7 @@ export function FrbDataMap3D() {
           <i className="frb-map__gold-dot" aria-hidden="true" />
           Candidate FRBs{' '}
           <b>
-            {cloud.candidateCount} · {cloud.pairCount} pairs
+            ({cloud.candidateCount} signals · {cloud.pairCount} pairs)
           </b>
         </span>
       </div>
@@ -545,7 +634,8 @@ export function FrbDataMap3D() {
         {cloud.total} FRBs with complete DM data plotted
       </p>
       <p className="frb-map__axes">
-        r = DM / max(DM) · RA, Dec → direction
+        r = DM / max(DM) · RA, Dec → direction · hover a gold candidate for its
+        FRB name
       </p>
     </div>
   )

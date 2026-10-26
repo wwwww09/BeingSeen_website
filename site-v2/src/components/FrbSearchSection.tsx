@@ -1,6 +1,16 @@
 import { TimeDelayHistogram } from './TimeDelayHistogram'
 
-const CANDIDATES = [
+interface CandidateCard {
+  index: string
+  title: string
+  frb1: string
+  frb2: string
+  delay: string
+  dmDiff: string
+  note?: string
+}
+
+const CANDIDATES: CandidateCard[] = [
   {
     index: 'Pair 01',
     title: 'A Perfect Match',
@@ -16,6 +26,7 @@ const CANDIDATES = [
     frb2: 'FRB20190609B',
     delay: '44.9 days',
     dmDiff: '5.2',
+    note: '(Note: DM difference of 5.2 may indicate a higher false-positive probability compared to Pair 01.)',
   },
 ]
 
@@ -25,7 +36,7 @@ export function FrbSearchSection() {
       <p className="section-kicker">The search</p>
       <h2 className="frb-section-title">The Search for Cosmic Echoes</h2>
       <p className="frb-search-lede">
-        We tested every possible pair of the 690 FRBs. The vast majority are
+        We tested those 547 FRBs for time-delayed pairs. The vast majority are
         just random noise with mismatched dispersion measures (DM).
       </p>
 
@@ -52,16 +63,19 @@ export function FrbSearchSection() {
                 <dd>{candidate.dmDiff}</dd>
               </div>
             </dl>
+            {candidate.note && (
+              <p className="frb-card__note">{candidate.note}</p>
+            )}
           </article>
         ))}
       </div>
 
       <blockquote className="frb-conclusion">
-        These 2 candidates provide a new clue for finding lensed FRBs, though
-        they require further verification.
+        These 2 candidate pairs — 4 FRB signals — provide a new clue for
+        finding lensed FRBs, though they require further verification.
       </blockquote>
       <p className="frb-candidate-rate">
-        Candidate rate <b>2 / 690 = 0.29%</b>
+        Candidate rate <b>2 / 547 = 0.36%</b>
       </p>
     </section>
   )

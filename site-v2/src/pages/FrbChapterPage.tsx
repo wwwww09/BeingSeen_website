@@ -89,12 +89,16 @@ export function FrbChapterPage({
       <section className="frb-data">
         <p className="section-kicker">The real data</p>
         <h2 className="frb-data-title">
-          Out of 690 detected FRBs, we found{' '}
-          <span className="frb-data-title__accent">2 candidate pairs</span>.
+          Out of 690 detected FRBs,{' '}
+          <span className="frb-data-title__accent">
+            547 have complete DM data
+          </span>
+          .
         </h2>
         <p className="frb-data-lede">
-          We searched for pairs of bursts that share the exact same dispersion
-          measure (DM) but arrived days apart.
+          We tested those 547 and found 2 candidate pairs — 4 FRB signals —
+          whose bursts share the same dispersion measure (DM) but arrived days
+          apart.
         </p>
         <FrbDataMap3D />
       </section>
