@@ -30,6 +30,7 @@ interface HoveredCandidate {
   partner: string
   pairIndex: number
   position: Vec3
+  side: 'left' | 'right'
 }
 
 interface CloudData {
@@ -133,7 +134,7 @@ function buildCloud(data: FrbData): CloudData {
 
     // World-space particle size, centred on 0.05: small, softly glowing
     // points that still encode SNR without turning into plastic discs.
-    sizes[index] = 0.05 * (0.72 + (Math.max(0, row.snr ?? 0) / maxSnr) * 0.56)
+    sizes[index] = 0.032 * (0.72 + (Math.max(0, row.snr ?? 0) / maxSnr) * 0.56)
     phases[index] = twinklePhase(index)
   })
 
@@ -212,13 +213,13 @@ const POINT_VERTEX = `
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 
-    // aSize is in world units (0.05 base). This is roughly twice the previous
-    // point size; the cap keeps the densest part of the cluster readable.
+    // Small world-space motes. The cap keeps the densest part of the
+    // cluster from turning into a single glowing mass.
     float perspective = 18.0 / max(-mvPosition.z, 1.0);
     gl_PointSize = clamp(
-      aSize * uDpr * 520.0 * perspective * (0.94 + 0.06 * twinkle),
-      2.0,
-      26.0
+      aSize * uDpr * 420.0 * perspective * (0.94 + 0.06 * twinkle),
+      1.25,
+      9.0
     );
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -233,12 +234,12 @@ const POINT_FRAGMENT = `
     float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
     if (distanceToCenter > 1.0) discard;
 
-    // Circular radial gradient: a compact coloured core with a smooth halo.
-    // No white mix, so each star keeps its Viridis colour.
-    float halo = pow(max(0.0, 1.0 - distanceToCenter), 2.0);
-    float core = pow(max(0.0, 1.0 - distanceToCenter), 6.0);
-    vec3 color = vColor * (0.95 + 0.4 * core);
-    float alpha = max(core, halo * 0.22) * uOpacity * vTwinkle;
+    // A crisp mote: a compact core with only a trace of halo. No white
+    // mix, so every particle keeps its Viridis colour.
+    float core = smoothstep(0.72, 0.18, distanceToCenter);
+    float halo = smoothstep(1.0, 0.72, distanceToCenter) * 0.16;
+    vec3 color = vColor * (0.9 + 0.2 * core);
+    float alpha = (core + halo) * uOpacity * vTwinkle;
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -272,7 +273,7 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
         uniforms={{
           uDpr: { value: dpr },
           uTime: { value: 0 },
-          uOpacity: { value: 0.95 },
+          uOpacity: { value: 0.72 },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
@@ -299,13 +300,13 @@ const FRB_GLOW_VERTEX = `
     float twinkle = 0.8 + 0.2 * sin(uTime * 2.35 + aPhase);
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 
-    // Broad additive aura. It is much wider than the core but deliberately
-    // low-opacity, so it adds glow without bleaching the Viridis colour.
+    // A barely-there aura. The HUD gradient supplies the atmosphere; this
+    // layer only stops the motes from looking cut out.
     float perspective = 18.0 / max(-mvPosition.z, 1.0);
     gl_PointSize = clamp(
-      aSize * uDpr * 1000.0 * perspective * (0.9 + 0.1 * twinkle),
-      8.0,
-      54.0
+      aSize * uDpr * 760.0 * perspective * (0.9 + 0.1 * twinkle),
+      3.0,
+      24.0
     );
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -352,7 +353,7 @@ function FrbGlow({ cloud }: { cloud: CloudData }) {
         uniforms={{
           uDpr: { value: dpr },
           uTime: { value: 0 },
-          uOpacity: { value: 0.07 },
+          uOpacity: { value: 0.012 },
         }}
         vertexShader={FRB_GLOW_VERTEX}
         fragmentShader={FRB_GLOW_FRAGMENT}
@@ -390,11 +391,14 @@ const CANDIDATE_FRAGMENT = `
     float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
     if (distanceToCenter > 1.0) discard;
 
-    // #FFD700 core with a soft golden halo.
-    float glow = pow(max(0.0, 1.0 - distanceToCenter), 2.2) * 0.55;
-    float core = smoothstep(0.22, 0.0, distanceToCenter);
-    vec3 color = mix(uColor, vec3(1.0, 0.94, 0.6), core * 0.35);
-    float alpha = clamp(glow + core, 0.0, 1.0) * vPulse;
+    // #FFD700 core with a sharp ring. The ring makes the four candidates
+    // unmistakable even when a bright high-DM burst sits nearby.
+    float glow = pow(max(0.0, 1.0 - distanceToCenter), 3.0) * 0.35;
+    float core = smoothstep(0.30, 0.0, distanceToCenter);
+    float ring =
+      smoothstep(0.045, 0.0, abs(distanceToCenter - 0.66)) * 0.5;
+    vec3 color = mix(uColor, vec3(1.0, 0.96, 0.84), core * 0.4);
+    float alpha = clamp(glow + core + ring, 0.0, 1.0) * vPulse;
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -409,7 +413,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
 
   useEffect(() => {
     const previous = raycaster.params.Points?.threshold ?? 1
-    if (raycaster.params.Points) raycaster.params.Points.threshold = 0.6
+    if (raycaster.params.Points) raycaster.params.Points.threshold = 0.5
     return () => {
       if (raycaster.params.Points) raycaster.params.Points.threshold = previous
     }
@@ -428,16 +432,27 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
     const index = event.index
     const meta = cloud.candidateMeta[index]
     if (!meta) return
+
+    // Keep the tooltip on the opposite side of the chart so it never covers
+    // the star that is being inspected.
+    const rect = gl.domElement.getBoundingClientRect()
+    const side =
+      event.nativeEvent.clientX - rect.left > rect.width / 2 ? 'left' : 'right'
     const offset = index * 3
-    setHovered({
-      name: meta.name,
-      partner: meta.partner,
-      pairIndex: meta.pairIndex,
-      position: [
-        cloud.candidatePositions[offset],
-        cloud.candidatePositions[offset + 1] + 0.55,
-        cloud.candidatePositions[offset + 2],
-      ],
+
+    setHovered((current) => {
+      if (current?.name === meta.name && current.side === side) return current
+      return {
+        name: meta.name,
+        partner: meta.partner,
+        pairIndex: meta.pairIndex,
+        side,
+        position: [
+          cloud.candidatePositions[offset],
+          cloud.candidatePositions[offset + 1] + 0.55,
+          cloud.candidatePositions[offset + 2],
+        ],
+      }
     })
   }
 
@@ -469,7 +484,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           ref={material}
           uniforms={{
             uDpr: { value: dpr },
-            uSize: { value: 48 },
+            uSize: { value: 36 },
             uTime: { value: 0 },
             uColor: { value: new THREE.Color('#ffd700') },
           }}
@@ -490,7 +505,10 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           zIndexRange={[30, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="frb-map__tooltip" role="tooltip">
+          <div
+            className={`frb-map__tooltip frb-map__tooltip--${hovered.side}`}
+            role="tooltip"
+          >
             <span className="frb-map__tooltip-name">{hovered.name}</span>
             {hovered.partner && (
               <span className="frb-map__tooltip-meta">

@@ -3350,9 +3350,25 @@ a {
 }
 
 .frb-map__canvas {
+  position: relative;
   width: 100%;
-  height: clamp(460px, 64vh, 680px);
-  background: transparent;
+  height: clamp(600px, 78vh, 860px);
+  min-height: 600px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid #1e3a8a;
+  border-radius: 3px;
+  background:
+    radial-gradient(
+      ellipse at 50% 44%,
+      rgba(17, 32, 66, 0.5) 0%,
+      rgba(6, 10, 22, 0.72) 48%,
+      rgba(0, 0, 0, 0.94) 100%
+    );
+  box-shadow:
+    inset 0 0 90px rgba(10, 22, 52, 0.3),
+    inset 0 1px 0 rgba(120, 160, 255, 0.08),
+    0 30px 90px rgba(0, 0, 0, 0.5);
 }
 
 .frb-map__canvas canvas {
@@ -3471,6 +3487,7 @@ a {
 }
 
 .frb-map__tooltip {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.28rem;
@@ -3487,6 +3504,27 @@ a {
   white-space: nowrap;
   pointer-events: none;
   backdrop-filter: blur(6px);
+}
+
+.frb-map__tooltip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, #1e3a8a, #6ea8ff 55%, #1e3a8a);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.frb-map__tooltip--left {
+  transform: translateX(calc(-50% - 18px));
+}
+
+.frb-map__tooltip--right {
+  transform: translateX(calc(50% + 18px));
 }
 
 .frb-map__tooltip-name {
@@ -3959,7 +3997,8 @@ a {
   }
 
   .frb-map__canvas {
-    height: clamp(430px, 60vh, 600px);
+    height: clamp(600px, 78vh, 760px);
+    min-height: 600px;
   }
 }
 
@@ -3981,7 +4020,8 @@ a {
   }
 
   .frb-map__canvas {
-    height: clamp(390px, 52vh, 480px);
+    height: clamp(600px, 76vh, 700px);
+    min-height: 600px;
   }
 
   .frb-map__legend {
