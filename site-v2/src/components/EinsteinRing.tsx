@@ -4,25 +4,90 @@ interface EinsteinRingProps {
   animate?: boolean
 }
 
-type ParticleTone = 'gold' | 'blue' | 'white'
+type DustTone = 'gold' | 'blue'
 
-interface Particle {
-  angle: number
+interface ArcSpec {
+  start: number
+  span: number
+  radius: number
+  squash: number
+  tilt: number
+  goldBias: number
+  count: number
+}
+
+interface Dust {
+  t: number
+  speed: number
   offset: number
   size: number
   phase: number
-  speed: number
-  tone: ParticleTone
-  bright: boolean
+  tone: DustTone
+  glow: boolean
+}
+
+interface Arc extends ArcSpec {
+  dust: Dust[]
 }
 
 const TAU = Math.PI * 2
 
+/*
+ * Three broken, almost concentric light paths. Different starts, spans and
+ * tilts keep the ring from closing into a geometric circle: it should read
+ * as bent background light, not as a drawn halo.
+ */
+const ARC_SPECS: ArcSpec[] = [
+  {
+    start: -2.62,
+    span: 4.72,
+    radius: 0.985,
+    squash: 0.9,
+    tilt: -0.22,
+    goldBias: 0.72,
+    count: 2400,
+  },
+  {
+    start: 0.24,
+    span: 4.38,
+    radius: 1,
+    squash: 0.93,
+    tilt: -0.17,
+    goldBias: 0.34,
+    count: 1900,
+  },
+  {
+    start: -1.36,
+    span: 3.86,
+    radius: 1.014,
+    squash: 0.88,
+    tilt: -0.25,
+    goldBias: 0.56,
+    count: 1200,
+  },
+]
+
+function buildArcs(): Arc[] {
+  return ARC_SPECS.map((arc) => ({
+    ...arc,
+    dust: Array.from({ length: arc.count }, () => ({
+      t: Math.random(),
+      speed: 0.75 + Math.random() * 0.5,
+      offset: (Math.random() - 0.5) * 0.008,
+      size: 0.3 + Math.random() ** 2 * 0.8,
+      phase: Math.random() * TAU,
+      tone: Math.random() < arc.goldBias ? 'gold' : 'blue',
+      glow: Math.random() < 0.06,
+    })),
+  }))
+}
+
 /**
- * A quiet Einstein ring for the Science overview. The ring is drawn from
- * stardust on a transparent canvas, with a very slow orbital drift and a
- * 0.5–0.8 opacity breath. It is decorative only, so it never receives
- * pointer events and is hidden from assistive technology.
+ * A restrained Einstein ring for the Science overview. Three non-closing
+ * arcs of dust bend around a tiny dark lens; the particles drift slowly and
+ * breathe between 0.5 and 0.8 opacity. There is no solid ring band and no
+ * bright central disc. The canvas is decorative, so it ignores pointer
+ * events and is hidden from assistive technology.
  */
 export function EinsteinRing({ animate = true }: EinsteinRingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -35,18 +100,7 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
     if (!context) return
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2) || 1
-    const particles: Particle[] = Array.from({ length: 760 }, () => {
-      const roll = Math.random()
-      return {
-        angle: Math.random() * TAU,
-        offset: (Math.random() - 0.5) * 0.05,
-        size: 0.35 + Math.random() ** 2 * 1.15,
-        phase: Math.random() * TAU,
-        speed: 0.55 + Math.random() * 0.9,
-        tone: roll < 0.68 ? 'gold' : roll < 0.92 ? 'blue' : 'white',
-        bright: Math.random() < 0.06,
-      }
-    })
+    const arcs = buildArcs()
 
     let width = 0
     let height = 0
@@ -58,117 +112,96 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
       if (width < 2 || height < 2) return
 
       const time = animate ? (now - startedAt) / 1000 : 0.8
-      const breath = animate ? 0.65 + 0.15 * Math.sin(time * 0.3) : 0.66
-      const rotation = animate ? time * 0.018 : 0.4
+      const breath = animate ? 0.64 + 0.13 * Math.sin(time * 0.28) : 0.66
+      const systemRotation = animate ? time * 0.0022 : 0.2
       const centerX = width * 0.52
       const centerY = height * 0.5
-      const radius = Math.min(width, height) * 0.335
+      const baseRadius = Math.min(width, height) * 0.34
 
       context.clearRect(0, 0, width, height)
       context.globalAlpha = breath
-
-      context.save()
-      context.translate(centerX, centerY)
-      context.rotate(-0.22)
-      context.scale(1, 0.9)
-
-      // A thin, almost invisible band of light behind the dust.
-      const band = context.createRadialGradient(
-        0,
-        0,
-        radius * 0.52,
-        0,
-        0,
-        radius * 1.18,
-      )
-      band.addColorStop(0, 'rgba(212, 175, 55, 0)')
-      band.addColorStop(0.45, 'rgba(143, 183, 255, 0.02)')
-      band.addColorStop(0.66, 'rgba(212, 175, 55, 0.035)')
-      band.addColorStop(0.82, 'rgba(226, 196, 128, 0.075)')
-      band.addColorStop(1, 'rgba(212, 175, 55, 0)')
-      context.fillStyle = band
-      context.beginPath()
-      context.arc(0, 0, radius * 1.18, 0, TAU)
-      context.fill()
-
       context.globalCompositeOperation = 'lighter'
-      for (const particle of particles) {
-        const angle = particle.angle + rotation * particle.speed
-        const radial =
-          radius *
-          (1 +
-            particle.offset +
-            Math.sin(time * 0.35 + particle.phase) * 0.004)
-        const x = Math.cos(angle) * radial
-        const y = Math.sin(angle) * radial
 
-        // Two brighter arcs keep the ring from reading as a perfect circle.
-        const arc =
-          0.35 +
-          0.65 * Math.pow(Math.max(0, Math.sin(angle * 2 + 0.9)), 2)
-        const twinkle =
-          0.62 + 0.38 * Math.sin(time * 0.9 + particle.phase)
-        const alpha = arc * twinkle * (particle.bright ? 0.8 : 0.48)
-        if (alpha < 0.015) continue
+      for (const arc of arcs) {
+        context.save()
+        context.translate(centerX, centerY)
+        context.rotate(arc.tilt)
+        context.scale(1, arc.squash)
 
-        const particleColor =
-          particle.tone === 'blue'
-            ? `rgba(143, 183, 255, ${alpha})`
-            : particle.tone === 'white'
-              ? `rgba(210, 225, 245, ${alpha})`
-              : `rgba(226, 196, 128, ${alpha})`
+        for (const dust of arc.dust) {
+          let t = dust.t + time * dust.speed * 0.0035
+          t -= Math.floor(t)
 
-        if (particle.bright) {
+          // Endpoints dissolve so the arc never closes.
+          const edge = Math.max(0, Math.min(1, t / 0.07, (1 - t) / 0.07))
+          if (edge <= 0) continue
+
+          const angle = arc.start + t * arc.span + systemRotation
+          const radius =
+            baseRadius *
+            arc.radius *
+            (1 +
+              dust.offset +
+              Math.sin(time * 0.2 + dust.phase) * 0.0008)
+          const x = Math.cos(angle) * radius
+          const y = Math.sin(angle) * radius
+
+          const grain =
+            0.35 +
+            0.65 *
+              Math.pow(0.5 + 0.5 * Math.sin(t * 83 + dust.phase), 2)
+          const shimmer = 0.72 + 0.28 * Math.sin(time * 0.6 + dust.phase)
+          const alpha =
+            edge *
+            grain *
+            shimmer *
+            (dust.tone === 'gold' ? 0.2 : 0.25)
+          if (alpha < 0.012) continue
+
+          if (dust.glow) {
+            context.fillStyle =
+              dust.tone === 'gold'
+                ? `rgba(212, 175, 55, ${alpha * 0.12})`
+                : `rgba(74, 78, 105, ${alpha * 0.18})`
+            context.beginPath()
+            context.arc(x, y, dust.size * 3.4, 0, TAU)
+            context.fill()
+          }
+
           context.fillStyle =
-            particle.tone === 'blue'
-              ? `rgba(143, 183, 255, ${alpha * 0.16})`
-              : particle.tone === 'white'
-                ? `rgba(210, 225, 245, ${alpha * 0.16})`
-                : `rgba(226, 196, 128, ${alpha * 0.16})`
+            dust.tone === 'gold'
+              ? `rgba(212, 175, 55, ${alpha})`
+              : `rgba(74, 78, 105, ${alpha})`
           context.beginPath()
-          context.arc(x, y, particle.size * 4.2, 0, TAU)
+          context.arc(x, y, dust.size, 0, TAU)
           context.fill()
         }
 
-        context.fillStyle = particleColor
-        context.beginPath()
-        context.arc(x, y, particle.size, 0, TAU)
-        context.fill()
+        context.restore()
       }
-      context.restore()
 
-      // The lens itself: an almost-black sphere with a cool rim.
-      const core = context.createRadialGradient(
+      // The lens: a tiny, almost-black point with a soft cool haze. No rim,
+      // no filled disc — just enough darkness to anchor the bent light.
+      const lens = context.createRadialGradient(
         centerX,
         centerY,
         0,
         centerX,
         centerY,
-        radius * 0.26,
+        15,
       )
-      core.addColorStop(0, 'rgba(0, 0, 0, 0.99)')
-      core.addColorStop(0.68, 'rgba(0, 0, 0, 0.97)')
-      core.addColorStop(0.88, 'rgba(2, 4, 8, 0.94)')
-      core.addColorStop(0.96, 'rgba(143, 183, 255, 0.02)')
-      core.addColorStop(1, 'rgba(0, 0, 0, 0)')
-      context.fillStyle = core
+      lens.addColorStop(0, 'rgba(0, 0, 0, 0.98)')
+      lens.addColorStop(0.34, 'rgba(0, 0, 0, 0.9)')
+      lens.addColorStop(0.64, 'rgba(20, 22, 34, 0.22)')
+      lens.addColorStop(1, 'rgba(74, 78, 105, 0)')
+      context.fillStyle = lens
       context.beginPath()
-      context.arc(centerX, centerY, radius * 0.26, 0, TAU)
+      context.arc(centerX, centerY, 15, 0, TAU)
       context.fill()
 
-      const glint = context.createRadialGradient(
-        centerX,
-        centerY,
-        0,
-        centerX,
-        centerY,
-        radius * 0.04,
-      )
-      glint.addColorStop(0, 'rgba(205, 222, 255, 0.13)')
-      glint.addColorStop(1, 'rgba(143, 183, 255, 0)')
-      context.fillStyle = glint
+      context.fillStyle = 'rgba(212, 175, 55, 0.22)'
       context.beginPath()
-      context.arc(centerX, centerY, radius * 0.04, 0, TAU)
+      context.arc(centerX, centerY, 0.8, 0, TAU)
       context.fill()
 
       context.globalAlpha = 1

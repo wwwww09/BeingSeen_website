@@ -826,7 +826,9 @@ a {
   line-height: 1.04;
   letter-spacing: -0.025em;
   color: var(--text);
-  transition: color 0.3s ease;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
 }
 
 .index-row__summary {
@@ -844,23 +846,29 @@ a {
   font-family: var(--mono);
   font-size: 20px;
   color: var(--accent);
-  transition: transform 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
 }
 
 .index-row:hover,
 .index-row:hover + .index-row {
-  border-top-color: rgba(212, 175, 55, 0.5);
+  border-top-color: rgba(217, 108, 74, 0.5);
 }
 
 .index-row:last-child:hover {
-  border-bottom-color: rgba(212, 175, 55, 0.5);
+  border-bottom-color: rgba(217, 108, 74, 0.5);
 }
 
 .index-row:hover .index-row__title {
-  color: #d4af37;
+  color: #d96c4a;
+  text-shadow:
+    0 1px 40px rgba(7, 8, 10, 0.88),
+    0 0 10px rgba(217, 108, 74, 0.3);
 }
 
 .index-row:hover .index-row__arrow {
+  color: #d96c4a;
   transform: translateX(8px);
 }
 
