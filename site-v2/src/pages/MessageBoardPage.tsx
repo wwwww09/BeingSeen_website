@@ -94,6 +94,15 @@ export function MessageBoardPage() {
     closeModal()
   }
 
+  const deleteStory = () => {
+    if (selected === null) return
+
+    const next = stories.filter((story) => story.index !== selected)
+    saveStories(next)
+    setStories(next)
+    closeModal()
+  }
+
   return (
     <article className="message-page">
       <section className="message-hero">
@@ -199,6 +208,15 @@ export function MessageBoardPage() {
                   Left on {formatDate(selectedStory.createdAt)}
                 </p>
                 <div className="message-modal__actions">
+                  <button
+                    className="message-modal__delete"
+                    type="button"
+                    onClick={deleteStory}
+                    title="This cannot be undone."
+                    aria-label="Delete this star permanently"
+                  >
+                    Delete this star
+                  </button>
                   <button
                     className="message-modal__submit"
                     type="button"

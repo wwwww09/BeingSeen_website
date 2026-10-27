@@ -5776,6 +5776,13 @@ a {
 
 .message-modal__panel[data-lit='true'] {
   border-color: rgba(255, 191, 0, 0.55);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 191, 0, 0.05) 0%,
+      rgba(255, 191, 0, 0) 34%
+    ),
+    rgba(10, 10, 10, 0.82);
   box-shadow:
     0 0 0 1px rgba(255, 191, 0, 0.08),
     0 30px 90px rgba(0, 0, 0, 0.72),
@@ -5817,6 +5824,18 @@ a {
 
 .message-modal__panel[data-lit='true'] .message-modal__kicker {
   color: #ffbf00;
+}
+
+.message-modal__panel[data-lit='true'] .message-modal__kicker::before {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: #ffbf00;
+  box-shadow: 0 0 8px rgba(255, 191, 0, 0.7);
+  vertical-align: 0.08em;
+  content: '';
 }
 
 .message-modal__title {
@@ -5915,6 +5934,8 @@ a {
 
 .message-modal__story {
   margin: 0;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(255, 191, 0, 0.22);
   font-family: var(--display);
   font-size: clamp(1.15rem, 2.3vw, 1.45rem);
   line-height: 1.65;
@@ -5935,8 +5956,35 @@ a {
 
 .message-modal__actions {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.message-modal__delete {
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #666666;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.message-modal__delete:hover {
+  color: #a84a4a;
+}
+
+.message-modal__delete:focus-visible {
+  outline: 1px solid rgba(168, 74, 74, 0.5);
+  outline-offset: 3px;
 }
 
 @keyframes message-modal-fade {
