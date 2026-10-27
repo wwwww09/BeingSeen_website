@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { EinsteinRing } from '../components/EinsteinRing'
 import { science, scienceChapters } from '../content'
 
 export function ScienceOverview() {
@@ -7,7 +8,8 @@ export function ScienceOverview() {
 
   return (
     <>
-      <section className="page-head" data-side="left">
+      <section className="page-head page-head--overview" data-side="left">
+        <EinsteinRing animate={!reduced} />
         <div className="page-head__inner">
           <motion.p
             className="eyebrow"
