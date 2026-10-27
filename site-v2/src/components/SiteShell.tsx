@@ -23,7 +23,8 @@ export function SiteShell() {
   const location = useLocation()
   const hideStage =
     location.pathname === '/science/supernovae' ||
-    location.pathname === '/science/fast-radio-bursts'
+    location.pathname === '/science/fast-radio-bursts' ||
+    location.pathname === '/message-board'
   const [lensKeys, setLensKeys] = useState<LensKey[]>([
     { p: 0, x: LENS_X },
     { p: 1, x: LENS_X },

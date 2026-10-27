@@ -5553,18 +5553,20 @@ a {
 
 .message-page {
   position: relative;
+  min-height: 100svh;
+  background:
+    radial-gradient(
+      ellipse 88% 58% at 50% 14%,
+      rgba(30, 33, 62, 0.55) 0%,
+      rgba(14, 15, 28, 0.3) 42%,
+      transparent 72%
+    ),
+    linear-gradient(180deg, #05050a 0%, #0a0b14 48%, #121020 100%);
 }
 
 .message-hero {
   width: 100%;
   margin: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.96) 0%,
-    rgba(0, 0, 0, 0.9) 40%,
-    rgba(0, 0, 0, 0.7) 64%,
-    rgba(0, 0, 0, 0.15) 100%
-  );
 }
 
 .message-hero__inner {
@@ -5602,12 +5604,11 @@ a {
 .message-map {
   position: relative;
   width: 100%;
-  height: clamp(600px, 80svh, 940px);
+  height: clamp(640px, 92svh, 1100px);
   overflow: hidden;
   isolation: isolate;
-  background: #000000;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: 0;
 }
 
 .message-map__field {
@@ -5619,6 +5620,7 @@ a {
   display: block;
   width: 100%;
   height: 100%;
+  background: transparent;
   cursor: default;
   touch-action: manipulation;
 }
@@ -5972,7 +5974,7 @@ a {
   }
 
   .message-map {
-    height: clamp(520px, 72svh, 680px);
+    height: clamp(560px, 86svh, 780px);
   }
 
   .message-map__hud {
