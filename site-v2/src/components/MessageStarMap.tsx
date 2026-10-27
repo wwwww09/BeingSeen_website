@@ -151,22 +151,22 @@ export function MessageStarMap({
         // Expanding ripple at the moment of ignition.
         const rippleProgress = reducedRef.current
           ? 1
-          : Math.min(1, Math.max(0, elapsed / 1500))
+          : Math.min(1, Math.max(0, elapsed / 1800))
         if (rippleProgress < 1) {
           const ringRadius =
-            4 + 44 * (1 - Math.pow(1 - rippleProgress, 2))
-          const ringAlpha = (1 - rippleProgress) * 0.45
+            4 + 50 * (1 - Math.pow(1 - rippleProgress, 2))
+          const ringAlpha = (1 - rippleProgress) * 0.55
           context.strokeStyle = `rgba(255, 191, 0, ${ringAlpha})`
           context.lineWidth = 1.3 * (1 - rippleProgress) + 0.3
           context.beginPath()
           context.arc(x, y, ringRadius, 0, TAU)
           context.stroke()
 
-          const second = Math.max(0, rippleProgress - 0.16)
+          const second = Math.max(0, rippleProgress - 0.14)
           if (second > 0 && second < 1) {
-            const secondRadius = 4 + 36 * (1 - Math.pow(1 - second, 2))
+            const secondRadius = 4 + 42 * (1 - Math.pow(1 - second, 2))
             context.strokeStyle = `rgba(255, 214, 140, ${
-              (1 - second) * 0.24
+              (1 - second) * 0.3
             })`
             context.lineWidth = 1
             context.beginPath()

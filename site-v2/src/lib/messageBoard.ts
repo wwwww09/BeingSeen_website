@@ -45,9 +45,9 @@ export const STARS: Star[] = Array.from({ length: STAR_COUNT }, (_, index) => ({
   // stored star indices keep their original x/y positions.
   size: 1 + random() * 0.9,
   alpha: 0.22 + random() * 0.16,
-  twinkle: 0.12 + twinkleRandom() * 0.2,
+  twinkle: 0.16 + twinkleRandom() * 0.22,
   phase: twinkleRandom() * Math.PI * 2,
-  speed: 0.08 + twinkleRandom() * 0.22,
+  speed: 0.28 + twinkleRandom() * 0.62,
 }))
 
 function findNearestIndex(x: number, y: number) {
