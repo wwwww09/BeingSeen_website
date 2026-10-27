@@ -761,6 +761,14 @@ a {
   color: var(--dim);
 }
 
+.page-lede--question {
+  margin-top: 1.15rem;
+}
+
+.page-lede__mark {
+  color: var(--text);
+}
+
 .page-note {
   max-width: 34rem;
   margin: 22px 0 0;

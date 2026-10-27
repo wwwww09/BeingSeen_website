@@ -33,7 +33,9 @@ export const home = {
 export const science = {
   eyebrow: 'The Science',
   title: 'Three messages, one bend.',
-  lede: 'A lens does not care what kind of light passes it. The same geometry acts on an exploding star, a radio burst, and a gravitational wave — but each messenger gives us a different measurement to repair. Three chapters, one question at a time.',
+  lede: 'A lens does not care what kind of light passes it. The same geometry acts on an exploding star, a radio burst, and a gravitational wave.',
+  guidingQuestion:
+    'How does gravitational lensing reveal astronomical phenomena that are otherwise invisible? To answer this, we investigate three messengers:',
 }
 
 export const scienceChapters: ScienceChapter[] = [
@@ -43,7 +45,7 @@ export const scienceChapters: ScienceChapter[] = [
     kicker: 'Supernovae',
     title: 'Can Lensing Make Distant Supernovae Visible?',
     summary:
-      'A lens can make a faint explosion visible. The question is how many, and at what cost to the count.',
+      'To what extent does lensing magnify distant supernovae, and how does it increase our chances of detecting them?',
     body: 'Distant supernovae are our standard candles. But without a lens, they are too faint to see. If we miss them, our map of the cosmos is incomplete.',
     chartLabel: 'Brightness with and without lensing',
     chartNote:
@@ -55,7 +57,7 @@ export const scienceChapters: ScienceChapter[] = [
     kicker: 'Fast radio bursts',
     title: 'Seeking the Signals Copied by the Universe.',
     summary:
-      'A lens can copy a burst in time. The question is whether any two arrivals in the catalogue are copies.',
+      'How does strong lensing produce time-delayed images, and what fraction of these events can we identify as lensed copies?',
     body: 'When a massive galaxy acts as a gravitational lens, it can bend the radio waves along multiple paths, causing the same burst to arrive at Earth at different times.',
     chartLabel: 'Time-delayed pairs in the CHIME/FRB catalogue',
     chartNote:
@@ -67,7 +69,7 @@ export const scienceChapters: ScienceChapter[] = [
     kicker: 'Gravitational waves',
     title: 'Can GW Lensing Correct Black Hole Masses?',
     summary:
-      'A lens can make a black hole look heavier. Two mass-gap candidates may be ordinary black holes seen through a magnifying glass.',
+      'For events with no electromagnetic counterpart, can lensing provide information that is otherwise inaccessible?',
     body: 'Lensing does more than reveal the distant universe. It can also deceive us. A magnified gravitational-wave signal appears more massive than its source, so a normal black hole can masquerade as a mass-gap anomaly. Two events in GWTC-5.0 sit above 45 M⊙ — but perhaps we are only seeing them through the universe’s magnifying glass. Remove the lens, and their true masses return to the normal range.',
     chartLabel: 'Observed vs de-lensed black hole masses',
     chartNote:

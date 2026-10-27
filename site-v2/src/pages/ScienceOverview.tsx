@@ -37,6 +37,15 @@ export function ScienceOverview() {
           >
             {science.lede}
           </motion.p>
+          <motion.p
+            className="page-lede page-lede--question"
+            initial={reduced ? false : { opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="page-lede__mark">Our guiding question:</span>{' '}
+            {science.guidingQuestion}
+          </motion.p>
         </div>
       </section>
 
