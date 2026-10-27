@@ -95,9 +95,8 @@ export function FrbChapterPage({
           <span className="frb-data-title__accent">DM data</span>.
         </h2>
         <p className="frb-data-lede">
-          We tested those 547 and found 2 candidate pairs — 4 FRB signals —
-          whose bursts share the same dispersion measure (DM) but arrived days
-          apart.
+          We tested those 547 and found 2 candidate pairs whose bursts share the
+          same dispersion measure (DM) but arrived days apart.
         </p>
         <FrbDataMap3D />
       </section>

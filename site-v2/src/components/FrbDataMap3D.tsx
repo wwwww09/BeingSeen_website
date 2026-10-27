@@ -859,18 +859,21 @@ export function FrbDataMap3D() {
             tooltipRef={tooltipRef}
             sizeRef={tooltipSizeRef}
           />
+          {/* Origin stays the orbit pivot. zoomToCursor is deliberately off:
+              it moves the target and lets the cluster drift out of frame. */}
           <OrbitControls
             ref={controlsRef}
             makeDefault
             target={[0, 0, 0]}
             enablePan={false}
             enableZoom
-            zoomToCursor
             zoomSpeed={0.9}
-            minDistance={10.5}
-            maxDistance={52}
-            minPolarAngle={0.2}
-            maxPolarAngle={Math.PI - 0.2}
+            minDistance={14}
+            maxDistance={34}
+            minPolarAngle={Math.PI / 12}
+            maxPolarAngle={Math.PI - Math.PI / 12}
+            minAzimuthAngle={-Math.PI}
+            maxAzimuthAngle={Math.PI}
             enableDamping
             dampingFactor={0.06}
             rotateSpeed={0.5}
