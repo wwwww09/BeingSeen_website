@@ -20,6 +20,7 @@ export interface StoryRecord {
   y: number
   story: string
   createdAt: number
+  ownerId?: string
 }
 
 /** Deterministic PRNG so the same 10,000 stars return after a reload. */

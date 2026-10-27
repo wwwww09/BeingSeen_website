@@ -11,6 +11,15 @@ import {
   saveStories,
   type StoryRecord,
 } from '../lib/messageBoard'
+import {
+  createPublicStory,
+  deletePublicStory,
+  ensureAnonymousUser,
+  fetchPublicStories,
+  isPublicBoard,
+  storyErrorMessage,
+  subscribeToPublicStories,
+} from '../lib/publicStories'
 
 const CTA_ONE =
   'Gravitational lensing magnifies the faint light of distant stars. Here, your empathy is the lens. By sharing your story, you light up a star that was once lost in the dark.'
@@ -32,18 +41,87 @@ function formatDate(value: number) {
 
 export function MessageBoardPage() {
   const reduced = useReducedMotion() ?? false
-  const [stories, setStories] = useState<StoryRecord[]>(() => readStories())
+  const [stories, setStories] = useState<StoryRecord[]>(() =>
+    isPublicBoard ? [] : readStories(),
+  )
   const [selected, setSelected] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(isPublicBoard)
+  const [isSaving, setIsSaving] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const selectedStory =
     selected === null
       ? null
       : stories.find((story) => story.index === selected) ?? null
 
+  const canDelete = Boolean(
+    selectedStory &&
+      (!isPublicBoard ||
+        (userId !== null && selectedStory.ownerId === userId)),
+  )
+
   const closeModal = useCallback(() => {
     setSelected(null)
     setDraft('')
+    setNotice(null)
+  }, [])
+
+  useEffect(() => {
+    if (!isPublicBoard) return
+
+    let active = true
+    let refreshTimer: number | undefined
+
+    const refresh = async () => {
+      try {
+        const next = await fetchPublicStories()
+        if (!active) return
+        setStories(next)
+        setLoadError(null)
+      } catch (error) {
+        if (!active) return
+        setLoadError(
+          storyErrorMessage(error, 'The public sky could not be reached.'),
+        )
+      } finally {
+        if (active) setIsLoading(false)
+      }
+    }
+
+    const boot = async () => {
+      try {
+        const id = await ensureAnonymousUser()
+        if (active) setUserId(id)
+      } catch (error) {
+        if (active) {
+          setLoadError(
+            storyErrorMessage(
+              error,
+              'Anonymous sessions are unavailable right now.',
+            ),
+          )
+        }
+      }
+      await refresh()
+    }
+
+    void boot()
+
+    const unsubscribe = subscribeToPublicStories(() => {
+      window.clearTimeout(refreshTimer)
+      refreshTimer = window.setTimeout(() => {
+        void refresh()
+      }, 300)
+    })
+
+    return () => {
+      active = false
+      window.clearTimeout(refreshTimer)
+      unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
@@ -65,43 +143,94 @@ export function MessageBoardPage() {
 
   const openStar = (index: number) => {
     setDraft('')
+    setNotice(null)
     setSelected(index)
   }
 
-  const submitStory = () => {
-    if (selected === null) return
+  const submitStory = async () => {
+    if (selected === null || isSaving) return
     const text = draft.trim().slice(0, MAX_STORY_LENGTH)
     if (!text) return
 
     const star = STARS[selected]
     if (!star) return
 
-    const story: StoryRecord = {
-      id: createStoryId(),
-      index: selected,
-      x: star.x,
-      y: star.y,
-      story: text,
-      createdAt: Date.now(),
+    setNotice(null)
+    setIsSaving(true)
+
+    try {
+      if (isPublicBoard) {
+        const story = await createPublicStory({
+          index: selected,
+          x: star.x,
+          y: star.y,
+          story: text,
+        })
+        setStories((previous) => [
+          story,
+          ...previous.filter((entry) => entry.index !== story.index),
+        ])
+      } else {
+        const story: StoryRecord = {
+          id: createStoryId(),
+          index: selected,
+          x: star.x,
+          y: star.y,
+          story: text,
+          createdAt: Date.now(),
+        }
+        const next = [
+          ...stories.filter((entry) => entry.index !== selected),
+          story,
+        ]
+        saveStories(next)
+        setStories(next)
+      }
+      closeModal()
+    } catch (error) {
+      setNotice(
+        storyErrorMessage(error, 'The story could not be sent. Try again.'),
+      )
+    } finally {
+      setIsSaving(false)
     }
-
-    const next = [
-      ...stories.filter((entry) => entry.index !== selected),
-      story,
-    ]
-    saveStories(next)
-    setStories(next)
-    closeModal()
   }
 
-  const deleteStory = () => {
-    if (selected === null) return
+  const deleteStory = async () => {
+    if (!selectedStory || isSaving) return
+    if (isPublicBoard && selectedStory.ownerId !== userId) return
 
-    const next = stories.filter((story) => story.index !== selected)
-    saveStories(next)
-    setStories(next)
-    closeModal()
+    setNotice(null)
+    setIsSaving(true)
+
+    try {
+      if (isPublicBoard) {
+        await deletePublicStory(selectedStory.id)
+      } else {
+        const next = stories.filter(
+          (story) => story.index !== selectedStory.index,
+        )
+        saveStories(next)
+      }
+      setStories((previous) =>
+        previous.filter((story) => story.index !== selectedStory.index),
+      )
+      closeModal()
+    } catch (error) {
+      setNotice(
+        storyErrorMessage(error, 'This star could not be deleted. Try again.'),
+      )
+    } finally {
+      setIsSaving(false)
+    }
   }
+
+  const footNote = isLoading
+    ? 'Listening to the dark…'
+    : loadError ??
+      (isPublicBoard
+        ? 'Stories are shared anonymously with everyone. Please leave out names and private details.'
+        : 'Local preview — stories are stored only in this browser.')
 
   return (
     <article className="message-page">
@@ -154,8 +283,13 @@ export function MessageBoardPage() {
       </section>
 
       <footer className="message-foot">
-        <p className="message-foot__note">
-          Stories are stored anonymously in this browser.
+        <p
+          className={`message-foot__note${
+            loadError ? ' message-foot__note--error' : ''
+          }`}
+          role="status"
+        >
+          {footNote}
         </p>
         <div className="message-foot__links">
           <Link className="back-link" to="/science">
@@ -193,6 +327,12 @@ export function MessageBoardPage() {
               ×
             </button>
 
+            {notice ? (
+              <p className="message-modal__error" role="alert">
+                {notice}
+              </p>
+            ) : null}
+
             {selectedStory ? (
               <>
                 <p
@@ -208,19 +348,23 @@ export function MessageBoardPage() {
                   Left on {formatDate(selectedStory.createdAt)}
                 </p>
                 <div className="message-modal__actions">
-                  <button
-                    className="message-modal__delete"
-                    type="button"
-                    onClick={deleteStory}
-                    title="This cannot be undone."
-                    aria-label="Delete this star permanently"
-                  >
-                    Delete this star
-                  </button>
+                  {canDelete ? (
+                    <button
+                      className="message-modal__delete"
+                      type="button"
+                      onClick={deleteStory}
+                      disabled={isSaving}
+                      title="This cannot be undone."
+                      aria-label="Delete this star permanently"
+                    >
+                      {isSaving ? 'Deleting…' : 'Delete this star'}
+                    </button>
+                  ) : null}
                   <button
                     className="message-modal__submit"
                     type="button"
                     onClick={closeModal}
+                    disabled={isSaving}
                   >
                     Close
                   </button>
@@ -236,7 +380,9 @@ export function MessageBoardPage() {
                   Write down a moment you felt invisible.
                 </h2>
                 <p className="message-modal__note">
-                  (Your name will remain anonymous).
+                  {isPublicBoard
+                    ? '(Your name will remain anonymous. Your story will be visible to everyone.)'
+                    : '(Your name will remain anonymous. Stored only in this browser.)'}
                 </p>
                 <textarea
                   className="message-modal__textarea"
@@ -255,9 +401,9 @@ export function MessageBoardPage() {
                     className="message-modal__submit"
                     type="button"
                     onClick={submitStory}
-                    disabled={!draft.trim()}
+                    disabled={!draft.trim() || isSaving}
                   >
-                    Submit to the Universe
+                    {isSaving ? 'Sending…' : 'Submit to the Universe'}
                   </button>
                 </div>
               </>
