@@ -72,6 +72,7 @@ export function MessageStarMap({
     let height = 0
     let frame = 0
     let lastStarAt = 0
+    let visible = true
 
     const drawStarField = (now: number) => {
       if (!starContext) return
@@ -332,6 +333,9 @@ export function MessageStarMap({
     canvas.addEventListener('click', handleClick)
 
     const loop = (now: number) => {
+      frame = 0
+      if (!visible) return
+
       if (!pausedRef.current) {
         if (now - lastStarAt >= STAR_TWINKLE_INTERVAL) {
           drawStarField(now)
@@ -341,10 +345,30 @@ export function MessageStarMap({
       }
       frame = requestAnimationFrame(loop)
     }
-    frame = requestAnimationFrame(loop)
+
+    const start = () => {
+      if (!frame) frame = requestAnimationFrame(loop)
+    }
+
+    const stop = () => {
+      if (frame) cancelAnimationFrame(frame)
+      frame = 0
+    }
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting
+        if (visible) start()
+        else stop()
+      },
+      { rootMargin: '160px', threshold: 0.01 },
+    )
+    intersectionObserver.observe(canvas)
+    start()
 
     return () => {
-      cancelAnimationFrame(frame)
+      stop()
+      intersectionObserver.disconnect()
       resizeObserver.disconnect()
       canvas.removeEventListener('pointermove', handlePointerMove)
       canvas.removeEventListener('pointerleave', handlePointerLeave)

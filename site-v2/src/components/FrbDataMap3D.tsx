@@ -751,6 +751,27 @@ export function FrbDataMap3D() {
   const tooltipRef = useRef<HTMLDivElement>(null)
   const tooltipSizeRef = useRef<TooltipSize>({ width: 0, height: 0 })
   const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
+  const [mapInView, setMapInView] = useState(false)
+  const mapObserverRef = useRef<IntersectionObserver | null>(null)
+  const mapCanvasRef = useCallback((node: HTMLDivElement | null) => {
+    mapObserverRef.current?.disconnect()
+    mapObserverRef.current = null
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setMapInView(entry.isIntersecting),
+      { rootMargin: '200px', threshold: 0.01 },
+    )
+    observer.observe(node)
+    mapObserverRef.current = observer
+  }, [])
+
+  useEffect(
+    () => () => {
+      mapObserverRef.current?.disconnect()
+    },
+    [],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -836,10 +857,11 @@ export function FrbDataMap3D() {
         Hover one of the four gold candidate stars
       </p>
 
-      <div className="frb-map__canvas">
+      <div className="frb-map__canvas" ref={mapCanvasRef}>
         <Canvas
           camera={{ position: [18, 10, 20], fov: 42, near: 0.1, far: 200 }}
-          dpr={[2, 2]}
+          dpr={[1, 2]}
+          frameloop={mapInView ? 'always' : 'never'}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           style={{ background: 'transparent' }}
           role="img"

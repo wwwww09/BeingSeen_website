@@ -1,5 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html, Line, Stars } from '@react-three/drei'
+import { useInView } from 'framer-motion'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { getDotTexture } from '../scene/dotTexture'
@@ -436,12 +437,14 @@ function Scene({
 
 export function FrbMechanism3D({ animate = true }: { animate?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(containerRef, { margin: '200px' })
 
   return (
     <div ref={containerRef} className="frb-scene__canvas">
       <Canvas
         camera={{ position: [3, 1.9, 9.8], fov: 30 }}
         dpr={[1, 2]}
+        frameloop={inView ? 'always' : 'never'}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >

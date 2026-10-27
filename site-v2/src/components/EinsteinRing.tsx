@@ -369,24 +369,38 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
     resizeObserver.observe(canvas)
     resize()
 
-    const intersectionObserver = new IntersectionObserver(
-      ([entry]) => {
-        visible = entry.isIntersecting
-      },
-      { threshold: 0.01 },
-    )
-    intersectionObserver.observe(canvas)
+    const tick = (now: number) => {
+      frame = 0
+      if (!visible) return
 
-    if (animate) {
-      const tick = (now: number) => {
-        if (visible) drawFrame(now)
-        frame = requestAnimationFrame(tick)
-      }
+      drawFrame(now)
       frame = requestAnimationFrame(tick)
     }
 
+    const start = () => {
+      if (!animate || !visible || frame) return
+      frame = requestAnimationFrame(tick)
+    }
+
+    const stop = () => {
+      if (frame) cancelAnimationFrame(frame)
+      frame = 0
+    }
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting
+        if (visible) start()
+        else stop()
+      },
+      { rootMargin: '120px', threshold: 0.01 },
+    )
+    intersectionObserver.observe(canvas)
+
+    if (animate) start()
+
     return () => {
-      cancelAnimationFrame(frame)
+      stop()
       resizeObserver.disconnect()
       intersectionObserver.disconnect()
     }

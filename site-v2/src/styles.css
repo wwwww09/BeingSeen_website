@@ -2659,8 +2659,6 @@ a {
   border-top: 1px solid rgba(236, 233, 226, 0.14);
   border-left: 1px solid rgba(236, 233, 226, 0.14);
   background: rgba(6, 8, 12, 0.94);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   font-family: var(--mono);
   font-size: 0.68rem;
   line-height: 1;
@@ -2721,8 +2719,6 @@ a {
   border: 1px solid rgba(255, 207, 139, 0.36);
   background: rgba(6, 8, 12, 0.95);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: 0.92rem;
   line-height: 1.25;
@@ -3528,14 +3524,12 @@ a {
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 1px;
-  background: rgba(10, 10, 10, 0.72);
+  background: rgba(10, 10, 10, 0.86);
   color: rgba(255, 255, 255, 0.62);
   font-family: var(--mono);
   font-size: 0.72rem;
   line-height: 1;
   cursor: pointer;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
   transition:
     color 160ms ease,
     border-color 160ms ease,
@@ -3682,12 +3676,10 @@ a {
       rgba(255, 255, 255, 0.05) 0%,
       rgba(255, 255, 255, 0) 42%
     ),
-    rgba(15, 20, 30, 0.6);
+    rgba(15, 20, 30, 0.84);
   box-shadow:
     0 8px 32px 0 rgba(0, 0, 0, 0.37),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: 0.64rem;
   font-weight: 400;
@@ -5472,7 +5464,6 @@ a {
   background: rgba(0, 0, 0, 0.9);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
   pointer-events: none;
-  backdrop-filter: blur(6px);
 }
 
 .sky-map__tooltip-coord {
@@ -5690,8 +5681,6 @@ a {
   border-radius: 3px;
   background: rgba(10, 10, 10, 0.86);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
   font-family: var(--mono);
   font-size: 0.5rem;
   line-height: 1.5;
@@ -5756,9 +5745,7 @@ a {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.74);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.82);
   animation: message-modal-fade 260ms ease both;
 }
 

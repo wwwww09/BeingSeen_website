@@ -297,7 +297,7 @@ export function SkyCoverageMap() {
       return
     }
 
-    const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3)
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
     for (const canvas of [baseCanvas, overlayCanvas]) {
       canvas.width = Math.round(size.w * dpr)
       canvas.height = Math.round(size.h * dpr)

@@ -1,6 +1,7 @@
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { useEffect, useMemo, useState } from 'react'
+import { useInView } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { getDotTexture } from '../scene/dotTexture'
 import { supernovae } from '../data/supernovae'
@@ -236,6 +237,8 @@ export function LensScatter3D() {
   const [feed, setFeed] = useState<LensFeed>(FALLBACK)
   const [live, setLive] = useState(false)
   const [hover, setHover] = useState<HoverPoint | null>(null)
+  const canvasWrapRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(canvasWrapRef, { margin: '200px' })
 
   const sneMeta = useMemo(
     () =>
@@ -290,12 +293,14 @@ export function LensScatter3D() {
       <div className="lens-scatter">
         <div
           className="lens-scatter__canvas"
+          ref={canvasWrapRef}
           role="img"
           aria-label="Three-dimensional scatter map of 13,941 known gravitational lenses in blue and five sampled lensed supernovae in gold."
         >
           <Canvas
             camera={{ position: [23, 15, 26], fov: 42 }}
             dpr={[1, 2]}
+            frameloop={inView ? 'always' : 'never'}
             gl={{ antialias: true, alpha: true }}
             style={{ background: 'transparent' }}
             onPointerMissed={() => setHover(null)}
