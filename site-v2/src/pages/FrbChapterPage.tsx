@@ -89,11 +89,10 @@ export function FrbChapterPage({
       <section className="frb-data">
         <p className="section-kicker">The real data</p>
         <h2 className="frb-data-title">
-          Out of 690 detected FRBs,{' '}
-          <span className="frb-data-title__accent">
-            547 have complete DM data
-          </span>
-          .
+          Out of 690 detected FRBs,
+          <br />
+          <span className="frb-data-title__accent">547</span> have complete{' '}
+          <span className="frb-data-title__accent">DM data</span>.
         </h2>
         <p className="frb-data-lede">
           We tested those 547 and found 2 candidate pairs — 4 FRB signals —

@@ -70,8 +70,8 @@ export function GwMassComparison() {
                 x2="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#2B1E4A" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#1A1130" stopOpacity="0.6" />
+                <stop offset="0%" stopColor="#2A2056" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#130D2B" stopOpacity="0.8" />
               </linearGradient>
               <pattern
                 id={`${uid}-observed`}
@@ -88,12 +88,14 @@ export function GwMassComparison() {
                 <rect
                   width="7"
                   height="2"
-                  fill="rgba(185, 165, 230, 0.22)"
+                  fill="rgba(159, 142, 240, 0.28)"
                 />
               </pattern>
               <linearGradient id={`${uid}-true`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4169E1" />
-                <stop offset="100%" stopColor="#1C39BB" />
+                <stop offset="0%" stopColor="#DCE8FF" />
+                <stop offset="14%" stopColor="#8FB7FF" />
+                <stop offset="52%" stopColor="#3B6BFF" />
+                <stop offset="100%" stopColor="#1B3AA6" />
               </linearGradient>
               <filter
                 id={`${uid}-true-glow`}
@@ -106,8 +108,8 @@ export function GwMassComparison() {
                   dx="0"
                   dy="0"
                   stdDeviation="3"
-                  floodColor="#4169E1"
-                  floodOpacity="0.28"
+                  floodColor="#4F7EFF"
+                  floodOpacity="0.32"
                 />
               </filter>
             </defs>
@@ -215,8 +217,8 @@ export function GwMassComparison() {
                         width={BAR_W}
                         rx={1}
                         fill={`url(#${uid}-observed)`}
-                        fillOpacity={0.8}
-                        stroke="rgba(60, 40, 100, 0.7)"
+                        fillOpacity={0.9}
+                        stroke="rgba(124, 96, 210, 0.55)"
                         strokeWidth={1}
                         {...barMotion(observedY, observedH)}
                       />
@@ -225,7 +227,9 @@ export function GwMassComparison() {
                         width={BAR_W}
                         rx={1}
                         fill={`url(#${uid}-true)`}
-                        fillOpacity={0.8}
+                        fillOpacity={0.92}
+                        stroke="rgba(143, 183, 255, 0.45)"
+                        strokeWidth={0.8}
                         filter={`url(#${uid}-true-glow)`}
                         {...barMotion(trueY, trueH)}
                       />

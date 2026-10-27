@@ -3296,7 +3296,7 @@ a {
 }
 
 .frb-data-title {
-  max-width: 24ch;
+  max-width: 28ch;
   margin: 0 auto;
   font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
   font-size: clamp(2.1rem, 4.4vw, 3.9rem);
@@ -3352,29 +3352,152 @@ a {
 .frb-map__canvas {
   position: relative;
   width: 100%;
-  height: clamp(600px, 78vh, 860px);
+  height: clamp(620px, 80vh, 920px);
   min-height: 600px;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid #1e3a8a;
+  border: 1px solid #333333;
   border-radius: 3px;
   background:
     radial-gradient(
-      ellipse at 50% 44%,
-      rgba(17, 32, 66, 0.5) 0%,
-      rgba(6, 10, 22, 0.72) 48%,
-      rgba(0, 0, 0, 0.94) 100%
-    );
+      ellipse 68% 62% at 50% 45%,
+      rgba(15, 31, 64, 0.6) 0%,
+      rgba(5, 9, 21, 0.92) 52%,
+      #000000 100%
+    ),
+    #000000;
   box-shadow:
-    inset 0 0 90px rgba(10, 22, 52, 0.3),
-    inset 0 1px 0 rgba(120, 160, 255, 0.08),
-    0 30px 90px rgba(0, 0, 0, 0.5);
+    inset 0 0 80px rgba(8, 18, 40, 0.35),
+    0 30px 90px rgba(0, 0, 0, 0.55);
+}
+
+/* A quiet vignette gives the frame an inside edge without adding a bright
+   line. Purely atmospheric — never intercepts the cursor. */
+.frb-map__canvas::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: '';
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 56% 50% at 50% 44%,
+      rgba(40, 80, 160, 0.06) 0%,
+      transparent 68%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.2) 0%,
+      transparent 18%,
+      transparent 82%,
+      rgba(0, 0, 0, 0.42) 100%
+    );
 }
 
 .frb-map__canvas canvas {
   display: block;
   cursor: grab;
   touch-action: none;
+}
+
+.frb-map__hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.36);
+}
+
+.frb-map__hud-item {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.frb-map__hud-item--tl {
+  top: 17px;
+  left: 18px;
+}
+
+.frb-map__hud-item--tr {
+  top: 17px;
+  right: 18px;
+}
+
+.frb-map__hud-item--bl {
+  bottom: 16px;
+  left: 18px;
+}
+
+.frb-map__hud-item--br {
+  right: 18px;
+  bottom: 16px;
+}
+
+.frb-map__canvas-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  z-index: 3;
+  margin: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.36);
+  white-space: nowrap;
+}
+
+/* Deliberately tiny zoom controls: a quiet fallback for anyone who does
+   not discover the wheel zoom. */
+.frb-map__zoom {
+  position: absolute;
+  top: 42px;
+  right: 14px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.frb-map__zoom button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 1px;
+  background: rgba(10, 10, 10, 0.72);
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.frb-map__zoom button:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(20, 20, 20, 0.88);
+  color: #ffffff;
+}
+
+.frb-map__zoom button:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
 }
 
 .frb-map__canvas:active canvas {
@@ -3436,14 +3559,14 @@ a {
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #440154 0%,
-    #3a528b 20%,
-    #20918c 40%,
-    #5ec962 60%,
-    #d5d62c 80%,
-    #ffb325 100%
+    #6e8cb3 0%,
+    #80a8cf 20%,
+    #94c2e0 40%,
+    #add6f0 60%,
+    #cce8fa 80%,
+    #f0faff 100%
   );
-  box-shadow: 0 0 10px rgba(173, 140, 84, 0.12);
+  box-shadow: 0 0 10px rgba(120, 180, 240, 0.14);
 }
 
 .frb-map__dm-range {
@@ -3487,74 +3610,155 @@ a {
 }
 
 .frb-map__tooltip {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 7;
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
-  max-width: 220px;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid rgba(212, 175, 55, 0.28);
-  background: rgba(0, 0, 0, 0.9);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  gap: 0.18rem;
+  width: max-content;
+  min-width: 186px;
+  max-width: min(260px, calc(100% - 24px));
+  padding: 0.62rem 0.72rem 0.66rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  background: rgba(10, 10, 10, 0.9);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.66),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   font-family: var(--mono);
   font-size: 0.58rem;
   line-height: 1.4;
   letter-spacing: 0.02em;
   color: #f5f5f5;
   white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  backdrop-filter: blur(6px);
+  user-select: none;
+  will-change: transform, opacity;
+  transition: opacity 120ms ease;
 }
 
-.frb-map__tooltip::before {
-  content: '';
+/* Hairline leader that visually ties the card to the star without ever
+   sitting between the cursor and the point. */
+.frb-map__tooltip::after {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(90deg, #1e3a8a, #6ea8ff 55%, #1e3a8a);
-  opacity: 0.9;
+  content: '';
   pointer-events: none;
+  opacity: 0.9;
 }
 
-.frb-map__tooltip--left {
-  transform: translateX(calc(-50% - 18px));
+.frb-map__tooltip[data-side='left']::after {
+  top: 50%;
+  right: -18px;
+  width: 18px;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.24),
+    rgba(255, 255, 255, 0)
+  );
 }
 
-.frb-map__tooltip--right {
-  transform: translateX(calc(50% + 18px));
+.frb-map__tooltip[data-side='right']::after {
+  top: 50%;
+  left: -18px;
+  width: 18px;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.24)
+  );
+}
+
+.frb-map__tooltip[data-side='above']::after {
+  bottom: -18px;
+  left: 50%;
+  width: 1px;
+  height: 18px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.24),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.frb-map__tooltip[data-side='below']::after {
+  top: -18px;
+  left: 50%;
+  width: 1px;
+  height: 18px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.24),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.frb-map__tooltip-kicker {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8b877e;
 }
 
 .frb-map__tooltip-name {
   display: block;
+  margin-top: 0.06rem;
+  font-family: 'Baskerville', 'Libre Baskerville', 'Times New Roman', serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
   color: #f5f5f5;
 }
 
-.frb-map__tooltip-meta {
+.frb-map__tooltip-row {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.1rem;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-top: 0.08rem;
   font-family: var(--mono);
-  font-size: 0.5rem;
-  line-height: 1.4;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #9a978f;
+  font-size: 0.52rem;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
 }
 
-/* A small cold-blue accent keeps the FRB tooltip distinct without leaving
-   the shared black-and-gold tooltip language. */
-.frb-map__tooltip-meta::before {
-  content: '';
+.frb-map__tooltip-label {
   flex: none;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #8fb7ff;
-  box-shadow: 0 0 6px rgba(143, 183, 255, 0.65);
+  min-width: 2.2em;
+  color: #7f7b72;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.frb-map__tooltip-value {
+  color: #e6e3dc;
+  font-variant-numeric: tabular-nums;
+}
+
+.frb-map__tooltip-pair {
+  display: block;
+  margin-top: 0.24rem;
+  padding-top: 0.26rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: #a39d91;
 }
 
 .frb-search {
@@ -3997,15 +4201,15 @@ a {
   }
 
   .frb-map__canvas {
-    height: clamp(600px, 78vh, 760px);
+    height: clamp(600px, 80vh, 780px);
     min-height: 600px;
   }
 }
 
 @media (max-width: 760px) {
   .frb-data-title {
-    max-width: 20ch;
-    font-size: clamp(1.85rem, 8vw, 2.7rem);
+    max-width: 26ch;
+    font-size: clamp(1.75rem, 7.4vw, 2.5rem);
   }
 
   .frb-data-lede {
@@ -4020,8 +4224,28 @@ a {
   }
 
   .frb-map__canvas {
-    height: clamp(600px, 76vh, 700px);
+    height: clamp(600px, 82vh, 720px);
     min-height: 600px;
+  }
+
+  .frb-map__hud-item--bl,
+  .frb-map__hud-item--br {
+    display: none;
+  }
+
+  .frb-map__canvas-hint {
+    font-size: 0.46rem;
+    letter-spacing: 0.1em;
+  }
+
+  .frb-map__tooltip {
+    min-width: 164px;
+    max-width: min(212px, calc(100% - 24px));
+    padding: 0.5rem 0.58rem 0.54rem;
+  }
+
+  .frb-map__tooltip-name {
+    font-size: 0.94rem;
   }
 
   .frb-map__legend {
@@ -4719,11 +4943,11 @@ a {
 }
 
 .gw-compare__legend-item--observed {
-  color: #b9a9df;
+  color: #c4b6e8;
 }
 
 .gw-compare__legend-item--true {
-  color: #a9c2ff;
+  color: #b9d0ff;
 }
 
 .gw-compare__swatch {
@@ -4734,21 +4958,24 @@ a {
 }
 
 .gw-compare__swatch--observed {
-  border: 1px solid rgba(60, 40, 100, 0.7);
+  border: 1px solid rgba(124, 96, 210, 0.55);
   background: repeating-linear-gradient(
     135deg,
-    rgba(43, 30, 74, 0.95) 0 2px,
-    rgba(26, 17, 48, 0.6) 2px 6px
+    rgba(42, 32, 86, 0.96) 0 2px,
+    rgba(19, 13, 43, 0.82) 2px 6px
   );
 }
 
 .gw-compare__swatch--true {
+  border: 1px solid rgba(143, 183, 255, 0.45);
   background: linear-gradient(
     180deg,
-    rgba(65, 105, 225, 0.92),
-    rgba(28, 57, 187, 0.72)
+    #dce8ff 0%,
+    #8fb7ff 22%,
+    #3b6bff 58%,
+    #1b3aa6 100%
   );
-  box-shadow: 0 0 8px rgba(65, 105, 225, 0.35);
+  box-shadow: 0 0 8px rgba(79, 126, 255, 0.38);
 }
 
 .gw-compare__dash {

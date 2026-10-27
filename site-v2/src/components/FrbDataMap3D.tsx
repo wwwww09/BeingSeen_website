@@ -1,6 +1,15 @@
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { Html, Line, OrbitControls } from '@react-three/drei'
-import { useEffect, useRef, useState } from 'react'
+import { Line, OrbitControls } from '@react-three/drei'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentRef,
+  type RefObject,
+} from 'react'
 import * as THREE from 'three'
 
 interface FrbRow {
@@ -25,12 +34,20 @@ interface FrbData {
 
 type Vec3 = [number, number, number]
 
-interface HoveredCandidate {
+interface CandidateMeta {
   name: string
   partner: string
   pairIndex: number
+  dm: number
+  ra: number
+  dec: number
+  dmDiff: number
+  timeDiffDays: number
+}
+
+interface HoveredCandidate {
+  meta: CandidateMeta
   position: Vec3
-  side: 'left' | 'right'
 }
 
 interface CloudData {
@@ -39,8 +56,7 @@ interface CloudData {
   sizes: Float32Array
   phases: Float32Array
   candidatePositions: Float32Array
-  candidateNames: string[]
-  candidateMeta: { name: string; partner: string; pairIndex: number }[]
+  candidateMeta: CandidateMeta[]
   pairLines: Vec3[][]
   total: number
   candidateCount: number
@@ -52,16 +68,19 @@ interface CloudData {
 const SPHERE_RADIUS = 10
 
 /*
- * A saturated Viridis-style DM ramp. The HTML legend uses the same stops, so
- * the bar and the particles agree. Colours are never mixed to white.
+ * A cold deep-space ramp: slate blue at low DM, steel blue through the
+ * middle, ice-white at the highest DM. Keeping every background burst
+ * inside the blue family is what lets the four gold candidates own the only
+ * warm colour on the chart (the old violet→gold Viridis ramp made high-DM
+ * background points compete with the candidates).
  */
 const DM_RAMP: [number, number, number][] = [
-  [0.267, 0.005, 0.329], // #440154
-  [0.229, 0.322, 0.545], // #3a528b
-  [0.128, 0.567, 0.551], // #20918c
-  [0.369, 0.789, 0.383], // #5ec962
-  [0.835, 0.839, 0.173], // #d5d62c
-  [1.0, 0.7, 0.145], // #ffb325
+  [0.43, 0.55, 0.7], // #6e8cb3
+  [0.5, 0.66, 0.81], // #80a8cf
+  [0.58, 0.76, 0.88], // #94c2e0
+  [0.68, 0.84, 0.94], // #add6f0
+  [0.8, 0.91, 0.98], // #cce8fa
+  [0.94, 0.98, 1.0], // #f0faff
 ]
 
 function dmColor(value: number): [number, number, number] {
@@ -101,7 +120,7 @@ function toSphere(
 
 function radialJitter(index: number) {
   const value = Math.sin(index * 12.9898) * 43758.5453
-  return (value - Math.floor(value) - 0.5) * 0.3
+  return (value - Math.floor(value) - 0.5) * 0.22
 }
 
 function twinklePhase(index: number) {
@@ -132,9 +151,11 @@ function buildCloud(data: FrbData): CloudData {
     colors[index * 3 + 1] = color[1]
     colors[index * 3 + 2] = color[2]
 
-    // World-space particle size, centred on 0.05: small, softly glowing
-    // points that still encode SNR without turning into plastic discs.
-    sizes[index] = 0.032 * (0.72 + (Math.max(0, row.snr ?? 0) / maxSnr) * 0.56)
+    // CSS-pixel sizes, not world units. 2.2–3.3 px reads as a bright grain
+    // of star dust instead of a soft noise mote, while still letting SNR
+    // add a little weight.
+    const snrRatio = Math.max(0, row.snr ?? 0) / maxSnr
+    sizes[index] = 2.2 + snrRatio * 1.1
     phases[index] = twinklePhase(index)
   })
 
@@ -154,13 +175,16 @@ function buildCloud(data: FrbData): CloudData {
     }
 
     if (first && second) {
-      pairLines.push([toSphere(first, dmMax), toSphere(second, dmMax)])
+      pairLines.push([
+        toSphere(first, dmMax, SPHERE_RADIUS, 0.04),
+        toSphere(second, dmMax, SPHERE_RADIUS, 0.04),
+      ])
     }
   }
 
   const candidatePositions = new Float32Array(candidateRows.length * 3)
   candidateRows.forEach((row, index) => {
-    const [x, y, z] = toSphere(row, dmMax)
+    const [x, y, z] = toSphere(row, dmMax, SPHERE_RADIUS, 0.04)
     candidatePositions[index * 3] = x
     candidatePositions[index * 3 + 1] = y
     candidatePositions[index * 3 + 2] = z
@@ -168,17 +192,36 @@ function buildCloud(data: FrbData): CloudData {
 
   const partnerByName = new Map<
     string,
-    { partner: string; pairIndex: number }
+    {
+      partner: string
+      pairIndex: number
+      dmDiff: number
+      timeDiffDays: number
+    }
   >()
   data.candidates.forEach((pair, pairIndex) => {
-    partnerByName.set(pair.frb1, { partner: pair.frb2, pairIndex })
-    partnerByName.set(pair.frb2, { partner: pair.frb1, pairIndex })
+    const shared = {
+      pairIndex,
+      dmDiff: pair.dm_diff,
+      timeDiffDays: pair.time_diff_days,
+    }
+    partnerByName.set(pair.frb1, { partner: pair.frb2, ...shared })
+    partnerByName.set(pair.frb2, { partner: pair.frb1, ...shared })
   })
-  const candidateMeta = candidateRows.map((row) => ({
-    name: row.frb_name,
-    partner: partnerByName.get(row.frb_name)?.partner ?? '',
-    pairIndex: partnerByName.get(row.frb_name)?.pairIndex ?? 0,
-  }))
+
+  const candidateMeta = candidateRows.map<CandidateMeta>((row) => {
+    const info = partnerByName.get(row.frb_name)
+    return {
+      name: row.frb_name,
+      partner: info?.partner ?? '',
+      pairIndex: info?.pairIndex ?? 0,
+      dm: row.dm,
+      ra: row.ra,
+      dec: row.dec,
+      dmDiff: info?.dmDiff ?? 0,
+      timeDiffDays: info?.timeDiffDays ?? 0,
+    }
+  })
 
   return {
     positions,
@@ -186,7 +229,6 @@ function buildCloud(data: FrbData): CloudData {
     sizes,
     phases,
     candidatePositions,
-    candidateNames: candidateRows.map((row) => row.frb_name),
     candidateMeta,
     pairLines,
     total: rows.length,
@@ -197,6 +239,11 @@ function buildCloud(data: FrbData): CloudData {
   }
 }
 
+/*
+ * Point size is expressed in CSS pixels and multiplied by the renderer's
+ * device pixel ratio. That keeps every mote exactly 1.25–2.1 CSS px wide
+ * (and therefore pin-sharp on retina) instead of growing into a soft disc.
+ */
 const POINT_VERTEX = `
   attribute float aSize;
   attribute float aPhase;
@@ -208,18 +255,17 @@ const POINT_VERTEX = `
 
   void main() {
     vColor = aColor;
-    float twinkle = 0.78 + 0.22 * sin(uTime * 2.35 + aPhase);
-    vTwinkle = twinkle;
+    vTwinkle = 0.86 + 0.14 * sin(uTime * 1.9 + aPhase);
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 
-    // Small world-space motes. The cap keeps the densest part of the
-    // cluster from turning into a single glowing mass.
-    float perspective = 18.0 / max(-mvPosition.z, 1.0);
+    // Only a slight depth cue. A strong perspective multiplier was the
+    // main reason the foreground half of the catalogue turned into blobs.
+    float depthScale = clamp(18.0 / max(-mvPosition.z, 1.0), 0.74, 1.16);
     gl_PointSize = clamp(
-      aSize * uDpr * 420.0 * perspective * (0.94 + 0.06 * twinkle),
-      1.25,
-      9.0
+      aSize * uDpr * depthScale,
+      1.0 * uDpr,
+      4.0 * uDpr
     );
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -231,17 +277,16 @@ const POINT_FRAGMENT = `
   uniform float uOpacity;
 
   void main() {
-    float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
-    if (distanceToCenter > 1.0) discard;
+    float d = length(gl_PointCoord - vec2(0.5)) * 2.0;
+    if (d > 1.0) discard;
 
-    // A crisp mote: a compact core with only a trace of halo. No white
-    // mix, so every particle keeps its Viridis colour.
-    float core = smoothstep(0.72, 0.18, distanceToCenter);
-    float halo = smoothstep(1.0, 0.72, distanceToCenter) * 0.16;
-    vec3 color = vColor * (0.9 + 0.2 * core);
-    float alpha = (core + halo) * uOpacity * vTwinkle;
+    // A single antialiased step. No halo, no additive bloom: these are dust
+    // grains, not little lamps.
+    float edge = smoothstep(1.0, 0.76, d);
+    float alpha = edge * uOpacity * vTwinkle;
+    if (alpha < 0.004) discard;
 
-    gl_FragColor = vec4(color, alpha);
+    gl_FragColor = vec4(vColor, alpha);
   }
 `
 
@@ -273,7 +318,7 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
         uniforms={{
           uDpr: { value: dpr },
           uTime: { value: 0 },
-          uOpacity: { value: 0.72 },
+          uOpacity: { value: 0.65 },
         }}
         vertexShader={POINT_VERTEX}
         fragmentShader={POINT_FRAGMENT}
@@ -287,86 +332,6 @@ function FrbPoints({ cloud }: { cloud: CloudData }) {
   )
 }
 
-const FRB_GLOW_VERTEX = `
-  attribute float aSize;
-  attribute float aPhase;
-  attribute vec3 aColor;
-  varying vec3 vColor;
-  uniform float uDpr;
-  uniform float uTime;
-
-  void main() {
-    vColor = aColor;
-    float twinkle = 0.8 + 0.2 * sin(uTime * 2.35 + aPhase);
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-
-    // A barely-there aura. The HUD gradient supplies the atmosphere; this
-    // layer only stops the motes from looking cut out.
-    float perspective = 18.0 / max(-mvPosition.z, 1.0);
-    gl_PointSize = clamp(
-      aSize * uDpr * 760.0 * perspective * (0.9 + 0.1 * twinkle),
-      3.0,
-      24.0
-    );
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`
-
-const FRB_GLOW_FRAGMENT = `
-  varying vec3 vColor;
-  uniform float uOpacity;
-
-  void main() {
-    float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
-    if (distanceToCenter > 1.0) discard;
-
-    float glow = pow(max(0.0, 1.0 - distanceToCenter), 2.6);
-    gl_FragColor = vec4(vColor, glow * uOpacity);
-  }
-`
-
-function FrbGlow({ cloud }: { cloud: CloudData }) {
-  const dpr = useThree((state) => state.viewport.dpr)
-  const material = useRef<THREE.ShaderMaterial>(null)
-
-  useFrame(({ clock }) => {
-    if (!material.current) return
-    material.current.uniforms.uTime.value = clock.elapsedTime
-  })
-
-  return (
-    <points frustumCulled={false} renderOrder={1}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[cloud.positions, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-aColor"
-          args={[cloud.colors, 3]}
-        />
-        <bufferAttribute attach="attributes-aSize" args={[cloud.sizes, 1]} />
-        <bufferAttribute attach="attributes-aPhase" args={[cloud.phases, 1]} />
-      </bufferGeometry>
-      <shaderMaterial
-        ref={material}
-        uniforms={{
-          uDpr: { value: dpr },
-          uTime: { value: 0 },
-          uOpacity: { value: 0.012 },
-        }}
-        vertexShader={FRB_GLOW_VERTEX}
-        fragmentShader={FRB_GLOW_FRAGMENT}
-        transparent
-        depthWrite={false}
-        depthTest={false}
-        blending={THREE.AdditiveBlending}
-        toneMapped={false}
-      />
-    </points>
-  )
-}
-
 const CANDIDATE_VERTEX = `
   uniform float uDpr;
   uniform float uSize;
@@ -374,7 +339,7 @@ const CANDIDATE_VERTEX = `
   varying float vPulse;
 
   void main() {
-    float pulse = 1.0 + 0.08 * sin(uTime * 2.1 + position.x);
+    float pulse = 1.0 + 0.05 * sin(uTime * 2.1 + position.x);
     vPulse = pulse;
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -388,40 +353,97 @@ const CANDIDATE_FRAGMENT = `
   varying float vPulse;
 
   void main() {
-    float distanceToCenter = length(gl_PointCoord - vec2(0.5)) * 2.0;
-    if (distanceToCenter > 1.0) discard;
+    float d = length(gl_PointCoord - vec2(0.5)) * 2.0;
+    if (d > 1.0) discard;
 
-    // #FFD700 core with a sharp ring. The ring makes the four candidates
-    // unmistakable even when a bright high-DM burst sits nearby.
-    float glow = pow(max(0.0, 1.0 - distanceToCenter), 3.0) * 0.35;
-    float core = smoothstep(0.30, 0.0, distanceToCenter);
-    float ring =
-      smoothstep(0.045, 0.0, abs(distanceToCenter - 0.66)) * 0.5;
-    vec3 color = mix(uColor, vec3(1.0, 0.96, 0.84), core * 0.4);
-    float alpha = clamp(glow + core + ring, 0.0, 1.0) * vPulse;
+    // No outline, no ring. A compact white-gold core with a bright radial
+    // falloff: the supernova is found by its own glow, never by a drawn
+    // circle around it.
+    float core = 1.0 - smoothstep(0.0, 0.26, d);
+    float falloff = 1.0 - smoothstep(0.0, 1.0, d);
+    float halo = pow(falloff, 1.35) * 0.72;
+    float inner = pow(falloff, 3.0) * 0.22;
+
+    vec3 color = mix(uColor, vec3(1.0, 0.985, 0.92), core * 0.8);
+    float alpha = clamp(core + halo + inner, 0.0, 1.0) * vPulse;
 
     gl_FragColor = vec4(color, alpha);
   }
 `
 
-function GoldCandidates({ cloud }: { cloud: CloudData }) {
+const HOVER_VERTEX = `
+  uniform float uDpr;
+  uniform float uSize;
+
+  void main() {
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = uSize * uDpr;
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`
+
+const HOVER_FRAGMENT = `
+  uniform float uTime;
+
+  void main() {
+    float d = length(gl_PointCoord - vec2(0.5)) * 2.0;
+    if (d > 1.0) discard;
+
+    // Hover feedback is also a clean halo — deliberately no ring or ticks.
+    float falloff = 1.0 - smoothstep(0.0, 1.0, d);
+    float pulse = 0.8 + 0.2 * sin(uTime * 2.4);
+    float alpha = pow(falloff, 2.0) * 0.3 * pulse;
+
+    gl_FragColor = vec4(1.0, 0.82, 0.34, alpha);
+  }
+`
+
+function GoldCandidates({
+  cloud,
+  onHover,
+  onHoverEnd,
+}: {
+  cloud: CloudData
+  onHover: (hovered: HoveredCandidate) => void
+  onHoverEnd: () => void
+}) {
   const dpr = useThree((state) => state.viewport.dpr)
   const raycaster = useThree((state) => state.raycaster)
+  const camera = useThree((state) => state.camera)
   const gl = useThree((state) => state.gl)
   const material = useRef<THREE.ShaderMaterial>(null)
-  const [hovered, setHovered] = useState<HoveredCandidate | null>(null)
+  const hoverMaterial = useRef<THREE.ShaderMaterial>(null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   useEffect(() => {
-    const previous = raycaster.params.Points?.threshold ?? 1
-    if (raycaster.params.Points) raycaster.params.Points.threshold = 0.5
+    const pointsParams = raycaster.params.Points
+    const previous = pointsParams?.threshold ?? 1
+    gl.domElement.style.cursor = 'grab'
+
     return () => {
-      if (raycaster.params.Points) raycaster.params.Points.threshold = previous
+      if (pointsParams) pointsParams.threshold = previous
+      gl.domElement.style.cursor = ''
     }
-  }, [raycaster])
+  }, [raycaster, gl])
 
   useFrame(({ clock }) => {
-    if (!material.current) return
-    material.current.uniforms.uTime.value = clock.elapsedTime
+    const time = clock.elapsedTime
+    if (material.current) material.current.uniforms.uTime.value = time
+    if (hoverMaterial.current) {
+      hoverMaterial.current.uniforms.uTime.value = time
+    }
+
+    // Keep the hit radius at roughly 15 screen px. A fixed world-space
+    // threshold becomes an enormous invisible target once the user zooms
+    // in, which is exactly what makes tooltips jump in empty space.
+    const pointsParams = raycaster.params.Points
+    if (pointsParams) {
+      pointsParams.threshold = THREE.MathUtils.clamp(
+        camera.position.length() * 0.016,
+        0.14,
+        0.42,
+      )
+    }
   })
 
   if (cloud.candidatePositions.length === 0) return null
@@ -429,41 +451,46 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
   function handlePointerMove(event: ThreeEvent<PointerEvent>) {
     event.stopPropagation()
     if (typeof event.index !== 'number') return
-    const index = event.index
-    const meta = cloud.candidateMeta[index]
+
+    const meta = cloud.candidateMeta[event.index]
     if (!meta) return
 
-    // Keep the tooltip on the opposite side of the chart so it never covers
-    // the star that is being inspected.
-    const rect = gl.domElement.getBoundingClientRect()
-    const side =
-      event.nativeEvent.clientX - rect.left > rect.width / 2 ? 'left' : 'right'
-    const offset = index * 3
-
-    setHovered((current) => {
-      if (current?.name === meta.name && current.side === side) return current
-      return {
-        name: meta.name,
-        partner: meta.partner,
-        pairIndex: meta.pairIndex,
-        side,
-        position: [
-          cloud.candidatePositions[offset],
-          cloud.candidatePositions[offset + 1] + 0.55,
-          cloud.candidatePositions[offset + 2],
-        ],
-      }
+    const offset = event.index * 3
+    setActiveIndex(event.index)
+    onHover({
+      meta,
+      position: [
+        cloud.candidatePositions[offset],
+        cloud.candidatePositions[offset + 1],
+        cloud.candidatePositions[offset + 2],
+      ],
     })
-  }
-
-  function handlePointerOut() {
-    gl.domElement.style.cursor = 'grab'
-    setHovered(null)
   }
 
   function handlePointerOver() {
     gl.domElement.style.cursor = 'pointer'
   }
+
+  function handlePointerOut() {
+    gl.domElement.style.cursor = 'grab'
+    setActiveIndex(null)
+    onHoverEnd()
+  }
+
+  const activePosition: Vec3 | null =
+    activeIndex !== null
+      ? [
+          cloud.candidatePositions[activeIndex * 3],
+          cloud.candidatePositions[activeIndex * 3 + 1],
+          cloud.candidatePositions[activeIndex * 3 + 2],
+        ]
+      : null
+
+  // bufferAttribute wants a typed array; the Vec3 above is only used for
+  // the Math and for the hovered-state payload.
+  const activeBuffer = activePosition
+    ? new Float32Array(activePosition)
+    : null
 
   return (
     <>
@@ -484,7 +511,7 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
           ref={material}
           uniforms={{
             uDpr: { value: dpr },
-            uSize: { value: 36 },
+            uSize: { value: 24 },
             uTime: { value: 0 },
             uColor: { value: new THREE.Color('#ffd700') },
           }}
@@ -498,42 +525,198 @@ function GoldCandidates({ cloud }: { cloud: CloudData }) {
         />
       </points>
 
-      {hovered && (
-        <Html
-          position={hovered.position}
-          center
-          zIndexRange={[30, 0]}
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          <div
-            className={`frb-map__tooltip frb-map__tooltip--${hovered.side}`}
-            role="tooltip"
-          >
-            <span className="frb-map__tooltip-name">{hovered.name}</span>
-            {hovered.partner && (
-              <span className="frb-map__tooltip-meta">
-                Pair {String(hovered.pairIndex + 1).padStart(2, '0')} ·{' '}
-                {hovered.partner}
-              </span>
-            )}
-          </div>
-        </Html>
-      )}
+      {activePosition && activeBuffer ? (
+        <points frustumCulled={false} renderOrder={7}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              args={[activeBuffer, 3]}
+            />
+          </bufferGeometry>
+          <shaderMaterial
+            ref={hoverMaterial}
+            uniforms={{
+              uDpr: { value: dpr },
+              uSize: { value: 50 },
+              uTime: { value: 0 },
+            }}
+            vertexShader={HOVER_VERTEX}
+            fragmentShader={HOVER_FRAGMENT}
+            transparent
+            depthWrite={false}
+            depthTest={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </points>
+      ) : null}
 
       {cloud.pairLines.map((points, index) => (
         <Line
           key={index}
           points={points}
           color="#ffd700"
-          lineWidth={0.8}
+          lineWidth={0.7}
           transparent
-          opacity={0.35}
+          opacity={0.28}
           depthWrite={false}
           depthTest={false}
         />
       ))}
     </>
   )
+}
+
+/**
+ * A barely-there celestial cage: one wireframe shell plus three great
+ * circles. It gives the cloud an edge without competing with the data.
+ */
+function CelestialFrame() {
+  const rings = useMemo(() => {
+    const steps = 96
+    const radius = SPHERE_RADIUS + 0.3
+    const ring = (axis: 'xy' | 'xz' | 'yz') =>
+      Array.from({ length: steps + 1 }, (_, index) => {
+        const angle = (index / steps) * Math.PI * 2
+        const a = Math.cos(angle) * radius
+        const b = Math.sin(angle) * radius
+        return axis === 'xy'
+          ? ([a, b, 0] as Vec3)
+          : axis === 'xz'
+            ? ([a, 0, b] as Vec3)
+            : ([0, a, b] as Vec3)
+      })
+
+    return [ring('xy'), ring('xz'), ring('yz')]
+  }, [])
+
+  return (
+    <>
+      <mesh renderOrder={-2}>
+        <sphereGeometry args={[SPHERE_RADIUS + 0.6, 32, 18]} />
+        <meshBasicMaterial
+          color="#1e3a8a"
+          wireframe
+          transparent
+          opacity={0.035}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {rings.map((points, index) => (
+        <Line
+          key={index}
+          points={points}
+          color="#3f74d6"
+          lineWidth={index === 0 ? 0.55 : 0.4}
+          transparent
+          opacity={index === 0 ? 0.24 : 0.14}
+          depthWrite={false}
+        />
+      ))}
+    </>
+  )
+}
+
+interface TooltipSize {
+  width: number
+  height: number
+}
+
+/**
+ * Places the HTML tooltip in screen space every frame (so it follows orbit
+ * and zoom), flipping it away from the hovered star and clamping it inside
+ * the HUD frame. `data-side` drives the little connector line in CSS.
+ */
+function TooltipPlacer({
+  hovered,
+  tooltipRef,
+  sizeRef,
+}: {
+  hovered: HoveredCandidate | null
+  tooltipRef: RefObject<HTMLDivElement | null>
+  sizeRef: RefObject<TooltipSize>
+}) {
+  const camera = useThree((state) => state.camera)
+  const size = useThree((state) => state.size)
+  const point = useRef(new THREE.Vector3())
+  const viewDirection = useRef(new THREE.Vector3())
+
+  useFrame(() => {
+    const element = tooltipRef.current
+    if (!element || !hovered) return
+
+    point.current.set(...hovered.position)
+    camera.getWorldDirection(viewDirection.current)
+
+    const facing =
+      (point.current.x - camera.position.x) * viewDirection.current.x +
+      (point.current.y - camera.position.y) * viewDirection.current.y +
+      (point.current.z - camera.position.z) * viewDirection.current.z
+
+    if (facing <= 0) {
+      element.style.visibility = 'hidden'
+      element.style.opacity = '0'
+      return
+    }
+
+    point.current.project(camera)
+
+    const anchorX = (point.current.x * 0.5 + 0.5) * size.width
+    const anchorY = (-point.current.y * 0.5 + 0.5) * size.height
+
+    const measured = sizeRef.current
+    const tooltipWidth = measured.width || 220
+    const tooltipHeight = measured.height || 96
+    const margin = 12
+    const gap = 18
+
+    const fitsLeft = anchorX - gap - margin >= tooltipWidth
+    const fitsRight =
+      size.width - anchorX - gap - margin >= tooltipWidth
+    const fitsHorizontally = fitsLeft || fitsRight
+
+    let side: 'left' | 'right' | 'above' | 'below'
+    let left: number
+    let top: number
+
+    if (fitsHorizontally) {
+      // Opposite side of the chart: a star on the right gets its card on
+      // the left, so the card can never sit on top of the point being read.
+      if (anchorX > size.width / 2) {
+        side = 'left'
+        left = anchorX - gap - tooltipWidth
+      } else {
+        side = 'right'
+        left = anchorX + gap
+      }
+      top = anchorY - tooltipHeight / 2
+    } else {
+      // Narrow canvases cannot fit a card beside the star; place it above
+      // or below and keep it horizontally centred, still inside the frame.
+      side = anchorY > size.height / 2 ? 'above' : 'below'
+      left = anchorX - tooltipWidth / 2
+      top =
+        side === 'above'
+          ? anchorY - gap - tooltipHeight
+          : anchorY + gap
+    }
+
+    const maxLeft = Math.max(margin, size.width - tooltipWidth - margin)
+    const maxTop = Math.max(margin, size.height - tooltipHeight - margin)
+    left = Math.min(Math.max(margin, left), maxLeft)
+    top = Math.min(Math.max(margin, top), maxTop)
+
+    element.dataset.side = side
+    element.style.transform = `translate3d(${Math.round(left)}px, ${Math.round(
+      top,
+    )}px, 0)`
+    element.style.visibility = 'visible'
+    element.style.opacity = '1'
+  })
+
+  return null
 }
 
 function ResponsiveCamera() {
@@ -564,6 +747,10 @@ function formatDm(value: number) {
 export function FrbDataMap3D() {
   const [cloud, setCloud] = useState<CloudData | null>(null)
   const [failed, setFailed] = useState(false)
+  const [hovered, setHovered] = useState<HoveredCandidate | null>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const tooltipSizeRef = useRef<TooltipSize>({ width: 0, height: 0 })
+  const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -586,6 +773,50 @@ export function FrbDataMap3D() {
     }
   }, [])
 
+  // Measure once per hovered card (and on resize), then let the frame loop
+  // use the cached size rather than forcing a layout read 60 times a second.
+  useLayoutEffect(() => {
+    const element = tooltipRef.current
+    if (!element) return
+
+    const measure = () => {
+      tooltipSizeRef.current = {
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+      }
+    }
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [hovered])
+
+  const handleHover = useCallback((next: HoveredCandidate) => {
+    setHovered((current) =>
+      current?.meta.name === next.meta.name ? current : next,
+    )
+  }, [])
+
+  const handleHoverEnd = useCallback(() => setHovered(null), [])
+
+  const zoomBy = useCallback((factor: number) => {
+    const controls = controlsRef.current
+    if (!controls) return
+    const camera = controls.object
+    const offset = camera.position.clone().sub(controls.target)
+    const distance = offset.length()
+    const nextDistance = THREE.MathUtils.clamp(
+      distance * factor,
+      controls.minDistance,
+      controls.maxDistance,
+    )
+    if (Math.abs(nextDistance - distance) < 0.01) return
+    offset.setLength(nextDistance)
+    camera.position.copy(controls.target).add(offset)
+    controls.update()
+  }, [])
+
   if (failed) {
     return (
       <p className="frb-map__status">
@@ -605,35 +836,120 @@ export function FrbDataMap3D() {
         Hover one of the four gold candidate stars
       </p>
 
-      <div
-        className="frb-map__canvas"
-        role="img"
-        aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following a violet-to-gold dispersion-measure scale. Four candidate FRB signals, forming two pairs, are highlighted as large glowing gold stars; hover one to see its name.`}
-      >
+      <div className="frb-map__canvas">
         <Canvas
-          camera={{ position: [18, 10, 20], fov: 42 }}
-          dpr={[1, 2]}
-          gl={{ antialias: true, alpha: true }}
+          camera={{ position: [18, 10, 20], fov: 42, near: 0.1, far: 200 }}
+          dpr={[2, 2]}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           style={{ background: 'transparent' }}
+          role="img"
+          aria-label={`Spherical 3D scatter plot of ${cloud.total} fast radio bursts. Each burst is placed by right ascension and declination, with radius set by dispersion measure and color following a deep-blue-to-ice dispersion-measure scale. Four candidate FRB signals, forming two pairs, are highlighted as gold stars; hover one to read its name, dispersion measure and pair delay. Drag to orbit and scroll to zoom.`}
+          onPointerMissed={handleHoverEnd}
         >
           <ResponsiveCamera />
-          <FrbGlow cloud={cloud} />
+          <CelestialFrame />
           <FrbPoints cloud={cloud} />
-          <GoldCandidates cloud={cloud} />
+          <GoldCandidates
+            cloud={cloud}
+            onHover={handleHover}
+            onHoverEnd={handleHoverEnd}
+          />
+          <TooltipPlacer
+            hovered={hovered}
+            tooltipRef={tooltipRef}
+            sizeRef={tooltipSizeRef}
+          />
           <OrbitControls
+            ref={controlsRef}
             makeDefault
             target={[0, 0, 0]}
             enablePan={false}
             enableZoom
-            minDistance={14}
-            maxDistance={55}
+            zoomToCursor
+            zoomSpeed={0.9}
+            minDistance={10.5}
+            maxDistance={52}
             minPolarAngle={0.2}
             maxPolarAngle={Math.PI - 0.2}
             enableDamping
             dampingFactor={0.06}
-            rotateSpeed={0.55}
+            rotateSpeed={0.5}
           />
         </Canvas>
+
+        <div className="frb-map__hud" aria-hidden="true">
+          <span className="frb-map__hud-item frb-map__hud-item--tl">
+            FRB / 3D SKY
+          </span>
+          <span className="frb-map__hud-item frb-map__hud-item--tr">
+            {cloud.total} EVENTS
+          </span>
+          <span className="frb-map__hud-item frb-map__hud-item--bl">
+            RA 0h — 24h
+          </span>
+          <span className="frb-map__hud-item frb-map__hud-item--br">
+            DEC −90° → +90°
+          </span>
+        </div>
+
+        <div className="frb-map__zoom" role="group" aria-label="Chart zoom">
+          <button
+            type="button"
+            onClick={() => zoomBy(0.8)}
+            aria-label="Zoom in"
+            title="Zoom in"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => zoomBy(1.25)}
+            aria-label="Zoom out"
+            title="Zoom out"
+          >
+            −
+          </button>
+        </div>
+
+        {hovered ? (
+          <div
+            ref={tooltipRef}
+            className="frb-map__tooltip"
+            data-side="right"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="frb-map__tooltip-kicker">
+              Candidate FRB · Pair{' '}
+              {String(hovered.meta.pairIndex + 1).padStart(2, '0')}
+            </span>
+            <strong className="frb-map__tooltip-name">
+              {hovered.meta.name}
+            </strong>
+            <span className="frb-map__tooltip-row">
+              <span className="frb-map__tooltip-label">DM</span>
+              <span className="frb-map__tooltip-value">
+                {formatDm(hovered.meta.dm)} pc cm⁻³
+              </span>
+            </span>
+            <span className="frb-map__tooltip-row">
+              <span className="frb-map__tooltip-label">Echo</span>
+              <span className="frb-map__tooltip-value">
+                Δt {hovered.meta.timeDiffDays.toFixed(1)} d · ΔDM{' '}
+                {hovered.meta.dmDiff.toFixed(1)}
+              </span>
+            </span>
+            {hovered.meta.partner ? (
+              <span className="frb-map__tooltip-pair">
+                Paired with {hovered.meta.partner}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+
+        <p className="frb-map__canvas-hint">
+          Drag to orbit · Scroll to zoom · Hover a gold star
+        </p>
       </div>
 
       <div className="frb-map__legend" aria-label="Map legend">
