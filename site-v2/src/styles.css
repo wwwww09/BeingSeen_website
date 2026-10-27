@@ -5554,14 +5554,12 @@ a {
 .message-page {
   position: relative;
   min-height: 100svh;
-  background:
-    radial-gradient(
-      ellipse 88% 58% at 50% 14%,
-      rgba(30, 33, 62, 0.55) 0%,
-      rgba(14, 15, 28, 0.3) 42%,
-      transparent 72%
-    ),
-    linear-gradient(180deg, #05050a 0%, #0a0b14 48%, #121020 100%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    #0b0e14 0%,
+    #030305 40%,
+    #000000 70%
+  );
 }
 
 .message-hero {
