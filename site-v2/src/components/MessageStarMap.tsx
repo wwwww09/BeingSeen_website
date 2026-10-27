@@ -9,13 +9,14 @@ interface MessageStarMapProps {
 }
 
 const TAU = Math.PI * 2
-const HIT_RADIUS = 5
+const HIT_RADIUS = 9
 const HIT_RADIUS_SQ = HIT_RADIUS * HIT_RADIUS
+const STAR_TWINKLE_INTERVAL = 55
 
 /**
- * The 10,000-star map. The unlit field is pre-rendered once per resize and
- * blitted each frame; only the lit stories and the hover ring are dynamic.
- * That keeps the map fast while still allowing the amber ignition to breathe.
+ * The 10,000-star map. The cool star field is redrawn into an offscreen
+ * twinkle buffer at a low cadence, then blitted every frame. Lit stars,
+ * ignition ripples and the hover highlight stay at full frame rate.
  */
 export function MessageStarMap({
   stories,
@@ -64,30 +65,37 @@ export function MessageStarMap({
     if (!context) return
 
     const dpr = 2
-    const baseCanvas = document.createElement('canvas')
-    const baseContext = baseCanvas.getContext('2d')
+    const starCanvas = document.createElement('canvas')
+    const starContext = starCanvas.getContext('2d')
 
     let width = 0
     let height = 0
     let frame = 0
+    let lastStarAt = 0
 
-    const buildBase = () => {
-      baseCanvas.width = Math.max(1, Math.round(width * dpr))
-      baseCanvas.height = Math.max(1, Math.round(height * dpr))
-      if (!baseContext) return
+    const drawStarField = (now: number) => {
+      if (!starContext) return
 
-      baseContext.setTransform(dpr, 0, 0, dpr, 0, 0)
-      baseContext.clearRect(0, 0, width, height)
+      const seconds = now / 1000
+      starContext.clearRect(0, 0, width, height)
+      starContext.fillStyle = 'rgb(150, 170, 200)'
 
       for (const star of STARS) {
-        baseContext.fillStyle = `rgba(255, 255, 255, ${star.alpha})`
-        baseContext.fillRect(
+        const wave = 0.5 + 0.5 * Math.sin(seconds * star.speed + star.phase)
+        const alpha = Math.min(
+          0.6,
+          Math.max(0.2, star.alpha + star.twinkle * wave),
+        )
+        starContext.globalAlpha = alpha
+        starContext.fillRect(
           star.x * width,
           star.y * height,
           star.size,
           star.size,
         )
       }
+
+      starContext.globalAlpha = 1
     }
 
     const drawFrame = (now: number) => {
@@ -96,7 +104,7 @@ export function MessageStarMap({
       context.clearRect(0, 0, width, height)
       context.globalCompositeOperation = 'source-over'
       context.globalAlpha = 1
-      context.drawImage(baseCanvas, 0, 0, width, height)
+      context.drawImage(starCanvas, 0, 0, width, height)
 
       // --- lit stories ------------------------------------------------
       context.globalCompositeOperation = 'lighter'
@@ -113,11 +121,9 @@ export function MessageStarMap({
         const progress = 1 - Math.pow(1 - rawProgress, 3)
         const pulse = reducedRef.current
           ? 0.9
-          : 0.82 + 0.18 * Math.sin(now * 0.0016 + story.index * 0.7)
-        const glowRadius = 7 + 11 * progress
-        const alpha = (0.45 + 0.4 * progress) * pulse
-
-        if (rawProgress <= 0) continue
+          : 0.78 + 0.22 * Math.sin(now * 0.0018 + story.index * 0.7)
+        const glowRadius = 10 + 18 * progress
+        const alpha = (0.5 + 0.4 * progress) * pulse
 
         const glow = context.createRadialGradient(
           x,
@@ -128,22 +134,49 @@ export function MessageStarMap({
           glowRadius,
         )
         glow.addColorStop(0, `rgba(255, 231, 170, ${0.62 * alpha})`)
-        glow.addColorStop(0.22, `rgba(255, 191, 0, ${0.4 * alpha})`)
-        glow.addColorStop(0.6, `rgba(255, 148, 42, ${0.1 * alpha})`)
+        glow.addColorStop(0.22, `rgba(255, 191, 0, ${0.42 * alpha})`)
+        glow.addColorStop(0.6, `rgba(255, 148, 42, ${0.12 * alpha})`)
         glow.addColorStop(1, 'rgba(255, 120, 20, 0)')
         context.fillStyle = glow
         context.beginPath()
         context.arc(x, y, glowRadius, 0, TAU)
         context.fill()
 
-        const coreRadius = 0.9 + progress * 1.2
-        context.fillStyle = `rgba(255, 244, 205, ${0.7 * alpha})`
+        const coreRadius = 1.2 + progress * 1.4
+        context.fillStyle = `rgba(255, 244, 205, ${0.78 * alpha})`
         context.beginPath()
         context.arc(x, y, coreRadius, 0, TAU)
         context.fill()
+
+        // Expanding ripple at the moment of ignition.
+        const rippleProgress = reducedRef.current
+          ? 1
+          : Math.min(1, Math.max(0, elapsed / 1500))
+        if (rippleProgress < 1) {
+          const ringRadius =
+            4 + 44 * (1 - Math.pow(1 - rippleProgress, 2))
+          const ringAlpha = (1 - rippleProgress) * 0.45
+          context.strokeStyle = `rgba(255, 191, 0, ${ringAlpha})`
+          context.lineWidth = 1.3 * (1 - rippleProgress) + 0.3
+          context.beginPath()
+          context.arc(x, y, ringRadius, 0, TAU)
+          context.stroke()
+
+          const second = Math.max(0, rippleProgress - 0.16)
+          if (second > 0 && second < 1) {
+            const secondRadius = 4 + 36 * (1 - Math.pow(1 - second, 2))
+            context.strokeStyle = `rgba(255, 214, 140, ${
+              (1 - second) * 0.24
+            })`
+            context.lineWidth = 1
+            context.beginPath()
+            context.arc(x, y, secondRadius, 0, TAU)
+            context.stroke()
+          }
+        }
       }
 
-      // --- hover ring --------------------------------------------------
+      // --- hover highlight ---------------------------------------------
       const hovered = hoveredRef.current
       if (hovered !== null) {
         const star = STARS[hovered]
@@ -153,21 +186,45 @@ export function MessageStarMap({
           const lit = storiesRef.current.some(
             (story) => story.index === hovered,
           )
-          context.globalCompositeOperation = 'source-over'
-          context.strokeStyle = lit
-            ? 'rgba(255, 191, 0, 0.65)'
-            : 'rgba(255, 255, 255, 0.38)'
-          context.lineWidth = 1
+
+          context.globalCompositeOperation = 'lighter'
+          const hoverGlow = context.createRadialGradient(
+            x,
+            y,
+            0,
+            x,
+            y,
+            11,
+          )
+          if (lit) {
+            hoverGlow.addColorStop(0, 'rgba(255, 235, 180, 0.55)')
+            hoverGlow.addColorStop(0.35, 'rgba(255, 191, 0, 0.18)')
+            hoverGlow.addColorStop(1, 'rgba(255, 150, 40, 0)')
+          } else {
+            hoverGlow.addColorStop(0, 'rgba(225, 240, 255, 0.5)')
+            hoverGlow.addColorStop(0.35, 'rgba(150, 190, 240, 0.16)')
+            hoverGlow.addColorStop(1, 'rgba(120, 160, 220, 0)')
+          }
+          context.fillStyle = hoverGlow
           context.beginPath()
-          context.arc(x, y, 4.5, 0, TAU)
-          context.stroke()
+          context.arc(x, y, 11, 0, TAU)
+          context.fill()
 
           context.fillStyle = lit
-            ? 'rgba(255, 215, 130, 0.85)'
-            : 'rgba(255, 255, 255, 0.64)'
+            ? 'rgba(255, 240, 195, 1)'
+            : 'rgba(235, 245, 255, 1)'
           context.beginPath()
-          context.arc(x, y, 0.9, 0, TAU)
+          context.arc(x, y, 2.2, 0, TAU)
           context.fill()
+
+          context.globalCompositeOperation = 'source-over'
+          context.strokeStyle = lit
+            ? 'rgba(255, 191, 0, 0.7)'
+            : 'rgba(190, 215, 255, 0.55)'
+          context.lineWidth = 1
+          context.beginPath()
+          context.arc(x, y, 5.5, 0, TAU)
+          context.stroke()
         }
       }
 
@@ -258,7 +315,12 @@ export function MessageStarMap({
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
-      buildBase()
+
+      starCanvas.width = Math.max(1, Math.round(width * dpr))
+      starCanvas.height = Math.max(1, Math.round(height * dpr))
+      if (starContext) starContext.setTransform(dpr, 0, 0, dpr, 0, 0)
+      lastStarAt = 0
+      drawStarField(performance.now())
     }
 
     const resizeObserver = new ResizeObserver(resize)
@@ -270,7 +332,13 @@ export function MessageStarMap({
     canvas.addEventListener('click', handleClick)
 
     const loop = (now: number) => {
-      if (!pausedRef.current) drawFrame(now)
+      if (!pausedRef.current) {
+        if (now - lastStarAt >= STAR_TWINKLE_INTERVAL) {
+          drawStarField(now)
+          lastStarAt = now
+        }
+        drawFrame(now)
+      }
       frame = requestAnimationFrame(loop)
     }
     frame = requestAnimationFrame(loop)

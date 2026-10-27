@@ -8,6 +8,9 @@ export interface Star {
   y: number
   size: number
   alpha: number
+  twinkle: number
+  phase: number
+  speed: number
 }
 
 export interface StoryRecord {
@@ -32,13 +35,19 @@ function mulberry32(seed: number) {
 }
 
 const random = mulberry32(0x9e3779b9)
+const twinkleRandom = mulberry32(0x51ed270b)
 
 export const STARS: Star[] = Array.from({ length: STAR_COUNT }, (_, index) => ({
   index,
   x: random(),
   y: random(),
-  size: 0.6 + random() * 0.8,
-  alpha: 0.1 + random() * 0.14,
+  // Keep exactly two random() calls per star for size/alpha so existing
+  // stored star indices keep their original x/y positions.
+  size: 1 + random() * 0.9,
+  alpha: 0.22 + random() * 0.16,
+  twinkle: 0.12 + twinkleRandom() * 0.2,
+  phase: twinkleRandom() * Math.PI * 2,
+  speed: 0.08 + twinkleRandom() * 0.22,
 }))
 
 function findNearestIndex(x: number, y: number) {
