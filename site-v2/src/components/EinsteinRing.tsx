@@ -4,7 +4,7 @@ interface EinsteinRingProps {
   animate?: boolean
 }
 
-type DustTone = 'gold' | 'blue'
+type SparkTone = 'blue' | 'silver'
 
 interface ArcSpec {
   start: number
@@ -12,82 +12,90 @@ interface ArcSpec {
   radius: number
   squash: number
   tilt: number
-  goldBias: number
+  phase: number
+  width: number
+  alpha: number
   count: number
 }
 
-interface Dust {
+interface Spark {
   t: number
   speed: number
   offset: number
   size: number
   phase: number
-  tone: DustTone
+  tone: SparkTone
   glow: boolean
 }
 
 interface Arc extends ArcSpec {
-  dust: Dust[]
+  sparks: Spark[]
 }
 
 const TAU = Math.PI * 2
 
 /*
- * Three broken, almost concentric light paths. Different starts, spans and
- * tilts keep the ring from closing into a geometric circle: it should read
- * as bent background light, not as a drawn halo.
+ * Three unequal, non-closing lensed arcs. Their different radii, tilts and
+ * spans keep the cold light broken instead of turning it into a ringed
+ * planet. The warm elliptical galaxy at the centre is the lens itself.
  */
 const ARC_SPECS: ArcSpec[] = [
   {
-    start: -2.62,
-    span: 4.72,
-    radius: 0.985,
+    start: -2.24,
+    span: 1.9,
+    radius: 0.33,
     squash: 0.9,
     tilt: -0.22,
-    goldBias: 0.72,
-    count: 2400,
+    phase: 0.35,
+    width: 1.15,
+    alpha: 0.6,
+    count: 300,
   },
   {
-    start: 0.24,
-    span: 4.38,
-    radius: 1,
+    start: 0.35,
+    span: 1.35,
+    radius: 0.352,
     squash: 0.93,
-    tilt: -0.17,
-    goldBias: 0.34,
-    count: 1900,
+    tilt: -0.12,
+    phase: 1.85,
+    width: 0.9,
+    alpha: 0.46,
+    count: 220,
   },
   {
-    start: -1.36,
-    span: 3.86,
-    radius: 1.014,
-    squash: 0.88,
-    tilt: -0.25,
-    goldBias: 0.56,
-    count: 1200,
+    start: 2.18,
+    span: 1.15,
+    radius: 0.318,
+    squash: 0.87,
+    tilt: -0.27,
+    phase: 3.1,
+    width: 0.72,
+    alpha: 0.36,
+    count: 160,
   },
 ]
 
 function buildArcs(): Arc[] {
   return ARC_SPECS.map((arc) => ({
     ...arc,
-    dust: Array.from({ length: arc.count }, () => ({
+    sparks: Array.from({ length: arc.count }, () => ({
       t: Math.random(),
-      speed: 0.75 + Math.random() * 0.5,
-      offset: (Math.random() - 0.5) * 0.008,
-      size: 0.3 + Math.random() ** 2 * 0.8,
+      speed: 0.7 + Math.random() * 0.6,
+      offset: (Math.random() - 0.5) * 0.055,
+      size: 0.45 + Math.random() ** 2 * 1.0,
       phase: Math.random() * TAU,
-      tone: Math.random() < arc.goldBias ? 'gold' : 'blue',
-      glow: Math.random() < 0.06,
+      tone: Math.random() < 0.18 ? 'silver' : 'blue',
+      glow: Math.random() < 0.08,
     })),
   }))
 }
 
 /**
- * A restrained Einstein ring for the Science overview. Three non-closing
- * arcs of dust bend around a tiny dark lens; the particles drift slowly and
- * breathe between 0.5 and 0.8 opacity. There is no solid ring band and no
- * bright central disc. The canvas is decorative, so it ignores pointer
- * events and is hidden from assistive technology.
+ * Hubble-style lensing diagram: a small warm elliptical galaxy at the centre,
+ * surrounded by two or three broken cold-blue arcs of stretched background
+ * light. The arcs breathe and drift almost imperceptibly; the overall opacity
+ * stays between 0.55 and 0.78. Decorative only: no pointer events, no screen
+ * reader content.
  */
 export function EinsteinRing({ animate = true }: EinsteinRingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -99,7 +107,8 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
     const context = canvas.getContext('2d')
     if (!context) return
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2) || 1
+    // Fine arcs need a real 2x buffer even on 1x displays.
+    const dpr = 2
     const arcs = buildArcs()
 
     let width = 0
@@ -112,97 +121,170 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
       if (width < 2 || height < 2) return
 
       const time = animate ? (now - startedAt) / 1000 : 0.8
-      const breath = animate ? 0.64 + 0.13 * Math.sin(time * 0.28) : 0.66
-      const systemRotation = animate ? time * 0.0022 : 0.2
-      const centerX = width * 0.52
+      const breath = animate ? 0.66 + 0.12 * Math.sin(time * 0.26) : 0.72
+      const systemRotation = animate ? time * 0.0012 : 0.08
+
+      const centerX = width * 0.5
       const centerY = height * 0.5
-      const baseRadius = Math.min(width, height) * 0.34
+      const minSide = Math.min(width, height)
+      const baseRadius = minSide * 0.335
+      const galaxyCore = minSide * 0.042
+      const galaxyHalo = minSide * 0.105
 
       context.clearRect(0, 0, width, height)
       context.globalAlpha = breath
       context.globalCompositeOperation = 'lighter'
+      context.lineCap = 'round'
 
+      // --- cold, broken lensed arcs -------------------------------------
       for (const arc of arcs) {
+        const start = arc.start + systemRotation
+        const slowBreath =
+          1 + 0.005 * Math.sin(time * 0.22 + arc.phase)
+        const radius = baseRadius * arc.radius * slowBreath
+
         context.save()
         context.translate(centerX, centerY)
         context.rotate(arc.tilt)
         context.scale(1, arc.squash)
 
-        for (const dust of arc.dust) {
-          let t = dust.t + time * dust.speed * 0.0035
-          t -= Math.floor(t)
+        // Very soft halo behind the arc, not a solid band.
+        context.beginPath()
+        context.arc(0, 0, radius, start, start + arc.span)
+        context.lineWidth = arc.width * 4.2
+        context.strokeStyle = `rgba(93, 138, 168, ${arc.alpha * 0.075})`
+        context.stroke()
 
-          // Endpoints dissolve so the arc never closes.
-          const edge = Math.max(0, Math.min(1, t / 0.07, (1 - t) / 0.07))
-          if (edge <= 0) continue
-
-          const angle = arc.start + t * arc.span + systemRotation
-          const radius =
-            baseRadius *
-            arc.radius *
-            (1 +
-              dust.offset +
-              Math.sin(time * 0.2 + dust.phase) * 0.0008)
-          const x = Math.cos(angle) * radius
-          const y = Math.sin(angle) * radius
-
-          const grain =
-            0.35 +
-            0.65 *
-              Math.pow(0.5 + 0.5 * Math.sin(t * 83 + dust.phase), 2)
-          const shimmer = 0.72 + 0.28 * Math.sin(time * 0.6 + dust.phase)
-          const alpha =
-            edge *
-            grain *
-            shimmer *
-            (dust.tone === 'gold' ? 0.2 : 0.25)
+        // Tapered body, drawn in short overlapping arc segments so the
+        // ends dissolve and the brightness can knot along the arc.
+        const segments = 96
+        for (let index = 0; index < segments; index += 1) {
+          const t0 = index / segments
+          const t1 = Math.min(1, (index + 1.7) / segments)
+          const edge = Math.max(
+            0,
+            Math.min(1, t0 / 0.1, (1 - t0) / 0.1),
+          )
+          const knot =
+            0.58 +
+            0.42 *
+              Math.pow(
+                0.5 + 0.5 * Math.sin(t0 * 11 + arc.phase * 2.3),
+                2,
+              )
+          const shimmer =
+            0.9 + 0.1 * Math.sin(time * 0.5 + t0 * 8 + arc.phase)
+          const alpha = arc.alpha * edge * knot * shimmer
           if (alpha < 0.012) continue
 
-          if (dust.glow) {
+          context.beginPath()
+          context.arc(
+            0,
+            0,
+            radius,
+            start + t0 * arc.span,
+            start + t1 * arc.span,
+          )
+          context.lineWidth =
+            arc.width * (0.7 + 0.3 * Math.sin(t0 * Math.PI))
+          context.strokeStyle = `rgba(93, 138, 168, ${alpha})`
+          context.stroke()
+        }
+
+        // Stretched background stars scattered around the arc.
+        for (const spark of arc.sparks) {
+          let t = spark.t + time * spark.speed * 0.0015
+          t -= Math.floor(t)
+
+          const edge = Math.max(
+            0,
+            Math.min(1, t / 0.08, (1 - t) / 0.08),
+          )
+          if (edge <= 0) continue
+
+          const angle = start + t * arc.span
+          const sparkRadius =
+            radius *
+            (1 +
+              spark.offset +
+              Math.sin(time * 0.18 + spark.phase) * 0.003)
+          const x = Math.cos(angle) * sparkRadius
+          const y = Math.sin(angle) * sparkRadius
+
+          const twinkle =
+            0.55 + 0.45 * Math.sin(time * 0.8 + spark.phase)
+          const alpha = edge * (0.22 + 0.5 * twinkle)
+          if (alpha < 0.02) continue
+
+          if (spark.glow) {
             context.fillStyle =
-              dust.tone === 'gold'
-                ? `rgba(212, 175, 55, ${alpha * 0.12})`
-                : `rgba(74, 78, 105, ${alpha * 0.18})`
+              spark.tone === 'silver'
+                ? `rgba(190, 210, 225, ${alpha * 0.14})`
+                : `rgba(93, 138, 168, ${alpha * 0.18})`
             context.beginPath()
-            context.arc(x, y, dust.size * 3.4, 0, TAU)
+            context.arc(x, y, spark.size * 3.2, 0, TAU)
             context.fill()
           }
 
           context.fillStyle =
-            dust.tone === 'gold'
-              ? `rgba(212, 175, 55, ${alpha})`
-              : `rgba(74, 78, 105, ${alpha})`
+            spark.tone === 'silver'
+              ? `rgba(190, 210, 225, ${alpha})`
+              : `rgba(93, 138, 168, ${alpha})`
           context.beginPath()
-          context.arc(x, y, dust.size, 0, TAU)
+          context.arc(x, y, spark.size, 0, TAU)
           context.fill()
         }
 
         context.restore()
       }
 
-      // The lens: a tiny, almost-black point with a soft cool haze. No rim,
-      // no filled disc — just enough darkness to anchor the bent light.
-      const lens = context.createRadialGradient(
-        centerX,
-        centerY,
+      // --- warm elliptical lens galaxy ----------------------------------
+      context.save()
+      context.translate(centerX, centerY)
+      context.rotate(-0.24)
+      context.scale(1, 0.68)
+
+      const halo = context.createRadialGradient(
         0,
-        centerX,
-        centerY,
-        15,
+        0,
+        0,
+        0,
+        0,
+        galaxyHalo,
       )
-      lens.addColorStop(0, 'rgba(0, 0, 0, 0.98)')
-      lens.addColorStop(0.34, 'rgba(0, 0, 0, 0.9)')
-      lens.addColorStop(0.64, 'rgba(20, 22, 34, 0.22)')
-      lens.addColorStop(1, 'rgba(74, 78, 105, 0)')
-      context.fillStyle = lens
+      halo.addColorStop(0, 'rgba(248, 186, 120, 0.18)')
+      halo.addColorStop(0.4, 'rgba(212, 130, 74, 0.075)')
+      halo.addColorStop(0.75, 'rgba(150, 78, 42, 0.02)')
+      halo.addColorStop(1, 'rgba(120, 60, 30, 0)')
+      context.fillStyle = halo
       context.beginPath()
-      context.arc(centerX, centerY, 15, 0, TAU)
+      context.arc(0, 0, galaxyHalo, 0, TAU)
       context.fill()
 
-      context.fillStyle = 'rgba(212, 175, 55, 0.22)'
+      const core = context.createRadialGradient(
+        0,
+        0,
+        0,
+        0,
+        0,
+        galaxyCore,
+      )
+      core.addColorStop(0, 'rgba(255, 244, 218, 0.88)')
+      core.addColorStop(0.18, 'rgba(255, 222, 170, 0.75)')
+      core.addColorStop(0.45, 'rgba(240, 170, 100, 0.4)')
+      core.addColorStop(0.75, 'rgba(186, 100, 56, 0.08)')
+      core.addColorStop(1, 'rgba(120, 50, 25, 0)')
+      context.fillStyle = core
       context.beginPath()
-      context.arc(centerX, centerY, 0.8, 0, TAU)
+      context.arc(0, 0, galaxyCore, 0, TAU)
       context.fill()
+
+      context.fillStyle = 'rgba(255, 250, 235, 0.95)'
+      context.beginPath()
+      context.arc(0, 0, 1.8, 0, TAU)
+      context.fill()
+
+      context.restore()
 
       context.globalAlpha = 1
       context.globalCompositeOperation = 'source-over'
