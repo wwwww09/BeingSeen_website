@@ -711,6 +711,23 @@ a {
   pointer-events: none;
 }
 
+@keyframes einstein-ring-breathe {
+  0%,
+  100% {
+    opacity: 0.96;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.006);
+  }
+}
+
+.einstein-ring[data-animate='true'][data-visible='true'] {
+  animation: einstein-ring-breathe 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
 @media (max-width: 1180px) {
   .einstein-ring {
     display: none;

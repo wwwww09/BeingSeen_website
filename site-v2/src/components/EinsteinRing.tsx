@@ -183,16 +183,15 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
     let grainCanvas: HTMLCanvasElement | null = null
     let width = 0
     let height = 0
-    let frame = 0
-    let visible = true
-    const startedAt = performance.now()
 
-    const drawFrame = (now: number) => {
+    const drawFrame = () => {
       if (width < 2 || height < 2) return
 
-      const time = animate ? (now - startedAt) / 1000 : 0.8
-      const breath = animate ? 0.66 + 0.1 * Math.sin(time * 0.26) : 0.72
-      const systemRotation = animate ? time * 0.0008 : 0.06
+      // One chosen moment, baked once. The CSS layer supplies the slow
+      // breathing; there is no JavaScript render loop left.
+      const time = 0.9
+      const breath = 0.66 + 0.1 * Math.sin(time * 0.26)
+      const systemRotation = time * 0.0008
 
       const centerX = width * 0.5
       const centerY = height * 0.5
@@ -362,49 +361,36 @@ export function EinsteinRing({ animate = true }: EinsteinRingProps) {
       canvas.height = Math.round(height * dpr)
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
       grainCanvas = makeGrain(width, height, dpr)
-      if (!animate) drawFrame(startedAt)
+      drawFrame()
     }
 
     const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(canvas)
     resize()
 
-    const tick = (now: number) => {
-      frame = 0
-      if (!visible) return
-
-      drawFrame(now)
-      frame = requestAnimationFrame(tick)
-    }
-
-    const start = () => {
-      if (!animate || !visible || frame) return
-      frame = requestAnimationFrame(tick)
-    }
-
-    const stop = () => {
-      if (frame) cancelAnimationFrame(frame)
-      frame = 0
-    }
-
-    const intersectionObserver = new IntersectionObserver(
+    // The only per-frame motion is the CSS breath. This observer merely
+    // pauses that compositor animation when the ring leaves the viewport.
+    canvas.dataset.visible = 'false'
+    const visibilityObserver = new IntersectionObserver(
       ([entry]) => {
-        visible = entry.isIntersecting
-        if (visible) start()
-        else stop()
+        canvas.dataset.visible = entry.isIntersecting ? 'true' : 'false'
       },
-      { rootMargin: '120px', threshold: 0.01 },
+      { threshold: 0.01 },
     )
-    intersectionObserver.observe(canvas)
-
-    if (animate) start()
+    visibilityObserver.observe(canvas)
 
     return () => {
-      stop()
       resizeObserver.disconnect()
-      intersectionObserver.disconnect()
+      visibilityObserver.disconnect()
     }
-  }, [animate])
+  }, [])
 
-  return <canvas ref={canvasRef} className="einstein-ring" aria-hidden="true" />
+  return (
+    <canvas
+      ref={canvasRef}
+      className="einstein-ring"
+      data-animate={animate ? 'true' : 'false'}
+      aria-hidden="true"
+    />
+  )
 }
