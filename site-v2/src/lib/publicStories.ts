@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import type { StoryRecord } from './messageBoard'
+import {
+  MAX_STORY_LENGTH,
+  STAR_COUNT,
+  type StoryRecord,
+} from './messageBoard'
 
 const env = import.meta.env
 const supabaseUrl = env.VITE_SUPABASE_URL as string | undefined
@@ -35,15 +39,38 @@ export interface NewPublicStory {
   story: string
 }
 
-function toStory(row: StoryRow): StoryRecord {
+function toStory(row: StoryRow): StoryRecord | null {
+  const index = Number(row.star_index)
+  const x = Number(row.x)
+  const y = Number(row.y)
+  const createdAt = new Date(row.created_at).getTime()
+  const story =
+    typeof row.story === 'string'
+      ? row.story.trim().slice(0, MAX_STORY_LENGTH)
+      : ''
+
+  if (
+    typeof row.id !== 'string' ||
+    !row.id ||
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= STAR_COUNT ||
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(createdAt) ||
+    !story
+  ) {
+    return null
+  }
+
   return {
     id: row.id,
-    index: row.star_index,
-    x: row.x,
-    y: row.y,
-    story: row.story,
-    createdAt: new Date(row.created_at).getTime(),
-    ownerId: row.owner_id,
+    index,
+    x,
+    y,
+    story,
+    createdAt,
+    ownerId: typeof row.owner_id === 'string' ? row.owner_id : undefined,
   }
 }
 
@@ -96,7 +123,9 @@ export async function fetchPublicStories(): Promise<StoryRecord[]> {
     if (batch.length < 1000) break
   }
 
-  return rows.map(toStory)
+  return rows
+    .map(toStory)
+    .filter((story): story is StoryRecord => story !== null)
 }
 
 export async function createPublicStory(
@@ -119,7 +148,11 @@ export async function createPublicStory(
     .single()
 
   if (error) throw error
-  return toStory(data as StoryRow)
+  const story = toStory(data as StoryRow)
+  if (!story) {
+    throw new Error('The story was saved but could not be read back.')
+  }
+  return story
 }
 
 export async function deletePublicStory(id: string): Promise<void> {

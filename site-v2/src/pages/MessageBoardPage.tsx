@@ -92,19 +92,23 @@ export function MessageBoardPage() {
     }
 
     const boot = async () => {
-      try {
-        const id = await ensureAnonymousUser()
-        if (active) setUserId(id)
-      } catch (error) {
-        if (active) {
-          setLoadError(
-            storyErrorMessage(
-              error,
-              'Anonymous sessions are unavailable right now.',
-            ),
-          )
-        }
-      }
+      // Reading the board is public. Never let a slow anonymous-auth request
+      // hide existing stories behind a loading state.
+      void ensureAnonymousUser()
+        .then((id) => {
+          if (active) setUserId(id)
+        })
+        .catch((error) => {
+          if (active) {
+            setLoadError(
+              storyErrorMessage(
+                error,
+                'Anonymous sessions are unavailable right now.',
+              ),
+            )
+          }
+        })
+
       await refresh()
     }
 
