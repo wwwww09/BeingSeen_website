@@ -13,6 +13,8 @@ export interface Star {
   speed: number
 }
 
+export type StoryStatus = 'pending' | 'approved' | 'rejected'
+
 export interface StoryRecord {
   id: string
   index: number
@@ -21,6 +23,7 @@ export interface StoryRecord {
   story: string
   createdAt: number
   ownerId?: string
+  status?: StoryStatus
 }
 
 /** Deterministic PRNG so the same 10,000 stars return after a reload. */

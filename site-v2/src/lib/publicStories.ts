@@ -30,6 +30,7 @@ interface StoryRow {
   story: string
   owner_id: string
   created_at: string
+  status?: string
 }
 
 export interface NewPublicStory {
@@ -71,6 +72,10 @@ function toStory(row: StoryRow): StoryRecord | null {
     story,
     createdAt,
     ownerId: typeof row.owner_id === 'string' ? row.owner_id : undefined,
+    status:
+      row.status === 'pending' || row.status === 'rejected'
+        ? row.status
+        : 'approved',
   }
 }
 
@@ -112,7 +117,7 @@ export async function fetchPublicStories(): Promise<StoryRecord[]> {
   for (let from = 0; from < 10000; from += 1000) {
     const { data, error } = await supabase
       .from('stories')
-      .select('id, star_index, x, y, story, owner_id, created_at')
+      .select('*')
       .order('created_at', { ascending: false })
       .range(from, from + 999)
 

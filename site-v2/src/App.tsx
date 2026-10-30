@@ -19,6 +19,12 @@ const ShotPreviewPage = lazy(() =>
   })),
 )
 
+const AdminModerationPage = lazy(() =>
+  import('./pages/AdminModerationPage').then((module) => ({
+    default: module.AdminModerationPage,
+  })),
+)
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -42,6 +48,15 @@ export default function App() {
         />
 
         <Route path="/" element={<HomePage />} />
+
+        <Route
+          path="/admin/moderation"
+          element={
+            <Suspense fallback={<div className="figure-preview" />}>
+              <AdminModerationPage />
+            </Suspense>
+          }
+        />
 
         <Route element={<SiteShell />}>
           <Route path="science" element={<ScienceLayout />}>

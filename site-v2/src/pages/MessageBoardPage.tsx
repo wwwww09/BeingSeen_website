@@ -49,6 +49,7 @@ export function MessageBoardPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(isPublicBoard)
   const [isSaving, setIsSaving] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -63,9 +64,14 @@ export function MessageBoardPage() {
         (userId !== null && selectedStory.ownerId === userId)),
   )
 
+  const approvedCount = stories.filter(
+    (story) => story.status !== 'pending' && story.status !== 'rejected',
+  ).length
+
   const closeModal = useCallback(() => {
     setSelected(null)
     setDraft('')
+    setSubmitted(false)
     setNotice(null)
   }, [])
 
@@ -96,7 +102,12 @@ export function MessageBoardPage() {
       // hide existing stories behind a loading state.
       void ensureAnonymousUser()
         .then((id) => {
-          if (active) setUserId(id)
+          if (active) {
+            setUserId(id)
+            // Once the anonymous identity exists, fetch again so the
+            // owner can also see their own pending story under RLS.
+            void refresh()
+          }
         })
         .catch((error) => {
           if (active) {
@@ -147,6 +158,7 @@ export function MessageBoardPage() {
 
   const openStar = (index: number) => {
     setDraft('')
+    setSubmitted(false)
     setNotice(null)
     setSelected(index)
   }
@@ -174,6 +186,7 @@ export function MessageBoardPage() {
           story,
           ...previous.filter((entry) => entry.index !== story.index),
         ])
+        setSubmitted(true)
       } else {
         const story: StoryRecord = {
           id: createStoryId(),
@@ -189,8 +202,8 @@ export function MessageBoardPage() {
         ]
         saveStories(next)
         setStories(next)
+        closeModal()
       }
-      closeModal()
     } catch (error) {
       setNotice(
         storyErrorMessage(error, 'The story could not be sent. Try again.'),
@@ -271,7 +284,7 @@ export function MessageBoardPage() {
             {STAR_COUNT.toLocaleString('en-US')} UNOBSERVED STARS
           </span>
           <span className="message-map__hud-item message-map__hud-item--tr">
-            {stories.length} LIT
+            {approvedCount} LIT
           </span>
           <span className="message-map__hud-item message-map__hud-item--bl">
             ZTF / DARK SKY
@@ -315,11 +328,15 @@ export function MessageBoardPage() {
         >
           <div
             className="message-modal__panel"
-            data-lit={selectedStory ? 'true' : 'false'}
+            data-lit={selectedStory && !submitted ? 'true' : 'false'}
             role="dialog"
             aria-modal="true"
             aria-labelledby={
-              selectedStory ? 'message-modal-kicker' : 'message-modal-title'
+              submitted
+                ? 'message-modal-confirmation'
+                : selectedStory
+                  ? 'message-modal-kicker'
+                  : 'message-modal-title'
             }
           >
             <button
@@ -337,19 +354,46 @@ export function MessageBoardPage() {
               </p>
             ) : null}
 
-            {selectedStory ? (
+            {submitted ? (
+              <>
+                <p className="message-modal__kicker">A signal received</p>
+                <h2
+                  className="message-modal__title"
+                  id="message-modal-confirmation"
+                >
+                  Your message has been sent into the cosmos.
+                </h2>
+                <p className="message-modal__note">
+                  It is awaiting a final orbit to light up.
+                </p>
+                <div className="message-modal__actions">
+                  <button
+                    className="message-modal__submit"
+                    type="button"
+                    onClick={closeModal}
+                  >
+                    Return to the stars
+                  </button>
+                </div>
+              </>
+            ) : selectedStory ? (
               <>
                 <p
                   className="message-modal__kicker"
                   id="message-modal-kicker"
                 >
-                  A story from the dark
+                  {selectedStory.status === 'pending'
+                    ? 'A star awaiting its final orbit'
+                    : 'A story from the dark'}
                 </p>
                 <p className="message-modal__story">
                   {selectedStory.story}
                 </p>
                 <p className="message-modal__meta">
                   Left on {formatDate(selectedStory.createdAt)}
+                  {selectedStory.status === 'pending'
+                    ? ' · Awaiting moderation'
+                    : ''}
                 </p>
                 <div className="message-modal__actions">
                   {canDelete ? (

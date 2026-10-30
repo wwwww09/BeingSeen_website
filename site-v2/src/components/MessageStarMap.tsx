@@ -110,11 +110,51 @@ export function MessageStarMap({
       // --- lit stories ------------------------------------------------
       context.globalCompositeOperation = 'lighter'
       for (const story of storiesRef.current) {
+        if (story.status === 'rejected') continue
+
         const star = STARS[story.index]
         if (!star) continue
 
         const x = star.x * width
         const y = star.y * height
+
+        if (story.status === 'pending') {
+          // A visitor's own unapproved story: a dim amber ember, breathing
+          // very slowly. It is not a fully lit star yet.
+          const slow = reducedRef.current
+            ? 0.5
+            : 0.5 + 0.5 * Math.sin(now * 0.00055 + story.index * 1.3)
+          const pendingAlpha = 0.1 + 0.12 * slow
+          const pendingRadius = 5 + 1.4 * slow
+          const pendingGlow = context.createRadialGradient(
+            x,
+            y,
+            0,
+            x,
+            y,
+            pendingRadius,
+          )
+          pendingGlow.addColorStop(
+            0,
+            `rgba(255, 214, 140, ${pendingAlpha})`,
+          )
+          pendingGlow.addColorStop(
+            0.45,
+            `rgba(255, 191, 0, ${pendingAlpha * 0.45})`,
+          )
+          pendingGlow.addColorStop(1, 'rgba(255, 150, 30, 0)')
+          context.fillStyle = pendingGlow
+          context.beginPath()
+          context.arc(x, y, pendingRadius, 0, TAU)
+          context.fill()
+
+          context.fillStyle = `rgba(255, 226, 160, ${0.35 + 0.25 * slow})`
+          context.beginPath()
+          context.arc(x, y, 0.9 + 0.4 * slow, 0, TAU)
+          context.fill()
+          continue
+        }
+
         const elapsed = Date.now() - story.createdAt
         const rawProgress = reducedRef.current
           ? 1
