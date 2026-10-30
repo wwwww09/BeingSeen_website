@@ -54,3 +54,8 @@ create policy "Anonymous users can add a story"
 
 -- The owner delete policy from schema.sql is unchanged.
 -- The admin API uses the service role key and bypasses RLS.
+
+-- RLS bypass is not the same as table privileges. The admin API runs as
+-- service_role, so it needs explicit SELECT/UPDATE/DELETE grants.
+grant usage on schema public to service_role;
+grant select, update, delete on table public.stories to service_role;
